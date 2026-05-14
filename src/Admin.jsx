@@ -1,42 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase, getRestaurantProfiles, adminUpdateProfile, getTemplates, getRecipes, getRestaurantReports } from "./lib/supabase.js";
 
-//  MOCK DATA 
-const MOCK_USERS = [
-  { id: "u1", name: "Marco Rossi",    email: "marco@kitchen.io",  role: "admin",  station: "Sauté",  active: true,  last_seen: "2 min ago",    joined: "Jan 12, 2026", shifts_this_week: 5, avg_completion: 94 },
-  { id: "u2", name: "Yuki Tanaka",    email: "yuki@kitchen.io",   role: "admin",  station: "Garde",  active: true,  last_seen: "41 min ago",   joined: "Jan 12, 2026", shifts_this_week: 4, avg_completion: 88 },
-  { id: "u3", name: "Devon Clarke",   email: "devon@kitchen.io",  role: "cook",   station: "Grill",  active: true,  last_seen: "1 hr ago",     joined: "Feb 3, 2026",  shifts_this_week: 5, avg_completion: 79 },
-  { id: "u4", name: "Priya Nair",     email: "priya@kitchen.io",  role: "cook",   station: "Cold",   active: true,  last_seen: "3 hr ago",     joined: "Feb 3, 2026",  shifts_this_week: 4, avg_completion: 91 },
-  { id: "u5", name: "Luca Ferreira",  email: "luca@kitchen.io",   role: "cook",   station: "Pastry", active: true,  last_seen: "Yesterday",    joined: "Mar 1, 2026",  shifts_this_week: 3, avg_completion: 85 },
-  { id: "u6", name: "Anya Kovac",     email: "anya@kitchen.io",   role: "cook",   station: "Prep",   active: false, last_seen: "5 days ago",   joined: "Mar 15, 2026", shifts_this_week: 0, avg_completion: 72 },
-];
-
-const MOCK_TEMPLATES = [
-  { id: "t1", name: "Opening — Full Kitchen", station: "All",   is_shared: true,  created_by: "Marco Rossi",  items: 8,  color: "#F97316" },
-  { id: "t2", name: "Closing — Full Kitchen", station: "All",   is_shared: true,  created_by: "Marco Rossi",  items: 7,  color: "#6366F1" },
-  { id: "t3", name: "Grill Station Prep",     station: "Grill", is_shared: true,  created_by: "Devon Clarke", items: 12, color: "#EF4444" },
-  { id: "t4", name: "Cold Section Daily",     station: "Cold",  is_shared: true,  created_by: "Priya Nair",   items: 9,  color: "#22D3EE" },
-  { id: "t5", name: "My Pastry Checklist",    station: "Pastry",is_shared: false, created_by: "Luca Ferreira",items: 6,  color: "#A78BFA" },
-  { id: "t6", name: "Personal Mise",          station: "Sauté", is_shared: false, created_by: "Yuki Tanaka",  items: 5,  color: "#10B981" },
-];
-
-const MOCK_RECIPES = [
-  { id: "r1", name: "Beurre Blanc",     station: "Sauté",  is_shared: true,  created_by: "Marco Rossi",  ingredients: 5 },
-  { id: "r2", name: "Garlic Confit",    station: "Garde",  is_shared: true,  created_by: "Yuki Tanaka",  ingredients: 4 },
-  { id: "r3", name: "Beef Jus",         station: "Grill",  is_shared: true,  created_by: "Devon Clarke", ingredients: 7 },
-  { id: "r4", name: "Crème Brûlée",     station: "Pastry", is_shared: true,  created_by: "Luca Ferreira",ingredients: 5 },
-  { id: "r5", name: "My Hollandaise",   station: "Sauté",  is_shared: false, created_by: "Marco Rossi",  ingredients: 4 },
-  { id: "r6", name: "Luca's Ganache",   station: "Pastry", is_shared: false, created_by: "Luca Ferreira",ingredients: 6 },
-];
-
-const MOCK_REPORTS = [
-  { id: "rp1", user_id: "u1", name: "Marco Rossi",   date: "Today",     pct: 100, done: 15, total: 15, station: "Sauté",  sections: [{name:"Opening",done:7,total:7},{name:"Closing",done:8,total:8}], next_shift: [] },
-  { id: "rp2", user_id: "u2", name: "Yuki Tanaka",   date: "Today",     pct: 88,  done: 14, total: 16, station: "Garde",  sections: [{name:"Opening",done:8,total:8},{name:"Cold",done:6,total:8}],    next_shift: ["Label stocks","Clean reach-in"] },
-  { id: "rp3", user_id: "u3", name: "Devon Clarke",  date: "Today",     pct: 73,  done: 11, total: 15, station: "Grill",  sections: [{name:"Opening",done:6,total:8},{name:"Grill Prep",done:5,total:7}],next_shift: ["Season cast iron","Prep marinade"] },
-  { id: "rp4", user_id: "u4", name: "Priya Nair",    date: "Today",     pct: 100, done: 12, total: 12, station: "Cold",   sections: [{name:"Opening",done:5,total:5},{name:"Cold Section",done:7,total:7}],next_shift: [] },
-  { id: "rp5", user_id: "u5", name: "Luca Ferreira", date: "Today",     pct: 83,  done: 10, total: 12, station: "Pastry", sections: [{name:"Opening",done:5,total:5},{name:"Pastry",done:5,total:7}],   next_shift: ["Temper chocolate"] },
-  { id: "rp6", user_id: "u1", name: "Marco Rossi",   date: "Yesterday", pct: 93,  done: 14, total: 15, station: "Sauté",  sections: [{name:"Opening",done:7,total:7},{name:"Closing",done:7,total:8}], next_shift: ["Order butter"] },
-  { id: "rp7", user_id: "u3", name: "Devon Clarke",  date: "Yesterday", pct: 80,  done: 12, total: 15, station: "Grill",  sections: [{name:"Opening",done:7,total:8},{name:"Grill Prep",done:5,total:7}],next_shift: [] },
-];
 
 const STATION_COLORS = {
   Grill:"#EF4444", Sauté:"#F97316", Cold:"#22D3EE",
@@ -127,9 +91,9 @@ function Modal({ title, onClose, children }) {
   );
 }
 
-//  PEOPLE TAB 
+//  PEOPLE TAB
 function PeopleTab() {
-  const [users, setUsers] = useState(MOCK_USERS);
+  const [users, setUsers] = useState([]);
   const [selected, setSelected] = useState(null);
   const [showInvite, setShowInvite] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
@@ -137,25 +101,64 @@ function PeopleTab() {
   const [inviteStation, setInviteStation] = useState('Grill');
   const [inviteSent, setInviteSent] = useState(false);
   const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(false); // eslint-disable-line no-unused-vars
+  const [loading, setLoading] = useState(false);
   const { show: toast } = useToast();
 
+  useEffect(() => {
+    getRestaurantProfiles().then(setUsers).catch(e => toast(e.message, 'error'));
+  }, []);
+
   const filtered = users.filter(u =>
-    u.name.toLowerCase().includes(search.toLowerCase()) ||
-    u.email.toLowerCase().includes(search.toLowerCase())
+    (u.name || '').toLowerCase().includes(search.toLowerCase()) ||
+    (u.email || '').toLowerCase().includes(search.toLowerCase())
   );
 
   const activeCount = users.filter(u => u.active).length;
-  const adminCount = users.filter(u => u.role === 'admin').length;
+  const adminCount = users.filter(u => u.role === 'admin' || u.role === 'superadmin').length;
 
-  const sendInvite = () => {
+  const sendInvite = async () => {
     if (!inviteEmail) return;
-    setInviteSent(true);
-    setTimeout(() => { setShowInvite(false); setInviteSent(false); setInviteEmail(''); }, 1800);
+    setLoading(true);
+    try {
+      const { data: { user: me } } = await supabase.auth.getUser();
+      const { data: myProfile } = await supabase.from('profiles').select('name, restaurant_id').eq('id', me.id).single();
+      const { error } = await supabase.functions.invoke('send-invite', {
+        body: {
+          email: inviteEmail,
+          role: inviteRole,
+          station: inviteStation,
+          restaurant_id: myProfile.restaurant_id,
+          invited_by_name: myProfile.name,
+        },
+      });
+      if (error) throw new Error(error.message);
+      setInviteSent(true);
+      setTimeout(() => { setShowInvite(false); setInviteSent(false); setInviteEmail(''); }, 1800);
+    } catch (e) {
+      toast(e.message, 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const toggleActive = (id) => setUsers(us => us.map(u => u.id === id ? { ...u, active: !u.active } : u));
-  const changeRole = (id, role) => setUsers(us => us.map(u => u.id === id ? { ...u, role } : u));
+  const toggleActive = async (id) => {
+    const user = users.find(u => u.id === id);
+    try {
+      await adminUpdateProfile(id, { active: !user.active });
+      setUsers(us => us.map(u => u.id === id ? { ...u, active: !u.active } : u));
+    } catch (e) {
+      toast(e.message, 'error');
+    }
+  };
+
+  const changeRole = async (id, role) => {
+    try {
+      await adminUpdateProfile(id, { role });
+      setUsers(us => us.map(u => u.id === id ? { ...u, role } : u));
+    } catch (e) {
+      toast(e.message, 'error');
+    }
+  };
 
   return (
     <div className="tab-content">
@@ -299,7 +302,7 @@ function PeopleTab() {
               <div className="security-note">
                 🔒 Invite link expires in 48 hours. User sets their own password.
               </div>
-              <button className="btn-primary" onClick={sendInvite}>Send Invite</button>
+              <button className="btn-primary" onClick={sendInvite} disabled={loading}>{loading ? 'Sending…' : 'Send Invite'}</button>
             </div>
           )}
         </Modal>
@@ -308,16 +311,30 @@ function PeopleTab() {
   );
 }
 
-//  CONTENT TAB 
+//  CONTENT TAB
 function ContentTab() {
   const [view, setView] = useState('templates');
-  const [templates, setTemplates] = useState(MOCK_TEMPLATES);
-  const [recipes, setRecipes] = useState(MOCK_RECIPES);
+  const [templates, setTemplates] = useState([]);
+  const [recipes, setRecipes] = useState([]);
   const [stationFilter, setStationFilter] = useState('All');
+  const { show: toast } = useToast();
 
-  const toggleShared = (id, type) => {
-    if (type === 'templates') setTemplates(ts => ts.map(t => t.id === id ? { ...t, is_shared: !t.is_shared } : t));
-    else setRecipes(rs => rs.map(r => r.id === id ? { ...r, is_shared: !r.is_shared } : r));
+  useEffect(() => {
+    getTemplates().then(setTemplates).catch(e => toast(e.message, 'error'));
+    getRecipes().then(setRecipes).catch(e => toast(e.message, 'error'));
+  }, []);
+
+  const toggleShared = async (id, type) => {
+    const table = type === 'templates' ? 'templates' : 'recipes';
+    const list = type === 'templates' ? templates : recipes;
+    const item = list.find(i => i.id === id);
+    try {
+      await supabase.from(table).update({ is_shared: !item.is_shared }).eq('id', id);
+      if (type === 'templates') setTemplates(ts => ts.map(t => t.id === id ? { ...t, is_shared: !t.is_shared } : t));
+      else setRecipes(rs => rs.map(r => r.id === id ? { ...r, is_shared: !r.is_shared } : r));
+    } catch (e) {
+      toast(e.message, 'error');
+    }
   };
 
   const items = view === 'templates' ? templates : recipes;
@@ -386,12 +403,32 @@ function ContentTab() {
   );
 }
 
-//  REPORTS TAB 
+//  REPORTS TAB
 function ReportsTab() {
   const [dateFilter, setDateFilter] = useState('Today');
   const [selected, setSelected] = useState(null);
+  const [reports, setReports] = useState([]);
+  const { show: toast } = useToast();
 
-  const filtered = MOCK_REPORTS.filter(r => r.date === dateFilter);
+  useEffect(() => {
+    const date = dateFilter === 'Today'
+      ? new Date().toISOString().split('T')[0]
+      : new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    getRestaurantReports(date)
+      .then(data => setReports((data || []).map(r => ({
+        ...r,
+        name: r.profiles?.name || 'Unknown',
+        station: r.profiles?.station || '—',
+        pct: r.completed_pct,
+        done: r.completed_count,
+        total: r.total_count,
+        next_shift: r.next_shift || [],
+        sections: r.sections || [],
+      }))))
+      .catch(e => toast(e.message, 'error'));
+  }, [dateFilter]);
+
+  const filtered = reports;
   const avgPct = filtered.length ? Math.round(filtered.reduce((a,r) => a+r.pct, 0) / filtered.length) : 0;
   const perfect = filtered.filter(r => r.pct === 100).length;
   const withNext = filtered.filter(r => r.next_shift.length > 0).length;
