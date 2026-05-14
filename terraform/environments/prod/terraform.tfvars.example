@@ -1,0 +1,30 @@
+# terraform/environments/prod/terraform.tfvars
+#
+# ⚠️  DO NOT commit this file — add to .gitignore
+# Use GitHub Secrets or Terraform Cloud for CI/CD
+#
+# Locally: cp environments/prod/terraform.tfvars.example environments/prod/terraform.tfvars
+
+environment          = "prod"
+domain               = "yourdomain.com"       # replace with your domain
+
+# Cloudflare
+# Dashboard → My Profile → API Tokens → Create Token
+# Required permissions: Pages:Edit, Zone:Edit, Zone:Read
+cloudflare_api_token  = "your_cf_api_token"
+
+# Dashboard → top right corner → Account ID
+cloudflare_account_id = "your_cf_account_id"
+
+# Dashboard → yourdomain.com → Zone ID (right column)
+cloudflare_zone_id    = "your_cf_zone_id"
+
+# Supabase
+# supabase.com → Account → Access Tokens → Generate
+supabase_access_token = "your_supabase_token"
+
+# supabase.com → Organization Settings → General
+supabase_org_id       = "your_supabase_org_id"
+
+# DB password set when creating the project
+supabase_db_password  = "your_db_password"

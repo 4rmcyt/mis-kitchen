@@ -1,0 +1,25 @@
+# Environment
+.env
+.env.local
+.env.production
+.env.staging
+
+# Terraform
+terraform/*.tfvars
+terraform/**/*.tfvars
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/tfplan
+terraform/plan_output.txt
+
+# Build
+dist/
+node_modules/
+.pnpm-store/
+
+# Supabase local
+.supabase/
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,12 @@
+# terraform/environments/staging/terraform.tfvars.example
+
+environment          = "staging"
+domain               = "yourdomain.com"
+
+cloudflare_api_token  = "your_cf_api_token"       # same token as prod
+cloudflare_account_id = "your_cf_account_id"
+cloudflare_zone_id    = "your_cf_zone_id"
+
+supabase_access_token = "your_supabase_token"
+supabase_org_id       = "your_supabase_org_id"
+supabase_db_password  = "staging_db_password"      # different password for staging

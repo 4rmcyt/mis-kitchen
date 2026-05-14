@@ -1,0 +1,284 @@
+
+# .github/workflows/deploy.yml
+#
+# Triggers:
+#   push to main    → deploy to production
+#   push to staging → deploy to staging
+#   pull request    → preview deploy + run checks
+#
+# Required GitHub Secrets (Settings → Secrets → Actions):
+#   CLOUDFLARE_API_TOKEN        — CF token with Pages:Edit permission
+#   CLOUDFLARE_ACCOUNT_ID       — your CF account ID
+#   SUPABASE_ACCESS_TOKEN       — supabase.com → Account → Access Tokens
+#   SUPABASE_PROJECT_REF_PROD   — production project ref (xxxxxxxxxxxx)
+#   SUPABASE_PROJECT_REF_STG    — staging project ref
+#   SUPABASE_DB_PASSWORD_PROD   — DB password production
+#   SUPABASE_DB_PASSWORD_STG    — DB password staging
+
+name: Deploy
+
+on:
+  push:
+    branches: [main, staging]
+  pull_request:
+    branches: [main, staging]
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+# ── Shared env ────────────────────────────────────────────────
+env:
+  NODE_VERSION: "20"
+  PNPM_VERSION: "9"
+
+jobs:
+
+  # ── 1. Lint + type check ──────────────────────────────────────
+  check:
+    name: Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with: { version: "${{ env.PNPM_VERSION }}" }
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Type check
+        run: pnpm typecheck
+
+  # ── 2. Build ──────────────────────────────────────────────────
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: check
+
+    strategy:
+      matrix:
+        environment: ${{ github.ref == 'refs/heads/main' && fromJson('["prod"]') || github.ref == 'refs/heads/staging' && fromJson('["staging"]') || fromJson('["preview"]') }}
+
+    environment: ${{ matrix.environment }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with: { version: "${{ env.PNPM_VERSION }}" }
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+        env:
+          VITE_SUPABASE_URL:      ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_APP_ENV:           ${{ matrix.environment }}
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.environment }}
+          path: dist/
+          retention-days: 1
+
+  # ── 3. Deploy Supabase migrations ────────────────────────────
+  migrate:
+    name: DB Migration
+    runs-on: ubuntu-latest
+    needs: check
+    if: github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with: { version: latest }
+
+      - name: Run migrations (staging)
+        if: github.ref == 'refs/heads/staging'
+        run: |
+          supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_REF_STG }}
+          supabase db push --password ${{ secrets.SUPABASE_DB_PASSWORD_STG }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Run migrations (prod)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_REF_PROD }}
+          supabase db push --password ${{ secrets.SUPABASE_DB_PASSWORD_PROD }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+  # ── 4. Deploy Edge Functions ──────────────────────────────────
+  deploy-functions:
+    name: Edge Functions
+    runs-on: ubuntu-latest
+    needs: migrate
+    if: github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with: { version: latest }
+
+      - name: Deploy functions (staging)
+        if: github.ref == 'refs/heads/staging'
+        run: |
+          supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_REF_STG }}
+          supabase functions deploy send-report  --no-verify-jwt
+          supabase functions deploy push-sync    --no-verify-jwt
+          supabase functions deploy push-webhook --no-verify-jwt
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy functions (prod)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_REF_PROD }}
+          supabase functions deploy send-report  --no-verify-jwt
+          supabase functions deploy push-sync    --no-verify-jwt
+          supabase functions deploy push-webhook --no-verify-jwt
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+  # ── 5. Deploy to Cloudflare Pages ────────────────────────────
+  deploy-frontend:
+    name: Frontend → Cloudflare
+    runs-on: ubuntu-latest
+    needs: [build, deploy-functions]
+    if: github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download build (staging)
+        if: github.ref == 'refs/heads/staging'
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-staging
+          path: dist/
+
+      - name: Download build (prod)
+        if: github.ref == 'refs/heads/main'
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-prod
+          path: dist/
+
+      - name: Deploy to Cloudflare Pages (staging)
+        if: github.ref == 'refs/heads/staging'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist/ --project-name=mis-kitchen --branch=staging
+
+      - name: Deploy to Cloudflare Pages (prod)
+        if: github.ref == 'refs/heads/main'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist/ --project-name=mis-kitchen --branch=main
+
+  # ── 6. Preview deploy for PRs ────────────────────────────────
+  preview:
+    name: Preview Deploy
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'pull_request'
+
+    permissions:
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download preview build
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-preview
+          path: dist/
+
+      - name: Deploy preview to Cloudflare Pages
+        id: cf-deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist/ --project-name=mis-kitchen --branch=pr-${{ github.event.number }}
+
+      - name: Comment PR with preview URL
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: [
+                '## 🚀 Preview Deploy',
+                '',
+                '| | |',
+                '|---|---|',
+                '| **URL** | ${{ steps.cf-deploy.outputs.deployment-url }} |',
+                '| **Branch** | `${{ github.head_ref }}` |',
+                '| **Commit** | `${{ github.sha }}`.slice(0,7) |',
+                '',
+                '_Preview uses staging Supabase project_',
+              ].join('\n')
+            })
+
+  # ── 7. Smoke test after prod deploy ──────────────────────────
+  smoke-test:
+    name: Smoke Test
+    runs-on: ubuntu-latest
+    needs: deploy-frontend
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Wait for deployment to propagate
+        run: sleep 15
+
+      - name: Check app is reachable
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://${{ vars.APP_URL }})
+          echo "HTTP status: $STATUS"
+          if [ "$STATUS" != "200" ]; then
+            echo "❌ App returned $STATUS"
+            exit 1
+          fi
+          echo "✅ App is up"
+
+      - name: Check PWA manifest
+        run: |
+          curl -sf https://${{ vars.APP_URL }}/manifest.json | \
+            python3 -c "import sys,json; d=json.load(sys.stdin); assert d['name'], 'name missing'; print('✅ manifest.json OK')"
+
+      - name: Check service worker
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://${{ vars.APP_URL }}/sw.js)
+          [ "$STATUS" = "200" ] && echo "✅ sw.js OK" || (echo "❌ sw.js $STATUS" && exit 1)

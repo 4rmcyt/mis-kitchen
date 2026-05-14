@@ -1,0 +1,70 @@
+# .github/workflows/monitor.yml
+#
+# Runs every 5 minutes — checks app health and Supabase functions.
+# Sends alert to Slack/email on failure.
+#
+# Required secrets:
+#   SLACK_WEBHOOK_URL   — Slack Incoming Webhook (optional)
+#   ALERT_EMAIL         — email for failure notifications
+
+name: Monitor
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"   # every 5 minutes
+  workflow_dispatch:          # manual trigger
+
+jobs:
+  health-check:
+    name: Health Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check app (prod)
+        id: check-prod
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://mis.yourdomain.com)
+          echo "status=$STATUS" >> $GITHUB_OUTPUT
+          echo "App status: $STATUS"
+          [ "$STATUS" = "200" ] || exit 1
+        continue-on-error: true
+
+      - name: Check manifest.json
+        id: check-manifest
+        run: |
+          curl -sf --max-time 10 https://mis.yourdomain.com/manifest.json > /dev/null
+          echo "Manifest: OK"
+        continue-on-error: true
+
+      - name: Check service worker
+        id: check-sw
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://mis.yourdomain.com/sw.js)
+          [ "$STATUS" = "200" ] || exit 1
+          echo "SW: OK"
+        continue-on-error: true
+
+      - name: Alert on failure
+        if: |
+          steps.check-prod.outcome == 'failure' ||
+          steps.check-manifest.outcome == 'failure' ||
+          steps.check-sw.outcome == 'failure'
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "🚨 *Mis App Health Check Failed*",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "🚨 *Mis App Health Check Failed*\n\n*Checks:*\n• App: ${{ steps.check-prod.outcome }}\n• manifest.json: ${{ steps.check-manifest.outcome }}\n• sw.js: ${{ steps.check-sw.outcome }}\n\n*Time:* ${{ github.event.head_commit.timestamp || 'scheduled' }}\n*Run:* <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View logs>"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+        continue-on-error: true
