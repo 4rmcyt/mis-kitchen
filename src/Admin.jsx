@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-// ── MOCK DATA ────────────────────────────────────────────────────────────────
+//  MOCK DATA 
 const MOCK_USERS = [
   { id: "u1", name: "Marco Rossi",    email: "marco@kitchen.io",  role: "admin",  station: "Sauté",  active: true,  last_seen: "2 min ago",    joined: "Jan 12, 2026", shifts_this_week: 5, avg_completion: 94 },
   { id: "u2", name: "Yuki Tanaka",    email: "yuki@kitchen.io",   role: "admin",  station: "Garde",  active: true,  last_seen: "41 min ago",   joined: "Jan 12, 2026", shifts_this_week: 4, avg_completion: 88 },
@@ -46,9 +46,9 @@ const STATION_COLORS = {
 const ROLE_COLORS = { superadmin:"#F97316", admin:"#6366F1", cook:"#3A3A3A" };
 const ROLE_LABELS = { superadmin:"Super Admin", admin:"Admin", cook:"Cook" };
 
-function uid() { return Math.random().toString(36).slice(2,9); }
+function _uid() { return Math.random().toString(36).slice(2,9); }
 
-// ── TOAST ─────────────────────────────────────────────────────
+//  TOAST 
 function useToast() {
   const [toasts, setToasts] = useState([]);
   const show = (msg, type = "info") => {
@@ -76,7 +76,7 @@ function ToastContainer({ toasts }) {
       ))}
     </div>
   );
-}────────────────
+}
 
 function Avatar({ name, size = 36 }) {
   const initials = name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
@@ -127,7 +127,7 @@ function Modal({ title, onClose, children }) {
   );
 }
 
-// ── PEOPLE TAB ───────────────────────────────────────────────────────────────
+//  PEOPLE TAB 
 function PeopleTab() {
   const [users, setUsers] = useState(MOCK_USERS);
   const [selected, setSelected] = useState(null);
@@ -137,8 +137,8 @@ function PeopleTab() {
   const [inviteStation, setInviteStation] = useState('Grill');
   const [inviteSent, setInviteSent] = useState(false);
   const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(false);
-  const { toasts, show: toast } = useToast();
+  const [loading, setLoading] = useState(false); // eslint-disable-line no-unused-vars
+  const { show: toast } = useToast();
 
   const filtered = users.filter(u =>
     u.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -308,7 +308,7 @@ function PeopleTab() {
   );
 }
 
-// ── CONTENT TAB ──────────────────────────────────────────────────────────────
+//  CONTENT TAB 
 function ContentTab() {
   const [view, setView] = useState('templates');
   const [templates, setTemplates] = useState(MOCK_TEMPLATES);
@@ -322,7 +322,7 @@ function ContentTab() {
 
   const items = view === 'templates' ? templates : recipes;
   const filtered = stationFilter === 'All' ? items : items.filter(i => i.station === stationFilter);
-  const sharedCount = items.filter(i => i.is_shared).length;
+  const _sharedCount = items.filter(i => i.is_shared).length;
 
   return (
     <div className="tab-content">
@@ -386,7 +386,7 @@ function ContentTab() {
   );
 }
 
-// ── REPORTS TAB ──────────────────────────────────────────────────────────────
+//  REPORTS TAB 
 function ReportsTab() {
   const [dateFilter, setDateFilter] = useState('Today');
   const [selected, setSelected] = useState(null);
@@ -502,7 +502,7 @@ function ReportsTab() {
   );
 }
 
-// ── SECURITY TAB ─────────────────────────────────────────────────────────────
+//  SECURITY TAB 
 function SecurityTab() {
   const [resendKey, setResendKey] = useState('re_••••••••••••••••');
   const [showKey, setShowKey] = useState(false);
@@ -591,7 +591,7 @@ CREATE POLICY "recipes_access" ON recipes
   );
 }
 
-// ── MAIN APP ─────────────────────────────────────────────────────────────────
+//  MAIN APP 
 export default function Admin() {
   const [tab, setTab] = useState('people');
 
@@ -649,7 +649,7 @@ export default function Admin() {
   );
 }
 
-// ── CSS ───────────────────────────────────────────────────────────────────────
+//  CSS 
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&display=swap');
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
