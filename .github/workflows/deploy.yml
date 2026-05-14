@@ -68,8 +68,6 @@ jobs:
       matrix:
         environment: ${{ github.ref == 'refs/heads/main' && fromJson('["prod"]') || github.ref == 'refs/heads/staging' && fromJson('["staging"]') || fromJson('["preview"]') }}
 
-    environment: ${{ matrix.environment }}
-
     steps:
       - uses: actions/checkout@v4
 
