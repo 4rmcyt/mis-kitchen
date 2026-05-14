@@ -23,7 +23,7 @@ jobs:
       - name: Check app (prod)
         id: check-prod
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://mis.yourdomain.com)
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://mis.labhome.work)
           echo "status=$STATUS" >> $GITHUB_OUTPUT
           echo "App status: $STATUS"
           [ "$STATUS" = "200" ] || exit 1
@@ -32,14 +32,14 @@ jobs:
       - name: Check manifest.json
         id: check-manifest
         run: |
-          curl -sf --max-time 10 https://mis.yourdomain.com/manifest.json > /dev/null
+          curl -sf --max-time 10 https://mis.labhome.work/manifest.json > /dev/null
           echo "Manifest: OK"
         continue-on-error: true
 
       - name: Check service worker
         id: check-sw
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://mis.yourdomain.com/sw.js)
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://mis.labhome.work/sw.js)
           [ "$STATUS" = "200" ] || exit 1
           echo "SW: OK"
         continue-on-error: true
