@@ -10,7 +10,12 @@ domain               = "yourdomain.com"       # replace with your domain
 
 # Cloudflare
 # Dashboard → My Profile → API Tokens → Create Token
-# Required permissions: Pages:Edit, Zone:Edit, Zone:Read
+# Create at: dash.cloudflare.com → My Profile → API Tokens → Create Token → Custom Token
+# Add these permissions:
+#   Account → Cloudflare Pages → Edit
+#   Zone    → DNS              → Edit
+#   Zone    → Zone             → Read
+# Under Zone Resources: select your specific zone (yourdomain.com)
 cloudflare_api_token  = "your_cf_api_token"
 
 # Dashboard → top right corner → Account ID
@@ -23,7 +28,8 @@ cloudflare_zone_id    = "your_cf_zone_id"
 # supabase.com → Account → Access Tokens → Generate
 supabase_access_token = "your_supabase_token"
 
-# supabase.com → Organization Settings → General
+# Find slug: dashboard.supabase.com → Org Settings → Organization slug
+# It is a short name like "my-company", NOT a UUID
 supabase_org_id       = "your_supabase_org_id"
 
 # DB password set when creating the project

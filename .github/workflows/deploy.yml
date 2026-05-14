@@ -7,7 +7,7 @@
 #   pull request    → preview deploy + run checks
 #
 # Required GitHub Secrets (Settings → Secrets → Actions):
-#   CLOUDFLARE_API_TOKEN        — CF token with Pages:Edit permission
+#   CLOUDFLARE_API_TOKEN        — CF token with Pages:Edit permission REDACTED
 #   CLOUDFLARE_ACCOUNT_ID       — your CF account ID
 #   SUPABASE_ACCESS_TOKEN       — supabase.com → Account → Access Tokens
 #   SUPABASE_PROJECT_REF_PROD   — production project ref (xxxxxxxxxxxx)

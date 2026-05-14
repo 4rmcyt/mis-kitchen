@@ -1,0 +1,7 @@
+# terraform/environments/prod/backend.hcl.example
+# Copy to backend.hcl (gitignored) and fill in values
+# Used with: terraform init -backend-config=environments/prod/backend.hcl
+
+endpoint         = "https://<ACCOUNT_ID>.r2.cloudflarestorage.com"
+access_key       = "<R2_ACCESS_KEY_ID>"
+secret_key       = "<R2_SECRET_ACCESS_KEY>"

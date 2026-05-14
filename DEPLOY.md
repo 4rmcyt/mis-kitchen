@@ -10,13 +10,15 @@
 ## Phase 1 — Supabase (~15 min)
 
 ```bash
-# 1. Create project at supabase.com → mis-kitchen
-# 2. Link CLI
+# 1. Create project at supabase.com → mis-kitchen (database.new)
+# 2. Login and link CLI
 supabase login
 supabase link --project-ref xxxxxxxxxxxx
+# CLI will prompt for DB password — enter it once, it's saved locally
 
-# 3. Run schema
-supabase db push --password YOUR_DB_PASSWORD
+# 3. Run schema — no --password flag, use env var in CI
+supabase db push
+# In CI: SUPABASE_DB_PASSWORD=... supabase db push --project-ref xxx
 
 # 4. Seed in SQL Editor:
 # INSERT INTO public.restaurants (name) VALUES ('Your Restaurant') RETURNING id;
@@ -29,9 +31,14 @@ supabase db push --password YOUR_DB_PASSWORD
 supabase secrets set RESEND_API_KEY=re_xxxxxxxxxxxx
 supabase secrets set FROM_EMAIL=reports@yourdomain.com
 
-supabase functions deploy send-report
-supabase functions deploy push-webhook
-supabase functions deploy push-sync
+# send-report: needs JWT (called by logged-in user) — no flag
+supabase functions deploy send-report --project-ref xxxxxxxxxxxx
+
+# push-sync: called by cron with service role — no flag
+supabase functions deploy push-sync --project-ref xxxxxxxxxxxx
+
+# push-webhook: called by Push Operations without JWT — needs --no-verify-jwt
+supabase functions deploy push-webhook --project-ref xxxxxxxxxxxx --no-verify-jwt
 ```
 
 ## Phase 3 — Cloudflare via Terraform (~15 min)
@@ -44,7 +51,7 @@ cd terraform
 cp environments/prod/terraform.tfvars.example environments/prod/terraform.tfvars
 # Fill in terraform.tfvars
 
-terraform init \
+terraform init -backend-config=environments/prod/backend.hcl \
   -backend-config="endpoint=https://<ACCOUNT_ID>.r2.cloudflarestorage.com" \
   -backend-config="access_key=<R2_KEY>" \
   -backend-config="secret_key=<R2_SECRET>"

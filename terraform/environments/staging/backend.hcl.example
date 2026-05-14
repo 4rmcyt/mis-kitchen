@@ -1,0 +1,4 @@
+# terraform/environments/staging/backend.hcl.example
+endpoint         = "https://<ACCOUNT_ID>.r2.cloudflarestorage.com"
+access_key       = "<R2_ACCESS_KEY_ID>"
+secret_key       = "<R2_SECRET_ACCESS_KEY>"
