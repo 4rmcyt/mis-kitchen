@@ -7,6 +7,7 @@
 # Terraform
 terraform/*.tfvars
 terraform/**/*.tfvars
+terraform/**/*.hcl
 terraform/.terraform/
 terraform/.terraform.lock.hcl
 terraform/tfplan
@@ -19,6 +20,7 @@ node_modules/
 
 # Supabase local
 .supabase/
+supabase/.temp/
 
 # OS
 .DS_Store

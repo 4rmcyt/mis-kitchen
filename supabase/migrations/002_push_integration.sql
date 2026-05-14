@@ -9,8 +9,7 @@
 -- Link profiles to Push employees
 ALTER TABLE public.profiles
   ADD COLUMN IF NOT EXISTS push_employee_id  text UNIQUE,
-  ADD COLUMN IF NOT EXISTS on_shift_today    boolean DEFAULT false,
-  ADD COLUMN IF NOT EXISTS email             text UNIQUE;
+  ADD COLUMN IF NOT EXISTS on_shift_today    boolean DEFAULT false;
 
 -- Link restaurants to Push companies
 ALTER TABLE public.restaurants
@@ -25,7 +24,7 @@ ALTER TABLE public.invites
 -- ── Push shifts cache ────────────────────────────────────────
 -- Mirrors today's schedule from Push, refreshed daily
 CREATE TABLE IF NOT EXISTS public.push_shifts (
-  id               uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   push_shift_id    text UNIQUE NOT NULL,
   push_employee_id text NOT NULL,
   station          text DEFAULT 'All',
@@ -66,7 +65,7 @@ CREATE POLICY "shifts_read_own"
 -- ── Clock events ──────────────────────────────────────────────
 -- Logged when Push sends clock_in / clock_out webhook events
 CREATE TABLE IF NOT EXISTS public.clock_events (
-  id             uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id        uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   restaurant_id  uuid NOT NULL REFERENCES public.restaurants(id) ON DELETE CASCADE,
   event_type     text NOT NULL CHECK (event_type IN ('clock_in', 'clock_out')),
@@ -92,7 +91,7 @@ CREATE POLICY "clock_events_admin"
 -- ── Webhook audit log ────────────────────────────────────────
 -- Every incoming Push webhook is logged for debugging
 CREATE TABLE IF NOT EXISTS public.push_webhook_log (
-  id           uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   event_type   text,
   payload      jsonb,
   received_at  timestamptz DEFAULT now()
@@ -119,6 +118,9 @@ CREATE INDEX IF NOT EXISTS idx_push_shifts_date
 
 CREATE INDEX IF NOT EXISTS idx_clock_events_user
   ON public.clock_events(user_id, timestamp DESC);
+
+CREATE INDEX IF NOT EXISTS idx_clock_events_restaurant
+  ON public.clock_events(restaurant_id);
 
 CREATE INDEX IF NOT EXISTS idx_webhook_log_event
   ON public.push_webhook_log(event_type, received_at DESC);
@@ -151,7 +153,9 @@ CREATE INDEX IF NOT EXISTS idx_webhook_log_event
 
 -- ── Helper: get today's schedule for the app ─────────────────
 -- Returns who is scheduled today with their Mis profile
-CREATE OR REPLACE VIEW public.todays_schedule AS
+CREATE OR REPLACE VIEW public.todays_schedule
+  WITH (security_invoker = true)
+AS
   SELECT
     p.id          AS profile_id,
     p.name,

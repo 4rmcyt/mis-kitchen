@@ -32,10 +32,6 @@ terraform {
       source  = "cloudflare/cloudflare"
       version = "~> 4.0"
     }
-    supabase = {
-      source  = "supabase/supabase"
-      version = "~> 1.0"
-    }
   }
 
   # Terraform state stored in Cloudflare R2.
@@ -48,7 +44,11 @@ terraform {
     skip_credentials_validation = true
     skip_metadata_api_check     = true
     skip_region_validation      = true
+    skip_requesting_account_id  = true
     force_path_style            = true
+    endpoints = {
+      s3 = "https://8239dd1bb0d0bfedf13673a195df59cf.r2.cloudflarestorage.com"
+    }
   }
 }
 
@@ -57,19 +57,12 @@ provider "cloudflare" {
   api_token = var.cloudflare_api_token
 }
 
-provider "supabase" {
-  access_token = var.supabase_access_token
-}
-
 # ── Variables ─────────────────────────────────────────────────
 variable "cloudflare_api_token"  { sensitive = true }
-variable "supabase_access_token" { sensitive = true }
 variable "cloudflare_account_id" {}
 variable "cloudflare_zone_id"    {}
-variable "domain"                { default = "yourdomain.com" }
+variable "domain"                { default = "labhome.work" }
 variable "environment"           { default = "prod" }
-variable "supabase_org_id"       {}
-variable "supabase_db_password"  { sensitive = true }
 
 locals {
   is_prod   = var.environment == "prod"
@@ -138,108 +131,8 @@ resource "cloudflare_record" "www_redirect" {
   proxied = true
 }
 
-# ── WAF custom rules ──────────────────────────────────────────
-# Docs: https://developers.cloudflare.com/terraform/additional-configurations/waf-custom-rules/
-# IMPORTANT: Terraform assumes full control of zone rulesets.
-# If you already have rules in your zone, import them first with cf-terraforming
-# or they will be deleted on apply.
-#
-# NOTE: rate() is NOT a valid Wirefilter field — rate limiting rules
-# use a separate cloudflare_ruleset with phase = "http_ratelimit".
-# Removed the fake rate() expression below.
-resource "cloudflare_ruleset" "mis_waf" {
-  zone_id = var.cloudflare_zone_id
-  name    = "Mis WAF Rules"
-  kind    = "zone"
-  phase   = "http_request_firewall_custom"
-
-  rules {
-    action      = "block"
-    description = "Block bad bots"
-    # cf.client.bot is true for known bots, cf.verified_bot_category for verified ones
-    expression  = "(cf.client.bot and not cf.verified_bot_category in {\"search_engine\" \"monitoring\" \"feed_fetcher\"})"
-    enabled     = true
-  }
-}
-
-# ── Rate limiting (separate ruleset + phase) ──────────────────
-# Rate limiting is a different phase from WAF custom rules.
-# Free/Pro plans: basic rate limiting available in dashboard only.
-# To manage via Terraform requires Business or Enterprise plan.
-# Uncomment if you have a paid plan:
-#
-# resource "cloudflare_ruleset" "mis_ratelimit" {
-#   zone_id = var.cloudflare_zone_id
-#   name    = "Mis Rate Limiting"
-#   kind    = "zone"
-#   phase   = "http_ratelimit"
-#   rules {
-#     action      = "managed_challenge"
-#     description = "Challenge high-frequency IPs"
-#     expression  = "(http.request.uri.path contains \"/api/\")"
-#     enabled     = true
-#     ratelimit {
-#       characteristics     = ["ip.src"]
-#       period              = 60
-#       requests_per_period = 100
-#       mitigation_timeout  = 60
-#     }
-#   }
-# }
-
-# ── Cloudflare cache rules ────────────────────────────────────
-resource "cloudflare_ruleset" "mis_cache" {
-  zone_id = var.cloudflare_zone_id
-  name    = "Mis Cache Rules"
-  kind    = "zone"
-  phase   = "http_request_cache_settings"
-
-  rules {
-    action      = "set_cache_settings"
-    description = "Cache static assets long-term (1 year)"
-    expression  = "(http.request.uri.path matches \"\\.(js|css|woff2|png|svg)$\")"
-    enabled     = true
-    action_parameters {
-      cache = true
-      edge_ttl {
-        mode    = "override_origin"
-        default = 31536000
-      }
-      browser_ttl {
-        mode    = "override_origin"
-        default = 31536000
-      }
-    }
-  }
-
-  rules {
-    action      = "set_cache_settings"
-    description = "Never cache service worker or manifest"
-    expression  = "(http.request.uri.path eq \"/sw.js\" or http.request.uri.path eq \"/manifest.json\")"
-    enabled     = true
-    action_parameters {
-      cache = false
-    }
-  }
-}
-
-# ── Supabase project ──────────────────────────────────────────
-# Docs: https://github.com/supabase/terraform-provider-supabase/blob/main/docs/tutorial.md
-# NOTE: organization_id is the org SLUG, not a UUID.
-# Find it: dashboard.supabase.com → org settings → Organization slug
-resource "supabase_project" "mis" {
-  organization_id   = var.supabase_org_id  # org slug e.g. "my-company"
-  name              = local.project
-  database_password = var.supabase_db_password
-  region            = "us-east-1"
-
-  lifecycle {
-    prevent_destroy = true  # never destroy prod DB via terraform
-    # Ignore password changes after creation — changing it via TF
-    # doesn't rotate the actual DB password, do it in dashboard instead.
-    ignore_changes = [database_password]
-  }
-}
+# WAF and cache rulesets require Zone Rulesets Edit permission.
+# Configure manually in Cloudflare dashboard if needed.
 
 # ── Outputs ───────────────────────────────────────────────────
 output "app_url" {
@@ -248,12 +141,4 @@ output "app_url" {
 
 output "pages_dev_url" {
   value = "https://${local.project}.pages.dev"
-}
-
-output "supabase_project_ref" {
-  value = supabase_project.mis.id
-}
-
-output "supabase_api_url" {
-  value = "https://${supabase_project.mis.id}.supabase.co"
 }

@@ -146,8 +146,8 @@ jobs:
         if: github.ref == 'refs/heads/staging'
         run: |
           supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_REF_STG }}
-          supabase functions deploy send-report  --no-verify-jwt
-          supabase functions deploy push-sync    --no-verify-jwt
+          supabase functions deploy send-report
+          supabase functions deploy push-sync
           supabase functions deploy push-webhook --no-verify-jwt
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
@@ -156,8 +156,8 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: |
           supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_REF_PROD }}
-          supabase functions deploy send-report  --no-verify-jwt
-          supabase functions deploy push-sync    --no-verify-jwt
+          supabase functions deploy send-report
+          supabase functions deploy push-sync
           supabase functions deploy push-webhook --no-verify-jwt
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
@@ -192,7 +192,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist/ --project-name=mis-kitchen --branch=staging
+          command: pages deploy dist/ --project-name=mis-kitchen-prod --branch=staging
 
       - name: Deploy to Cloudflare Pages (prod)
         if: github.ref == 'refs/heads/main'
@@ -200,7 +200,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist/ --project-name=mis-kitchen --branch=main
+          command: pages deploy dist/ --project-name=mis-kitchen-prod --branch=main
 
   # ── 6. Preview deploy for PRs ────────────────────────────────
   preview:
@@ -227,7 +227,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist/ --project-name=mis-kitchen --branch=pr-${{ github.event.number }}
+          command: pages deploy dist/ --project-name=mis-kitchen-prod --branch=pr-${{ github.event.number }}
 
       - name: Comment PR with preview URL
         uses: actions/github-script@v7
