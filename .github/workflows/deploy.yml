@@ -29,9 +29,8 @@ concurrency:
 
 # ── Shared env ────────────────────────────────────────────────
 env:
-  NODE_VERSION: "20"
+  NODE_VERSION: "24"
   PNPM_VERSION: "9"
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
 
