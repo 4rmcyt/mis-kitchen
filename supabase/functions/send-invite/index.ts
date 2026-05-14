@@ -49,6 +49,7 @@ serve(async (req) => {
       email,
       options: {
         data: { role: role ?? "cook", station: station ?? "Grill", restaurant_id },
+        redirectTo: APP_URL,
       },
     });
     if (linkError) {
