@@ -128,6 +128,7 @@ function PeopleTab() {
           role: inviteRole,
           station: inviteStation,
           restaurant_id: myProfile.restaurant_id,
+          invited_by: me.id,
           invited_by_name: myProfile.name,
         },
       });

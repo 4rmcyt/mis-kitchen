@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
+import { getRestaurantProfiles } from "./lib/supabase.js";
 
-const STATIONS = ["All", "Grill", "Sauté", "Cold", "Garde", "Pastry", "Prep"];
+const STATIONS = ["Common", "Grill", "Sauté", "Cold", "Garde", "Pastry", "Prep"];
 const STATION_COLORS = {
   Grill: "#EF4444", Sauté: "#F97316", Cold: "#22D3EE",
   Garde: "#10B981", Pastry: "#A78BFA", Prep: "#FBBF24", Default: "#6B7280"
@@ -10,19 +11,19 @@ const save = (key, val) => { try { localStorage.setItem(key, JSON.stringify(val)
 const load = (key, fallback) => { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; } };
 
 const DEFAULT_TEMPLATES = [
-  { id: "t1", name: "Opening", color: "#F97316", station: "All", items: [
-    { id: "ti1", text: "Check fridge temps", done: false },
-    { id: "ti2", text: "Pull proteins from walk-in", done: false },
-    { id: "ti3", text: "Clarify butter 500g", done: false, amount: "500g" },
-    { id: "ti4", text: "Mise en place — cold section", done: false },
-    { id: "ti5", text: "Stock check", done: false },
+  { id: "t1", name: "Opening", color: "#F97316", station: "Common", items: [
+    { id: "ti1", text: "Check fridge temps", done: false, station: "Common" },
+    { id: "ti2", text: "Pull proteins from walk-in", done: false, station: "Common" },
+    { id: "ti3", text: "Clarify butter 500g", done: false, amount: "500g", station: "Common" },
+    { id: "ti4", text: "Mise en place — cold section", done: false, station: "Common" },
+    { id: "ti5", text: "Stock check", done: false, station: "Common" },
   ]},
-  { id: "t2", name: "Closing", color: "#6366F1", station: "All", items: [
-    { id: "tc1", text: "Wrap and label all preps", done: false },
-    { id: "tc2", text: "Cool stocks, log temp", done: false },
-    { id: "tc3", text: "Clean grill and flat top", done: false },
-    { id: "tc4", text: "Sweep station", done: false },
-    { id: "tc5", text: "Fridge doors sealed", done: false },
+  { id: "t2", name: "Closing", color: "#6366F1", station: "Common", items: [
+    { id: "tc1", text: "Wrap and label all preps", done: false, station: "Common" },
+    { id: "tc2", text: "Cool stocks, log temp", done: false, station: "Common" },
+    { id: "tc3", text: "Clean grill and flat top", done: false, station: "Common" },
+    { id: "tc4", text: "Sweep station", done: false, station: "Common" },
+    { id: "tc5", text: "Fridge doors sealed", done: false, station: "Common" },
   ]}
 ];
 
@@ -87,7 +88,7 @@ function CheckItem({ item, onToggle, onDelete, onDefer, timer, onStartTimer, fmt
       <div className="item-body">
         <span className="item-text">{item.text}</span>
         {item.amount && <span className="item-amount">{item.amount}</span>}
-        {item.station && item.station !== 'All' && <span className="item-station" style={{ background: STATION_COLORS[item.station] || STATION_COLORS.Default }}>{item.station}</span>}
+        {item.station && item.station !== 'Common' && <span className="item-station" style={{ background: STATION_COLORS[item.station] || STATION_COLORS.Default }}>{item.station}</span>}
         {timer?.running && <span className="timer-badge">⏱ {fmt(timer.remaining)}</span>}
         {timer?.done && <span className="timer-badge done">✓ done</span>}
       </div>
@@ -121,6 +122,12 @@ function ReportModal({ sections, nextShift, onClose }) {
   const totalDone = sections.reduce((a,s) => a + s.items.filter(i => i.done).length, 0);
   const totalAll = sections.reduce((a,s) => a + s.items.length, 0);
   const pct = totalAll ? Math.round((totalDone/totalAll)*100) : 0;
+
+  const openingSec = sections.find(s => s.name.toLowerCase() === 'opening');
+  const closingSec = sections.find(s => s.name.toLowerCase() === 'closing');
+  const openingDone = openingSec && openingSec.items.length > 0 && openingSec.items.every(i => i.done);
+  const closingDone = closingSec && closingSec.items.length > 0 && closingSec.items.every(i => i.done);
+  const canSend = openingDone && closingDone;
 
   const buildHTML = () => {
     const secs = sections.map(sec => {
@@ -210,8 +217,15 @@ function ReportModal({ sections, nextShift, onClose }) {
           <div className="form-label"><span>Resend API Key</span><button className="link-btn" onClick={() => window.open('https://resend.com/api-keys','_blank')}>Get free key →</button></div>
           <input className="form-input" type={showKey?'text':'password'} placeholder="re_xxxxxxxxxxxx" value={apiKey} onChange={e => setApiKey(e.target.value)}/>
           <button className="link-btn small" onClick={() => setShowKey(s=>!s)}>{showKey?'Hide':'Show'} key</button>
+          {!canSend && (
+            <div className="report-error" style={{ background: '#1a1200', borderColor: '#F97316aa', color: '#F97316' }}>
+              {!openingSec || !openingDone ? '✗ Opening not complete' : ''}
+              {(!openingSec || !openingDone) && (!closingSec || !closingDone) ? ' · ' : ''}
+              {!closingSec || !closingDone ? '✗ Closing not complete' : ''}
+            </div>
+          )}
           {error && <div className="report-error">{error}</div>}
-          <button className="save-btn" onClick={send} disabled={sending}>{sending ? 'Sending…' : 'Send Report'}</button>
+          <button className="save-btn" onClick={send} disabled={sending || !canSend}>{sending ? 'Sending…' : 'Send Report'}</button>
         </>}
       </div>
     </div>
@@ -224,7 +238,7 @@ function TodayScreen({ templates }) {
   const [stationFilter, setStationFilter] = useState('All');
   const [activeSection, setActiveSection] = useState(null);
   const [newText, setNewText] = useState('');
-  const [newStation, setNewStation] = useState('All');
+  const [newStation, setNewStation] = useState('Common');
   const [showReport, setShowReport] = useState(false);
   const [showNext, setShowNext] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
@@ -238,14 +252,14 @@ function TodayScreen({ templates }) {
   useEffect(() => {
     const carried = load('mis_carried', []);
     if (carried.length > 0) {
-      setSections(s => s.find(x => x.id === 'carried') ? s : [{ id: 'carried', name: 'Carried Over', color: '#F97316', station: 'All', items: carried }, ...s]);
+      setSections(s => s.find(x => x.id === 'carried') ? s : [{ id: 'carried', name: 'Carried Over', color: '#F97316', station: 'Common', items: carried }, ...s]);
       save('mis_carried', []);
     }
   }, []);
 
   const loadTemplate = (tpl) => {
     if (sections.find(s => s.templateId === tpl.id)) return;
-    setSections(s => [...s, { id: uid(), templateId: tpl.id, name: tpl.name, color: tpl.color, station: tpl.station||'All', items: tpl.items.map(i => ({ ...i, id: uid(), done: false })) }]);
+    setSections(s => [...s, { id: uid(), templateId: tpl.id, name: tpl.name, color: tpl.color, station: tpl.station||'Common', items: tpl.items.map(i => ({ ...i, id: uid(), done: false })) }]);
   };
 
   const addItem = (secId) => {
@@ -274,7 +288,7 @@ function TodayScreen({ templates }) {
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
 
   const filteredSections = sections
-    .map(sec => ({ ...sec, items: stationFilter === 'All' ? sec.items : sec.items.filter(i => (i.station||'All') === stationFilter || (sec.station||'All') === stationFilter) }))
+    .map(sec => ({ ...sec, items: stationFilter === 'All' ? sec.items : sec.items.filter(i => (i.station||'Common') === stationFilter || (sec.station||'Common') === stationFilter) }))
     .filter(sec => stationFilter === 'All' || sec.items.length > 0);
 
   return (
@@ -300,9 +314,9 @@ function TodayScreen({ templates }) {
       </div>
 
       <div className="station-filter">
-        {STATIONS.map(st => (
+        {['All', ...STATIONS].map(st => (
           <button key={st} className={`station-pill ${stationFilter===st?'active':''}`}
-            style={stationFilter===st && st!=='All' ? { background: STATION_COLORS[st], color:'#000', borderColor: STATION_COLORS[st] } : {}}
+            style={stationFilter===st && st!=='All' ? { background: STATION_COLORS[st]||'#888', color:'#000', borderColor: STATION_COLORS[st]||'#888' } : {}}
             onClick={() => setStationFilter(st)}>{st}</button>
         ))}
       </div>
@@ -319,7 +333,7 @@ function TodayScreen({ templates }) {
                 <div key={item.id} className="check-item">
                   <div className="item-body">
                     <span className="item-text">{item.text}</span>
-                    {item.station && item.station!=='All' && <span className="item-station" style={{ background: STATION_COLORS[item.station]||STATION_COLORS.Default }}>{item.station}</span>}
+                    {item.station && item.station!=='Common' && <span className="item-station" style={{ background: STATION_COLORS[item.station]||STATION_COLORS.Default }}>{item.station}</span>}
                   </div>
                   <button className="action-btn del" onClick={() => setNextShift(n => n.filter(i => i.id !== item.id))}>×</button>
                 </div>
@@ -343,7 +357,7 @@ function TodayScreen({ templates }) {
             <div className="section-header">
               <div className="section-dot" style={{ background: sec.color }}/>
               <span className="section-name">{sec.name}</span>
-              {sec.station && sec.station!=='All' && <span className="item-station" style={{ background: STATION_COLORS[sec.station]||STATION_COLORS.Default, fontSize:10 }}>{sec.station}</span>}
+              {sec.station && sec.station!=='Common' && <span className="item-station" style={{ background: STATION_COLORS[sec.station]||STATION_COLORS.Default, fontSize:10 }}>{sec.station}</span>}
               <span className="section-count">{done}/{sec.items.length}</span>
               <button className="action-btn del" onClick={() => setSections(s => s.filter(x => x.id !== sec.id))}>×</button>
             </div>
@@ -383,14 +397,14 @@ function TodayScreen({ templates }) {
               onChange={e => setCustomSectionName(e.target.value)}
               onKeyDown={e => {
                 if (e.key === 'Enter' && customSectionName.trim()) {
-                  setSections(s => [...s, { id: uid(), name: customSectionName.trim(), color: '#888', station: 'All', items: [] }]);
+                  setSections(s => [...s, { id: uid(), name: customSectionName.trim(), color: '#888', station: 'Common', items: [] }]);
                   setCustomSectionName(''); setShowCustomSection(false);
                 }
                 if (e.key === 'Escape') { setCustomSectionName(''); setShowCustomSection(false); }
               }}/>
             <button className="add-confirm" onClick={() => {
               if (customSectionName.trim()) {
-                setSections(s => [...s, { id: uid(), name: customSectionName.trim(), color: '#888', station: 'All', items: [] }]);
+                setSections(s => [...s, { id: uid(), name: customSectionName.trim(), color: '#888', station: 'Common', items: [] }]);
               }
               setCustomSectionName(''); setShowCustomSection(false);
             }}>+</button>
@@ -477,9 +491,9 @@ function RecipesScreen() {
       <div className="screen-header"><div className="screen-title">Recipes</div><button className="fab-btn" onClick={() => setShowForm(true)}>+</button></div>
       <input className="search-input" placeholder="Search recipes..." value={search} onChange={e => setSearch(e.target.value)}/>
       <div className="station-filter" style={{ marginBottom:16 }}>
-        {STATIONS.map(st => (
+        {['All', ...STATIONS].map(st => (
           <button key={st} className={`station-pill ${stationFilter===st?'active':''}`}
-            style={stationFilter===st && st!=='All' ? { background: STATION_COLORS[st], color:'#000', borderColor: STATION_COLORS[st] } : {}}
+            style={stationFilter===st && st!=='All' ? { background: STATION_COLORS[st]||'#888', color:'#000', borderColor: STATION_COLORS[st]||'#888' } : {}}
             onClick={() => setStationFilter(st)}>{st}</button>
         ))}
       </div>
@@ -517,7 +531,7 @@ function RecipeForm({ onSave, onCancel }) {
         <div className="modal-header"><span>New Recipe</span><button className="action-btn del" onClick={onCancel}>×</button></div>
         <input className="form-input" placeholder="Recipe name" value={name} onChange={e => setName(e.target.value)}/>
         <select className="form-input" value={station} onChange={e => setStation(e.target.value)}>
-          {STATIONS.filter(s=>s!=='All').map(s => <option key={s}>{s}</option>)}
+          {STATIONS.map(s => <option key={s}>{s}</option>)}
         </select>
         <div className="form-label">Ingredients</div>
         {ings.map(ing => (
@@ -542,7 +556,7 @@ function RecipeForm({ onSave, onCancel }) {
 function TemplatesScreen({ templates, setTemplates }) {
   const [active, setActive] = useState(null);
   const [newItemText, setNewItemText] = useState('');
-  const [newItemStation, setNewItemStation] = useState('All');
+  const [newItemStation, setNewItemStation] = useState('Common');
   const [showNewTpl, setShowNewTpl] = useState(false);
   const [newTplName, setNewTplName] = useState('');
   const COLORS = ['#F97316','#6366F1','#22D3EE','#EF4444','#A78BFA','#10B981'];
@@ -555,7 +569,7 @@ function TemplatesScreen({ templates, setTemplates }) {
   const deleteItem = (tplId, itemId) => setTemplates(ts => ts.map(t => t.id===tplId ? { ...t, items: t.items.filter(i=>i.id!==itemId) } : t));
   const createTemplate = () => {
     if (!newTplName.trim()) return;
-    setTemplates(ts => [...ts, { id: uid(), name: newTplName.trim(), color: COLORS[Math.floor(Math.random()*COLORS.length)], station: 'All', items: [] }]);
+    setTemplates(ts => [...ts, { id: uid(), name: newTplName.trim(), color: COLORS[Math.floor(Math.random()*COLORS.length)], station: 'Common', items: [] }]);
     setNewTplName(''); setShowNewTpl(false);
   };
 
@@ -575,7 +589,7 @@ function TemplatesScreen({ templates, setTemplates }) {
         <div key={item.id} className="check-item">
           <div className="item-body">
             <span className="item-text">{item.text}</span>
-            {item.station && item.station!=='All' && <span className="item-station" style={{ background: STATION_COLORS[item.station]||STATION_COLORS.Default }}>{item.station}</span>}
+            {item.station && item.station!=='Common' && <span className="item-station" style={{ background: STATION_COLORS[item.station]||STATION_COLORS.Default }}>{item.station}</span>}
           </div>
           <button className="action-btn del" onClick={() => deleteItem(currentTpl.id, item.id)}>×</button>
         </div>
@@ -614,13 +628,90 @@ function TemplatesScreen({ templates, setTemplates }) {
             <div className="tpl-card-bar" style={{ background: tpl.color }}/>
             <div className="tpl-card-body">
               <div className="tpl-card-name">{tpl.name}</div>
-              <div className="tpl-card-meta">{tpl.items.length} items{tpl.station&&tpl.station!=='All'?` · ${tpl.station}`:''}</div>
+              <div className="tpl-card-meta">{tpl.items.length} items{tpl.station&&tpl.station!=='Common'?` · ${tpl.station}`:''}</div>
             </div>
             <div className="tpl-arrow">→</div>
           </button>
         ))}
         {templates.length === 0 && <div className="empty-state"><div className="empty-icon">📋</div><div className="empty-title">No templates yet</div></div>}
       </div>
+    </div>
+  );
+}
+
+function LineupScreen() {
+  const [profiles, setProfiles] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getRestaurantProfiles()
+      .then(data => setProfiles(data || []))
+      .catch(() => setProfiles([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const byStation = STATIONS.reduce((acc, st) => {
+    acc[st] = profiles.filter(p => (p.station || 'Common') === st && p.active !== false);
+    return acc;
+  }, {});
+  const unassigned = profiles.filter(p => !p.station && p.active !== false);
+
+  return (
+    <div className="screen">
+      <div className="screen-header">
+        <div>
+          <div className="screen-title">Lineup</div>
+          <div className="screen-sub">Station assignments</div>
+        </div>
+      </div>
+      {loading ? (
+        <div className="empty-state"><div className="empty-sub">Loading…</div></div>
+      ) : profiles.length === 0 ? (
+        <div className="empty-state"><div className="empty-icon">👤</div><div className="empty-title">No crew yet</div><div className="empty-sub">Invite cooks from Admin panel</div></div>
+      ) : (
+        <>
+          {STATIONS.filter(st => st !== 'Common').map(st => {
+            const crew = byStation[st];
+            if (crew.length === 0) return null;
+            return (
+              <div key={st} className="lineup-station">
+                <div className="lineup-station-header">
+                  <span className="lineup-station-dot" style={{ background: STATION_COLORS[st] || STATION_COLORS.Default }}/>
+                  <span className="lineup-station-name">{st}</span>
+                  <span className="lineup-station-count">{crew.length}</span>
+                </div>
+                {crew.map(p => (
+                  <div key={p.id} className="lineup-cook">
+                    <div className="lineup-avatar">{(p.name||'?')[0].toUpperCase()}</div>
+                    <div className="lineup-info">
+                      <div className="lineup-name">{p.name || p.email}</div>
+                      <div className="lineup-role">{p.role || 'Cook'}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            );
+          })}
+          {unassigned.length > 0 && (
+            <div className="lineup-station">
+              <div className="lineup-station-header">
+                <span className="lineup-station-dot" style={{ background: '#555' }}/>
+                <span className="lineup-station-name">Unassigned</span>
+                <span className="lineup-station-count">{unassigned.length}</span>
+              </div>
+              {unassigned.map(p => (
+                <div key={p.id} className="lineup-cook">
+                  <div className="lineup-avatar" style={{ background: '#333' }}>{(p.name||'?')[0].toUpperCase()}</div>
+                  <div className="lineup-info">
+                    <div className="lineup-name">{p.name || p.email}</div>
+                    <div className="lineup-role">{p.role || 'Cook'}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
@@ -638,11 +729,12 @@ export default function App() {
         <header className="app-header"><span className="app-logo">mis<span className="logo-dot">.</span></span></header>
         <main className="app-main">
           {tab==='today' && <TodayScreen templates={templates}/>}
+          {tab==='lineup' && <LineupScreen/>}
           {tab==='recipes' && <RecipesScreen/>}
           {tab==='templates' && <TemplatesScreen templates={templates} setTemplates={setTemplates}/>}
         </main>
         <nav className="bottom-nav">
-          {[{id:'today',label:'Today',icon:'✓'},{id:'recipes',label:'Recipes',icon:'⚗'},{id:'templates',label:'Templates',icon:'◫'}].map(t => (
+          {[{id:'today',label:'Today',icon:'✓'},{id:'lineup',label:'Lineup',icon:'◈'},{id:'recipes',label:'Recipes',icon:'⚗'},{id:'templates',label:'Tmpls',icon:'◫'}].map(t => (
             <button key={t.id} className={`nav-btn ${tab===t.id?'active':''}`} onClick={() => setTab(t.id)}>
               <span className="nav-icon">{t.icon}</span>
               <span className="nav-label">{t.label}</span>
@@ -797,4 +889,14 @@ const CSS = `
   .nav-btn.active{color:var(--accent)}
   .nav-icon{font-size:18px;line-height:1}
   .nav-label{font-family:var(--font-display);font-size:10px;font-weight:600;letter-spacing:0.3px;text-transform:uppercase}
+  .lineup-station{margin-bottom:20px}
+  .lineup-station-header{display:flex;align-items:center;gap:8px;padding:0 0 10px;border-bottom:1px solid var(--border);margin-bottom:8px}
+  .lineup-station-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .lineup-station-name{font-family:var(--font-display);font-size:14px;font-weight:700;flex:1;text-transform:uppercase;letter-spacing:0.5px}
+  .lineup-station-count{font-size:11px;color:var(--text-muted);background:var(--surface2);padding:2px 8px;border-radius:10px}
+  .lineup-cook{display:flex;align-items:center;gap:12px;padding:10px 8px;border-bottom:1px solid var(--border)}
+  .lineup-avatar{width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:15px;font-weight:700;flex-shrink:0}
+  .lineup-info{flex:1}
+  .lineup-name{font-size:14px;font-weight:500}
+  .lineup-role{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.3px;margin-top:2px}
 `;

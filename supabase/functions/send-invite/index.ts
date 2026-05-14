@@ -23,10 +23,25 @@ serve(async (req) => {
   }
 
   try {
-    const { email, role, station, restaurant_id, invited_by_name } = await req.json();
+    const { email, role, station, restaurant_id, invited_by, invited_by_name } = await req.json();
     if (!email) throw new Error("email required");
+    if (!restaurant_id) throw new Error("restaurant_id required");
+    if (!invited_by) throw new Error("invited_by required");
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+
+    // Insert invite record first — trigger handle_new_user() requires it
+    const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+    const { error: inviteInsertError } = await supabase.from("invites").insert({
+      email,
+      role: role ?? "cook",
+      station: station || null,
+      restaurant_id,
+      invited_by,
+      expires_at: expiresAt,
+      used: false,
+    });
+    if (inviteInsertError) throw new Error(`Failed to create invite: ${inviteInsertError.message}`);
 
     // Generate magic invite link via Supabase Auth
     const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
@@ -36,7 +51,11 @@ serve(async (req) => {
         data: { role: role ?? "cook", station: station ?? "Grill", restaurant_id },
       },
     });
-    if (linkError) throw new Error(linkError.message);
+    if (linkError) {
+      // Clean up invite record on failure
+      await supabase.from("invites").delete().eq("email", email).eq("used", false);
+      throw new Error(linkError.message);
+    }
 
     const inviteUrl = linkData.properties?.action_link ?? APP_URL;
 
