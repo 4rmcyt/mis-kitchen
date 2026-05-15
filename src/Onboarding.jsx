@@ -39,14 +39,14 @@ export default function Onboarding({ user, onDone }) {
         {step === 'welcome' && (
           <>
             <div style={s.title}>Welcome to the kitchen</div>
-            <div style={s.sub}>Let's set up your profile — takes 30 seconds.</div>
+            <div style={s.sub}>{"Let's set up your profile — takes 30 seconds."}</div>
             <button style={s.btn} onClick={() => setStep('name')}>Get started →</button>
           </>
         )}
 
         {step === 'name' && (
           <>
-            <div style={s.title}>What's your name?</div>
+            <div style={s.title}>{"What's your name?"}</div>
             <div style={s.sub}>This is what the crew sees in the lineup.</div>
             <input
               style={s.input}
