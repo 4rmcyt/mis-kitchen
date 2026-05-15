@@ -26,11 +26,12 @@ function Root() {
 
   async function checkOnboarding(user) {
     if (!user) return
-    const { data: profile } = await supabase
+    const { data: profiles } = await supabase
       .from('profiles')
       .select('name, role')
       .eq('id', user.id)
-      .single()
+      .limit(1)
+    const profile = profiles?.[0]
     const isAdmin = profile?.role === 'admin' || profile?.role === 'superadmin'
     setNeedsOnboarding(!isAdmin && !profile?.name)
   }

@@ -81,7 +81,7 @@ export async function getProfile(userId) {
 export async function updateProfile(userId, updates) {
   const allowed = { name: updates.name, station: updates.station };
   return q(() =>
-    supabase.from("profiles").update(allowed).eq("id", userId).select().single()
+    supabase.from("profiles").upsert({ id: userId, ...allowed }).eq("id", userId).select().single()
   );
 }
 
