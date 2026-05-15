@@ -28,10 +28,11 @@ function Root() {
     if (!user) return
     const { data: profile } = await supabase
       .from('profiles')
-      .select('name')
+      .select('name, role')
       .eq('id', user.id)
       .single()
-    setNeedsOnboarding(!profile?.name)
+    const isAdmin = profile?.role === 'admin' || profile?.role === 'superadmin'
+    setNeedsOnboarding(!isAdmin && !profile?.name)
   }
 
   if (session === undefined) return null
