@@ -1,23 +1,49 @@
 import { useState, useEffect } from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { getSession, onAuthChange } from './lib/supabase.js'
+import { getSession, onAuthChange, supabase } from './lib/supabase.js'
 import App from './App.jsx'
 import Admin from './Admin.jsx'
 import Login from './Login.jsx'
+import Onboarding from './Onboarding.jsx'
 
 function Root() {
   const [session, setSession] = useState(undefined)
+  const [needsOnboarding, setNeedsOnboarding] = useState(false)
 
   useEffect(() => {
-    getSession().then(setSession)
-    const { data: { subscription } } = onAuthChange(setSession)
+    getSession().then(s => {
+      setSession(s)
+      if (s) checkOnboarding(s.user)
+    })
+
+    const { data: { subscription } } = onAuthChange(s => {
+      setSession(s)
+      if (s) checkOnboarding(s.user)
+    })
     return () => subscription.unsubscribe()
   }, [])
+
+  async function checkOnboarding(user) {
+    if (!user) return
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('name')
+      .eq('id', user.id)
+      .single()
+    setNeedsOnboarding(!profile?.name)
+  }
 
   if (session === undefined) return null
 
   if (!session) return <Login onLogin={() => getSession().then(setSession)} />
+
+  if (needsOnboarding) return (
+    <Onboarding
+      user={session.user}
+      onDone={() => setNeedsOnboarding(false)}
+    />
+  )
 
   return (
     <BrowserRouter>
