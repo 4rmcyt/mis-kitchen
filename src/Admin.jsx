@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase, getRestaurantProfiles, adminUpdateProfile, getTemplates, getRecipes, getRestaurantReports } from "./lib/supabase.js";
+import { supabase, getRestaurantProfiles, adminUpdateProfile, getTemplates, getRecipes, getRestaurantReports, signOut } from "./lib/supabase.js";
 
 
 const STATION_COLORS = {
@@ -659,10 +659,11 @@ export default function Admin() {
         </nav>
         <div className="sidebar-footer">
           <Avatar name="Admin User" size={32}/>
-          <div>
+          <div style={{ flex:1 }}>
             <div style={{ fontSize:12, fontWeight:600 }}>You</div>
             <div style={{ fontSize:10, color:'var(--text-muted)' }}>superadmin</div>
           </div>
+          <button onClick={() => signOut()} title="Sign out" style={{ background:'none', border:'none', color:'var(--text-muted)', fontSize:18, cursor:'pointer', padding:'4px 6px', borderRadius:6 }}>⏻</button>
         </div>
       </aside>
 
