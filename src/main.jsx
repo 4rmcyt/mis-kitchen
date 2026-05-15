@@ -12,10 +12,22 @@ function Root() {
   const [needsOnboarding, setNeedsOnboarding] = useState(false)
 
   useEffect(() => {
-    getSession().then(s => {
-      setSession(s)
-      if (s) checkOnboarding(s.user)
-    })
+    const params = new URLSearchParams(window.location.search)
+    const code = params.get('code')
+
+    if (code) {
+      supabase.auth.exchangeCodeForSession(code).then(({ data }) => {
+        const s = data?.session
+        setSession(s)
+        if (s) checkOnboarding(s.user)
+        window.history.replaceState({}, '', window.location.pathname)
+      })
+    } else {
+      getSession().then(s => {
+        setSession(s)
+        if (s) checkOnboarding(s.user)
+      })
+    }
 
     const { data: { subscription } } = onAuthChange(s => {
       setSession(s)
