@@ -38,35 +38,35 @@ export default function Onboarding({ user, onDone }) {
 
         {step === 'welcome' && (
           <>
-            <div style={s.title}>Добро пожаловать на кухню</div>
-            <div style={s.sub}>Давай быстро настроим твой профиль — займёт 30 секунд.</div>
-            <button style={s.btn} onClick={() => setStep('name')}>Начать →</button>
+            <div style={s.title}>Welcome to the kitchen</div>
+            <div style={s.sub}>Let's set up your profile — takes 30 seconds.</div>
+            <button style={s.btn} onClick={() => setStep('name')}>Get started →</button>
           </>
         )}
 
         {step === 'name' && (
           <>
-            <div style={s.title}>Как тебя зовут?</div>
-            <div style={s.sub}>Имя будет видно остальным в лайнапе.</div>
+            <div style={s.title}>What's your name?</div>
+            <div style={s.sub}>This is what the crew sees in the lineup.</div>
             <input
               style={s.input}
-              placeholder="Имя"
+              placeholder="Your name"
               value={name}
               onChange={e => setName(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && name.trim() && setStep('station')}
               autoFocus
             />
             {error && <div style={s.error}>{error}</div>}
-            <button style={s.btn} onClick={() => name.trim() ? setStep('station') : setError('Введи имя')}>
-              Далее →
+            <button style={s.btn} onClick={() => name.trim() ? setStep('station') : setError('Enter your name')}>
+              Next →
             </button>
           </>
         )}
 
         {step === 'station' && (
           <>
-            <div style={s.title}>Твоя станция?</div>
-            <div style={s.sub}>Выбери где работаешь — можно изменить позже.</div>
+            <div style={s.title}>Your station?</div>
+            <div style={s.sub}>Pick where you work — you can change this later.</div>
             <div style={s.stationGrid}>
               {STATIONS.filter(st => st !== 'Common').map(st => (
                 <button
@@ -87,12 +87,12 @@ export default function Onboarding({ user, onDone }) {
                 }}
                 onClick={() => setStation('Common')}
               >
-                Не назначена
+                Unassigned
               </button>
             </div>
             {error && <div style={s.error}>{error}</div>}
             <button style={saving ? { ...s.btn, opacity: 0.5 } : s.btn} onClick={finish} disabled={saving}>
-              {saving ? 'Сохраняем…' : 'Готово →'}
+              {saving ? 'Saving…' : 'Done →'}
             </button>
           </>
         )}
