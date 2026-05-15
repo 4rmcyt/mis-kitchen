@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { getRestaurantProfiles } from "./lib/supabase.js";
+import { getRestaurantProfiles, signOut } from "./lib/supabase.js";
 
 const STATIONS = ["Common", "Grill", "Sauté", "Cold", "Garde", "Pastry", "Prep"];
 const STATION_COLORS = {
@@ -726,7 +726,10 @@ export default function App() {
     <div className="app">
       <style>{CSS}</style>
       <div className="app-inner">
-        <header className="app-header"><span className="app-logo">mis<span className="logo-dot">.</span></span></header>
+        <header className="app-header">
+          <span className="app-logo">mis<span className="logo-dot">.</span></span>
+          <button className="logout-btn" onClick={() => signOut()} title="Sign out">⏻</button>
+        </header>
         <main className="app-main">
           {tab==='today' && <TodayScreen templates={templates}/>}
           {tab==='lineup' && <LineupScreen/>}
@@ -753,7 +756,9 @@ const CSS = `
   html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font-mono)}
   .app{min-height:100vh;display:flex;justify-content:center;background:var(--bg)}
   .app-inner{width:100%;max-width:430px;min-height:100vh;display:flex;flex-direction:column}
-  .app-header{padding:18px 20px 12px;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:10}
+  .app-header{padding:18px 20px 12px;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between}
+  .logout-btn{background:none;border:none;color:var(--text-muted);font-size:18px;cursor:pointer;padding:4px 6px;border-radius:6px;transition:color 0.15s}
+  .logout-btn:hover{color:#EF4444}
   .app-logo{font-family:var(--font-display);font-size:22px;font-weight:800;letter-spacing:-1px}
   .logo-dot{color:var(--accent)}
   .app-main{flex:1;overflow-y:auto;padding-bottom:80px}
