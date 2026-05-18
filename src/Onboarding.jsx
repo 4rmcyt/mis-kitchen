@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { updateProfile } from './lib/supabase.js'
+import { updateProfile, supabase } from './lib/supabase.js'
 
 const STATIONS = ['Common', 'Grill', 'Sauté', 'Cold', 'Garde', 'Pastry', 'Prep']
 const STATION_COLORS = {
@@ -7,18 +7,47 @@ const STATION_COLORS = {
   Garde: '#10B981', Pastry: '#A78BFA', Prep: '#FBBF24', Common: '#6B7280',
 }
 
-const STEPS = ['welcome', 'name', 'station', 'done']
+function isFirstLogin(user) {
+  if (!user?.created_at || !user?.last_sign_in_at) return false
+  const created = new Date(user.created_at).getTime()
+  const lastSignIn = new Date(user.last_sign_in_at).getTime()
+  return Math.abs(lastSignIn - created) < 60_000
+}
 
 export default function Onboarding({ user, onDone }) {
   const meta = user.user_metadata || {}
-  const [step, setStep] = useState('welcome')
+  const showPasswordStep = isFirstLogin(user)
+  const [step, setStep] = useState(showPasswordStep ? 'password' : 'welcome')
+  const [password, setPassword] = useState('')
+  const [passwordConfirm, setPasswordConfirm] = useState('')
   const [name, setName] = useState(meta.full_name || meta.name || '')
   const [station, setStation] = useState(meta.station || 'Common')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
+  const allSteps = showPasswordStep
+    ? ['password', 'welcome', 'name', 'station']
+    : ['welcome', 'name', 'station']
+  const visibleDotSteps = allSteps.filter(s => s !== 'welcome')
+
+  async function setUserPassword() {
+    setError('')
+    if (password.length < 8) { setError('Password must be at least 8 characters'); return }
+    if (password !== passwordConfirm) { setError('Passwords do not match'); return }
+    setSaving(true)
+    try {
+      const { error: err } = await supabase.auth.updateUser({ password })
+      if (err) throw err
+      setStep('welcome')
+    } catch (e) {
+      setError(e.message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
   async function finish() {
-    if (!name.trim()) { setError('Введи имя'); return }
+    if (!name.trim()) { setError('Enter your name'); return }
     setSaving(true)
     setError('')
     try {
@@ -30,11 +59,40 @@ export default function Onboarding({ user, onDone }) {
     }
   }
 
+  const dotIndex = visibleDotSteps.indexOf(step)
+
   return (
     <div style={s.root}>
       <style>{CSS}</style>
       <div style={s.card}>
         <div style={s.logo}>mis<span style={{ color: '#F97316' }}>.</span></div>
+
+        {step === 'password' && (
+          <>
+            <div style={s.title}>Create your password</div>
+            <div style={s.sub}>You will use this to log in next time.</div>
+            <input
+              style={s.input}
+              type="password"
+              placeholder="Password (min 8 characters)"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              autoFocus
+            />
+            <input
+              style={s.input}
+              type="password"
+              placeholder="Confirm password"
+              value={passwordConfirm}
+              onChange={e => setPasswordConfirm(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && setUserPassword()}
+            />
+            {error && <div style={s.error}>{error}</div>}
+            <button style={saving ? { ...s.btn, opacity: 0.5 } : s.btn} onClick={setUserPassword} disabled={saving}>
+              {saving ? 'Saving…' : 'Set password →'}
+            </button>
+          </>
+        )}
 
         {step === 'welcome' && (
           <>
@@ -97,11 +155,13 @@ export default function Onboarding({ user, onDone }) {
           </>
         )}
 
-        <div style={s.dots}>
-          {STEPS.slice(0, 3).map((st, i) => (
-            <div key={st} style={{ ...s.dot, ...(STEPS.indexOf(step) >= i ? s.dotActive : {}) }} />
-          ))}
-        </div>
+        {step !== 'welcome' && (
+          <div style={s.dots}>
+            {visibleDotSteps.map((st, i) => (
+              <div key={st} style={{ ...s.dot, ...(dotIndex >= i ? s.dotActive : {}) }} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

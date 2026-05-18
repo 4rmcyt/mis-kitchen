@@ -47,7 +47,8 @@ function Root() {
     const profile = profiles?.[0]
     const isAdmin = profile?.role === 'admin' || profile?.role === 'superadmin'
     setUserRole(profile?.role || null)
-    setNeedsOnboarding(!isAdmin && !profile?.name)
+    const isNewUser = !profile?.name
+    setNeedsOnboarding(!isAdmin && isNewUser)
   }
 
   if (session === undefined) return null
