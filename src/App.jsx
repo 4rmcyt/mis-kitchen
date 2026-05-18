@@ -814,14 +814,12 @@ function LineupScreen() {
 export default function App({ userRole }) {
   const [tab, setTab] = useState('today');
   const [templates, setTemplates] = useState(DEFAULT_TEMPLATES);
-  const [templatesLoaded, setTemplatesLoaded] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     getTemplates().then(rows => {
       if (rows && rows.length > 0) setTemplates(rows);
-      setTemplatesLoaded(true);
-    }).catch(() => setTemplatesLoaded(true));
+    }).catch(() => {});
   }, []);
   useEffect(() => { if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); }, []);
 
