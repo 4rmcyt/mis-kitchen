@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { getRestaurantProfiles, signOut } from "./lib/supabase.js";
 
 const STATIONS = ["Common", "Grill", "Sauté", "Cold", "Garde", "Pastry", "Prep"];
@@ -716,11 +717,14 @@ function LineupScreen() {
   );
 }
 
-export default function App() {
+export default function App({ userRole }) {
   const [tab, setTab] = useState('today');
   const [templates, setTemplates] = useState(() => load('mis_templates', DEFAULT_TEMPLATES));
+  const navigate = useNavigate();
   useEffect(() => { save('mis_templates', templates); }, [templates]);
   useEffect(() => { if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); }, []);
+
+  const isAdmin = userRole === 'admin' || userRole === 'superadmin';
 
   return (
     <div className="app">
@@ -728,7 +732,12 @@ export default function App() {
       <div className="app-inner">
         <header className="app-header">
           <span className="app-logo">mis<span className="logo-dot">.</span></span>
-          <button className="logout-btn" onClick={() => signOut()} title="Sign out">⏻</button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {isAdmin && (
+              <button className="admin-btn" onClick={() => navigate('/admin')} title="Admin panel">Admin</button>
+            )}
+            <button className="logout-btn" onClick={() => signOut()} title="Sign out">⏻</button>
+          </div>
         </header>
         <main className="app-main">
           {tab==='today' && <TodayScreen templates={templates}/>}
@@ -759,6 +768,8 @@ const CSS = `
   .app-header{padding:18px 20px 12px;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between}
   .logout-btn{background:none;border:none;color:var(--text-muted);font-size:18px;cursor:pointer;padding:4px 6px;border-radius:6px;transition:color 0.15s}
   .logout-btn:hover{color:#EF4444}
+  .admin-btn{background:transparent;border:1px solid var(--border);color:var(--text-muted);font-family:var(--font-mono);font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;transition:all 0.15s;text-transform:uppercase;letter-spacing:0.5px}
+  .admin-btn:hover{border-color:var(--accent);color:var(--accent)}
   .app-logo{font-family:var(--font-display);font-size:22px;font-weight:800;letter-spacing:-1px}
   .logo-dot{color:var(--accent)}
   .app-main{flex:1;overflow-y:auto;padding-bottom:80px}

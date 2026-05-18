@@ -10,6 +10,7 @@ import Onboarding from './Onboarding.jsx'
 function Root() {
   const [session, setSession] = useState(undefined)
   const [needsOnboarding, setNeedsOnboarding] = useState(false)
+  const [userRole, setUserRole] = useState(null)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -45,6 +46,7 @@ function Root() {
       .limit(1)
     const profile = profiles?.[0]
     const isAdmin = profile?.role === 'admin' || profile?.role === 'superadmin'
+    setUserRole(profile?.role || null)
     setNeedsOnboarding(!isAdmin && !profile?.name)
   }
 
@@ -63,7 +65,7 @@ function Root() {
     <BrowserRouter>
       <Routes>
         <Route path="/admin/*" element={<Admin />} />
-        <Route path="/*" element={<App />} />
+        <Route path="/*" element={<App userRole={userRole} />} />
       </Routes>
     </BrowserRouter>
   )
