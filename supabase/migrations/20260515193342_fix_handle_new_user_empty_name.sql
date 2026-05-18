@@ -1,7 +1,3 @@
--- Allow name to be NULL so onboarding flow can detect new users
-ALTER TABLE public.profiles ALTER COLUMN name DROP NOT NULL;
-
--- Trigger no longer pre-fills name from email — onboarding collects it instead
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER
 SET search_path = ''
