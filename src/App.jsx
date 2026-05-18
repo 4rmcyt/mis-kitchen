@@ -67,6 +67,21 @@ const DEFAULT_TEMPLATES = [
     { id: "cc17", text: "Oranges Sliced Peeled (up) — put away",         done: false, station: "Cold" },
     { id: "cc18", text: "Banana Leafs (up) — put away",                  done: false, station: "Cold" },
     { id: "cc19", text: "Peaches Grilled (up) — put away",               done: false, station: "Cold" },
+  ]},
+  { id: "t5", name: "Grill Opening", color: "#EF4444", station: "Grill", items: [
+    { id: "go1",  text: "Cabbage Seared — 2 big tray (up)",              done: false, station: "Grill" },
+    { id: "go2",  text: "Kale Chopped — 2 big tray (up)",                done: false, station: "Grill" },
+    { id: "go3",  text: "Cilantro Stem Chopped — min 1/3 small tray (up)", done: false, station: "Grill" },
+    { id: "go4",  text: "Onion Chopped — 1 small tray (up)",             done: false, station: "Grill" },
+    { id: "go5",  text: "Garlic Chopped — 1 medium tray (up)",           done: false, station: "Grill" },
+    { id: "go6",  text: "Ginger Cubes Chopped — 1 small tray (up)",      done: false, station: "Grill" },
+    { id: "go7",  text: "Rogan Josh Lamb Sauce — 1 box (fridge)",        done: false, station: "Grill" },
+    { id: "go8",  text: "Cabbage Sauce — 1 box (fridge)",                done: false, station: "Grill" },
+    { id: "go9",  text: "Chicken Malai Sauce — 1 box (fridge)",          done: false, station: "Grill" },
+    { id: "go10", text: "Demi-glace Sauce — 1 box (fridge)",             done: false, station: "Grill" },
+    { id: "go11", text: "Steak Sous Vide — 1 pc (fridge)",               done: false, station: "Grill" },
+    { id: "go12", text: "Chicken Malai — 1 pc (warming cabinet)",        done: false, station: "Grill" },
+    { id: "go13", text: "Lamb Baked — 1 pc (warming cabinet)",           done: false, station: "Grill" },
   ]}
 ];
 
