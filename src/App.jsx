@@ -25,6 +25,27 @@ const DEFAULT_TEMPLATES = [
     { id: "tc3", text: "Clean grill and flat top", done: false, station: "Common" },
     { id: "tc4", text: "Sweep station", done: false, station: "Common" },
     { id: "tc5", text: "Fridge doors sealed", done: false, station: "Common" },
+  ]},
+  { id: "t3", name: "Cold Opening", color: "#22D3EE", station: "Cold", items: [
+    { id: "co1",  text: "Raita — 4pc",                  done: false, station: "Cold" },
+    { id: "co2",  text: "Tamarind — 4pc",               done: false, station: "Cold" },
+    { id: "co3",  text: "Sweet Yogurt — 4pc",           done: false, station: "Cold" },
+    { id: "co4",  text: "Hari Chutney — 2pc",           done: false, station: "Cold" },
+    { id: "co5",  text: "Mint Vinaigrette — 2pc",       done: false, station: "Cold" },
+    { id: "co6",  text: "Tomatoes Big — 1 big tray",    done: false, station: "Cold" },
+    { id: "co7",  text: "Tomatoes Small — 1 big tray",  done: false, station: "Cold" },
+    { id: "co8",  text: "Potatoes Boiled — 2 trays",    done: false, station: "Cold" },
+    { id: "co9",  text: "Cilantro chopped — 1 box",     done: false, station: "Cold" },
+    { id: "co10", text: "Onion Diced — 1 box",          done: false, station: "Cold" },
+    { id: "co11", text: "Onion Sliced — 1 box",         done: false, station: "Cold" },
+    { id: "co12", text: "Mishti Doi — 1 box",           done: false, station: "Cold" },
+    { id: "co13", text: "Oranges — 1 big tray",         done: false, station: "Cold" },
+    { id: "co14", text: "Pomegranate — 1 big tray",     done: false, station: "Cold" },
+    { id: "co15", text: "Microgreens — 3 box",          done: false, station: "Cold" },
+    { id: "co16", text: "Pomegranate — 1 small tray (up)", done: false, station: "Cold" },
+    { id: "co17", text: "Oranges Sliced Peeled — min 1/3 small tray (up)", done: false, station: "Cold" },
+    { id: "co18", text: "Banana Leafs — min 1/3 small tray (up)", done: false, station: "Cold" },
+    { id: "co19", text: "Peaches Grilled — min 1/3 small tray (up)", done: false, station: "Cold" },
   ]}
 ];
 
