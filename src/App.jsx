@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { getRestaurantProfiles, signOut } from "./lib/supabase.js";
+import { getRestaurantProfiles, signOut, getTemplates, createTemplate, updateTemplate, deleteTemplate } from "./lib/supabase.js";
 
 const STATIONS = ["Common", "Cold", "Rolls", "Hot", "Grill", "Tandoor"];
 const STATION_COLORS = {
@@ -628,16 +628,38 @@ function TemplatesScreen({ templates, setTemplates }) {
   const [newTplName, setNewTplName] = useState('');
   const COLORS = ['#F97316','#6366F1','#22D3EE','#EF4444','#A78BFA','#10B981'];
 
-  const addItem = (tplId) => {
+  const addItem = async (tplId) => {
     if (!newItemText.trim()) return;
-    setTemplates(ts => ts.map(t => t.id===tplId ? { ...t, items: [...t.items, { id: uid(), text: newItemText.trim(), done: false, station: newItemStation }] } : t));
+    const updated = templates.map(t => t.id===tplId ? { ...t, items: [...t.items, { id: uid(), text: newItemText.trim(), done: false, station: newItemStation }] } : t);
+    setTemplates(updated);
     setNewItemText('');
+    const tpl = updated.find(t => t.id === tplId);
+    if (tpl?.created_by) await updateTemplate(tplId, { items: tpl.items }).catch(() => {});
   };
-  const deleteItem = (tplId, itemId) => setTemplates(ts => ts.map(t => t.id===tplId ? { ...t, items: t.items.filter(i=>i.id!==itemId) } : t));
-  const createTemplate = () => {
+
+  const deleteItem = async (tplId, itemId) => {
+    const updated = templates.map(t => t.id===tplId ? { ...t, items: t.items.filter(i=>i.id!==itemId) } : t);
+    setTemplates(updated);
+    const tpl = updated.find(t => t.id === tplId);
+    if (tpl?.created_by) await updateTemplate(tplId, { items: tpl.items }).catch(() => {});
+  };
+
+  const handleCreateTemplate = async () => {
     if (!newTplName.trim()) return;
-    setTemplates(ts => [...ts, { id: uid(), name: newTplName.trim(), color: COLORS[Math.floor(Math.random()*COLORS.length)], station: 'Common', items: [] }]);
+    const color = COLORS[Math.floor(Math.random()*COLORS.length)];
+    try {
+      const saved = await createTemplate({ name: newTplName.trim(), color, station: 'Common', items: [] });
+      setTemplates(ts => [...ts, saved]);
+    } catch {
+      setTemplates(ts => [...ts, { id: uid(), name: newTplName.trim(), color, station: 'Common', items: [] }]);
+    }
     setNewTplName(''); setShowNewTpl(false);
+  };
+
+  const handleDeleteTemplate = async (tpl) => {
+    setTemplates(ts => ts.filter(t => t.id !== tpl.id));
+    setActive(null);
+    if (tpl.created_by) await deleteTemplate(tpl.id).catch(() => {});
   };
 
   const currentTpl = active ? templates.find(t => t.id === active.id) : null;
@@ -646,7 +668,7 @@ function TemplatesScreen({ templates, setTemplates }) {
     <div className="screen">
       <div className="screen-header">
         <button className="back-btn" onClick={() => setActive(null)}>← Back</button>
-        <button className="action-btn del" onClick={() => { setTemplates(ts => ts.filter(t=>t.id!==currentTpl.id)); setActive(null); }}>Delete</button>
+        <button className="action-btn del" onClick={() => handleDeleteTemplate(currentTpl)}>Delete</button>
       </div>
       <div className="section-header" style={{ marginBottom:16 }}>
         <div className="section-dot" style={{ background: currentTpl.color }}/>
@@ -680,8 +702,8 @@ function TemplatesScreen({ templates, setTemplates }) {
           <div className="inline-input-row">
             <input className="add-input" placeholder="Template name…" value={newTplName} autoFocus
               onChange={e => setNewTplName(e.target.value)}
-              onKeyDown={e => { if (e.key==='Enter') createTemplate(); if (e.key==='Escape') { setNewTplName(''); setShowNewTpl(false); } }}/>
-            <button className="add-confirm" onClick={createTemplate}>+</button>
+              onKeyDown={e => { if (e.key==='Enter') handleCreateTemplate(); if (e.key==='Escape') { setNewTplName(''); setShowNewTpl(false); } }}/>
+            <button className="add-confirm" onClick={handleCreateTemplate}>+</button>
             <button className="action-btn" onClick={() => { setNewTplName(''); setShowNewTpl(false); }}>×</button>
           </div>
         ) : (
@@ -694,7 +716,7 @@ function TemplatesScreen({ templates, setTemplates }) {
             <div className="tpl-card-bar" style={{ background: tpl.color }}/>
             <div className="tpl-card-body">
               <div className="tpl-card-name">{tpl.name}</div>
-              <div className="tpl-card-meta">{tpl.items.length} items{tpl.station&&tpl.station!=='Common'?` · ${tpl.station}`:''}</div>
+              <div className="tpl-card-meta">{tpl.items?.length ?? 0} items{tpl.station&&tpl.station!=='Common'?` · ${tpl.station}`:''}</div>
             </div>
             <div className="tpl-arrow">→</div>
           </button>
@@ -784,9 +806,16 @@ function LineupScreen() {
 
 export default function App({ userRole }) {
   const [tab, setTab] = useState('today');
-  const [templates, setTemplates] = useState(() => load('mis_templates', DEFAULT_TEMPLATES));
+  const [templates, setTemplates] = useState(DEFAULT_TEMPLATES);
+  const [templatesLoaded, setTemplatesLoaded] = useState(false);
   const navigate = useNavigate();
-  useEffect(() => { save('mis_templates', templates); }, [templates]);
+
+  useEffect(() => {
+    getTemplates().then(rows => {
+      if (rows && rows.length > 0) setTemplates(rows);
+      setTemplatesLoaded(true);
+    }).catch(() => setTemplatesLoaded(true));
+  }, []);
   useEffect(() => { if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); }, []);
 
   const isAdmin = userRole === 'admin' || userRole === 'superadmin';

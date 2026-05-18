@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { supabase, getRestaurantProfiles, adminUpdateProfile, getTemplates, getRecipes, getRestaurantReports, signOut } from "./lib/supabase.js";
 
 
+const STATIONS = ["Common", "Cold", "Rolls", "Hot", "Grill", "Tandoor"];
 const STATION_COLORS = {
-  Grill:"#EF4444", Sauté:"#F97316", Cold:"#22D3EE",
-  Garde:"#10B981", Pastry:"#A78BFA", Prep:"#FBBF24", All:"#6B7280"
+  Cold:"#22D3EE", Rolls:"#A78BFA", Hot:"#F97316",
+  Grill:"#EF4444", Tandoor:"#F59E0B", Common:"#6B7280", All:"#6B7280"
 };
 
 const ROLE_COLORS = { superadmin:"#F97316", admin:"#6366F1", cook:"#3A3A3A" };
@@ -253,7 +254,7 @@ function PeopleTab() {
             <div className="form-row">
               <label className="form-label-sm">Station</label>
               <select className="form-sel" value={selected.station} onChange={e => setSelected(s => ({...s, station: e.target.value}))}>
-                {["Grill","Sauté","Cold","Garde","Pastry","Prep"].map(st => <option key={st}>{st}</option>)}
+                {STATIONS.map(st => <option key={st}>{st}</option>)}
               </select>
             </div>
             <div style={{ background:'var(--surface2)', borderRadius:8, padding:12, display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12 }}>
@@ -298,7 +299,7 @@ function PeopleTab() {
                 </select></div>
               <div><label className="form-label-sm">Primary Station</label>
                 <select className="form-sel" value={inviteStation} onChange={e => setInviteStation(e.target.value)}>
-                  {["Grill","Sauté","Cold","Garde","Pastry","Prep"].map(st => <option key={st}>{st}</option>)}
+                  {STATIONS.map(st => <option key={st}>{st}</option>)}
                 </select></div>
               <div className="security-note">
                 🔒 Invite link expires in 48 hours. User sets their own password.
@@ -357,7 +358,7 @@ function ContentTab() {
           <button className={`seg-btn ${view==='recipes'?'active':''}`} onClick={() => setView('recipes')}>Recipes</button>
         </div>
         <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
-          {['All','Grill','Sauté','Cold','Garde','Pastry','Prep'].map(st => (
+          {['All', ...STATIONS].map(st => (
             <button key={st} className={`pill ${stationFilter===st?'pill-active':''}`}
               style={stationFilter===st && st!=='All' ? { background: STATION_COLORS[st], color:'#000', borderColor: STATION_COLORS[st] } : {}}
               onClick={() => setStationFilter(st)}>{st}</button>
