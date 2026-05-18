@@ -817,8 +817,21 @@ export default function App({ userRole }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    getTemplates().then(rows => {
-      if (rows && rows.length > 0) setTemplates(rows);
+    getTemplates().then(async rows => {
+      if (rows && rows.length > 0) {
+        setTemplates(rows);
+      } else {
+        // First run — seed default templates into Supabase
+        try {
+          await Promise.all(DEFAULT_TEMPLATES.map(tpl =>
+            createTemplate({ name: tpl.name, color: tpl.color, station: tpl.station, items: tpl.items })
+          ));
+          const seeded = await getTemplates();
+          if (seeded && seeded.length > 0) setTemplates(seeded);
+        } catch {
+          // Keep DEFAULT_TEMPLATES as fallback
+        }
+      }
     }).catch(() => {});
   }, []);
   useEffect(() => { if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); }, []);
