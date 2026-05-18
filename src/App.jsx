@@ -158,7 +158,6 @@ function CheckItem({ item, onToggle, onDelete, onDefer, timer, onStartTimer, fmt
       <div className="item-body">
         <span className="item-text">{item.text}</span>
         {item.amount && <span className="item-amount">{item.amount}</span>}
-        {item.station && item.station !== 'Common' && <span className="item-station" style={{ background: STATION_COLORS[item.station] || STATION_COLORS.Default }}>{item.station}</span>}
         {timer?.running && <span className="timer-badge">⏱ {fmt(timer.remaining)}</span>}
         {timer?.done && <span className="timer-badge done">✓ done</span>}
       </div>
@@ -275,7 +274,6 @@ function ReportModal({ sections, nextShift, onClose }) {
             {nextShift.map(i => (
               <div key={i.id} className="report-next-item">
                 <span>{i.text}</span>
-                {i.station && i.station !== 'All' && <span className="item-station" style={{ background: STATION_COLORS[i.station] || STATION_COLORS.Default }}>{i.station}</span>}
               </div>
             ))}
           </div>
@@ -403,7 +401,6 @@ function TodayScreen({ templates }) {
                 <div key={item.id} className="check-item">
                   <div className="item-body">
                     <span className="item-text">{item.text}</span>
-                    {item.station && item.station!=='Common' && <span className="item-station" style={{ background: STATION_COLORS[item.station]||STATION_COLORS.Default }}>{item.station}</span>}
                   </div>
                   <button className="action-btn del" onClick={() => setNextShift(n => n.filter(i => i.id !== item.id))}>×</button>
                 </div>
@@ -659,7 +656,6 @@ function TemplatesScreen({ templates, setTemplates }) {
         <div key={item.id} className="check-item">
           <div className="item-body">
             <span className="item-text">{item.text}</span>
-            {item.station && item.station!=='Common' && <span className="item-station" style={{ background: STATION_COLORS[item.station]||STATION_COLORS.Default }}>{item.station}</span>}
           </div>
           <button className="action-btn del" onClick={() => deleteItem(currentTpl.id, item.id)}>×</button>
         </div>
