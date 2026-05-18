@@ -26,7 +26,7 @@ const DEFAULT_TEMPLATES = [
     { id: "tc4", text: "Sweep station", done: false, station: "Common" },
     { id: "tc5", text: "Fridge doors sealed", done: false, station: "Common" },
   ]},
-  { id: "t3", name: "Cold Opening", color: "#22D3EE", station: "Cold", items: [
+  { id: "t3", name: "Opening", color: "#22D3EE", station: "Cold", items: [
     { id: "co1",  text: "Raita — 4pc",                  done: false, station: "Cold" },
     { id: "co2",  text: "Tamarind — 4pc",               done: false, station: "Cold" },
     { id: "co3",  text: "Sweet Yogurt — 4pc",           done: false, station: "Cold" },
@@ -47,7 +47,7 @@ const DEFAULT_TEMPLATES = [
     { id: "co18", text: "Banana Leafs — min 1/3 small tray (up)", done: false, station: "Cold" },
     { id: "co19", text: "Peaches Grilled — min 1/3 small tray (up)", done: false, station: "Cold" },
   ]},
-  { id: "t4", name: "Cold Closing", color: "#0891B2", station: "Cold", items: [
+  { id: "t4", name: "Closing", color: "#0891B2", station: "Cold", items: [
     { id: "cc1",  text: "Raita — wrapped & labelled",                    done: false, station: "Cold" },
     { id: "cc2",  text: "Tamarind — wrapped & labelled",                 done: false, station: "Cold" },
     { id: "cc3",  text: "Sweet Yogurt — wrapped & labelled",             done: false, station: "Cold" },
@@ -68,7 +68,7 @@ const DEFAULT_TEMPLATES = [
     { id: "cc18", text: "Banana Leafs (up) — put away",                  done: false, station: "Cold" },
     { id: "cc19", text: "Peaches Grilled (up) — put away",               done: false, station: "Cold" },
   ]},
-  { id: "t5", name: "Grill Opening", color: "#EF4444", station: "Grill", items: [
+  { id: "t5", name: "Opening", color: "#EF4444", station: "Grill", items: [
     { id: "go1",  text: "Cabbage Seared — 2 big tray (up)",              done: false, station: "Grill" },
     { id: "go2",  text: "Kale Chopped — 2 big tray (up)",                done: false, station: "Grill" },
     { id: "go3",  text: "Cilantro Stem Chopped — min 1/3 small tray (up)", done: false, station: "Grill" },
@@ -83,7 +83,7 @@ const DEFAULT_TEMPLATES = [
     { id: "go12", text: "Chicken Malai — 1 pc (warming cabinet)",        done: false, station: "Grill" },
     { id: "go13", text: "Lamb Baked — 1 pc (warming cabinet)",           done: false, station: "Grill" },
   ]},
-  { id: "t6", name: "Grill Closing", color: "#B91C1C", station: "Grill", items: [
+  { id: "t6", name: "Closing", color: "#B91C1C", station: "Grill", items: [
     { id: "gc1",  text: "Cabbage Seared — wrapped & put away",           done: false, station: "Grill" },
     { id: "gc2",  text: "Kale Chopped — wrapped & put away",             done: false, station: "Grill" },
     { id: "gc3",  text: "Cilantro Stem Chopped — wrapped & put away",    done: false, station: "Grill" },
@@ -300,10 +300,10 @@ function ReportModal({ sections, nextShift, onClose }) {
   );
 }
 
-function TodayScreen({ templates }) {
+function TodayScreen({ templates, userStation = 'Common' }) {
   const [sections, setSections] = useState(() => load('mis_today', []));
   const [nextShift, setNextShift] = useState(() => load('mis_next_shift', []));
-  const [stationFilter, setStationFilter] = useState('All');
+  const [stationFilter, setStationFilter] = useState(userStation);
   const [activeSection, setActiveSection] = useState(null);
   const [newText, setNewText] = useState('');
   const [newStation, setNewStation] = useState('Common');
@@ -811,7 +811,7 @@ function LineupScreen() {
   );
 }
 
-export default function App({ userRole }) {
+export default function App({ userRole, userStation = 'Common' }) {
   const [tab, setTab] = useState('today');
   const [templates, setTemplates] = useState(DEFAULT_TEMPLATES);
   const navigate = useNavigate();
@@ -852,7 +852,7 @@ export default function App({ userRole }) {
           </div>
         </header>
         <main className="app-main">
-          {tab==='today' && <TodayScreen templates={templates}/>}
+          {tab==='today' && <TodayScreen templates={templates} userStation={userStation}/>}
           {tab==='lineup' && <LineupScreen/>}
           {tab==='recipes' && <RecipesScreen/>}
           {tab==='templates' && <TemplatesScreen templates={templates} setTemplates={setTemplates}/>}

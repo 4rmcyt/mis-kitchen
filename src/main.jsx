@@ -13,6 +13,7 @@ function Root() {
   const [needsOnboarding, setNeedsOnboarding] = useState(false)
   const [userRole, setUserRole] = useState(null)
   const [needsPasswordReset, setNeedsPasswordReset] = useState(false)
+  const [userStation, setUserStation] = useState('Common')
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -48,12 +49,13 @@ function Root() {
     if (!user) return
     const { data: profiles } = await supabase
       .from('profiles')
-      .select('name, role, password_set')
+      .select('name, role, password_set, station')
       .eq('id', user.id)
       .limit(1)
     const profile = profiles?.[0]
     const isAdmin = profile?.role === 'admin' || profile?.role === 'superadmin'
     setUserRole(profile?.role || null)
+    setUserStation(profile?.station || 'Common')
     setNeedsOnboarding(!isAdmin && (!profile?.name || !profile?.password_set))
   }
 
@@ -71,7 +73,7 @@ function Root() {
   if (needsOnboarding) return (
     <Onboarding
       user={session.user}
-      onDone={() => setNeedsOnboarding(false)}
+      onDone={() => { setNeedsOnboarding(false); checkOnboarding(session.user) }}
     />
   )
 
@@ -80,7 +82,7 @@ function Root() {
     <BrowserRouter>
       <Routes>
         <Route path="/admin/*" element={<Admin />} />
-        <Route path="/*" element={<App userRole={userRole} />} />
+        <Route path="/*" element={<App userRole={userRole} userStation={userStation} />} />
       </Routes>
     </BrowserRouter>
   )
