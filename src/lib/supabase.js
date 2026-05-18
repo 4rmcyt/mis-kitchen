@@ -80,7 +80,11 @@ export async function getProfile(userId) {
 }
 
 export async function updateProfile(userId, updates) {
-  const allowed = { name: updates.name, station: updates.station };
+  const allowed = {
+    ...(updates.name     !== undefined && { name:         updates.name }),
+    ...(updates.station  !== undefined && { station:      updates.station }),
+    ...(updates.password_set !== undefined && { password_set: updates.password_set }),
+  };
   return q(() =>
     supabase.from("profiles").update(allowed).eq("id", userId).select().single()
   );

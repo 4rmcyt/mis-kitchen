@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { updateProfile, supabase } from './lib/supabase.js'
 
 const STATIONS = ['Common', 'Grill', 'Sauté', 'Cold', 'Garde', 'Pastry', 'Prep']
@@ -7,23 +7,25 @@ const STATION_COLORS = {
   Garde: '#10B981', Pastry: '#A78BFA', Prep: '#FBBF24', Common: '#6B7280',
 }
 
-function isFirstLogin(user) {
-  if (!user?.created_at || !user?.last_sign_in_at) return false
-  const created = new Date(user.created_at).getTime()
-  const lastSignIn = new Date(user.last_sign_in_at).getTime()
-  return Math.abs(lastSignIn - created) < 60_000
-}
-
 export default function Onboarding({ user, onDone }) {
   const meta = user.user_metadata || {}
-  const showPasswordStep = isFirstLogin(user)
-  const [step, setStep] = useState(showPasswordStep ? 'password' : 'welcome')
+  const [step, setStep] = useState(null)
+  const [showPasswordStep, setShowPasswordStep] = useState(false)
   const [password, setPassword] = useState('')
   const [passwordConfirm, setPasswordConfirm] = useState('')
   const [name, setName] = useState(meta.full_name || meta.name || '')
   const [station, setStation] = useState(meta.station || 'Common')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    supabase.from('profiles').select('password_set').eq('id', user.id).single()
+      .then(({ data }) => {
+        const needsPassword = !data?.password_set
+        setShowPasswordStep(needsPassword)
+        setStep(needsPassword ? 'password' : 'welcome')
+      })
+  }, [user.id])
 
   const allSteps = showPasswordStep
     ? ['password', 'welcome', 'name', 'station']
@@ -38,6 +40,7 @@ export default function Onboarding({ user, onDone }) {
     try {
       const { error: err } = await supabase.auth.updateUser({ password })
       if (err) throw err
+      await updateProfile(user.id, { password_set: true })
       setStep('welcome')
     } catch (e) {
       setError(e.message)
@@ -60,6 +63,8 @@ export default function Onboarding({ user, onDone }) {
   }
 
   const dotIndex = visibleDotSteps.indexOf(step)
+
+  if (step === null) return null
 
   return (
     <div style={s.root}>

@@ -48,14 +48,13 @@ function Root() {
     if (!user) return
     const { data: profiles } = await supabase
       .from('profiles')
-      .select('name, role')
+      .select('name, role, password_set')
       .eq('id', user.id)
       .limit(1)
     const profile = profiles?.[0]
     const isAdmin = profile?.role === 'admin' || profile?.role === 'superadmin'
     setUserRole(profile?.role || null)
-    const isNewUser = !profile?.name
-    setNeedsOnboarding(!isAdmin && isNewUser)
+    setNeedsOnboarding(!isAdmin && (!profile?.name || !profile?.password_set))
   }
 
   if (session === undefined) return null
@@ -75,6 +74,7 @@ function Root() {
       onDone={() => setNeedsOnboarding(false)}
     />
   )
+
 
   return (
     <BrowserRouter>
