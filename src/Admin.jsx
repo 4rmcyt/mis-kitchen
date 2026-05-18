@@ -315,49 +315,15 @@ function PeopleTab() {
 }
 
 //  CONTENT TAB
-function ContentTab() {
-  const [view, setView] = useState('templates');
-  const [templates, setTemplates] = useState([]);
-  const [recipes, setRecipes] = useState([]);
-  const [stationFilter, setStationFilter] = useState('All');
-  const { show: toast } = useToast();
-
-  useEffect(() => {
-    getTemplates().then(setTemplates).catch(e => toast(e.message, 'error'));
-    getRecipes().then(setRecipes).catch(e => toast(e.message, 'error'));
-  }, []);
-
-  const toggleShared = async (id, type) => {
-    const table = type === 'templates' ? 'templates' : 'recipes';
-    const list = type === 'templates' ? templates : recipes;
-    const item = list.find(i => i.id === id);
-    try {
-      await supabase.from(table).update({ is_shared: !item.is_shared }).eq('id', id);
-      if (type === 'templates') setTemplates(ts => ts.map(t => t.id === id ? { ...t, is_shared: !t.is_shared } : t));
-      else setRecipes(rs => rs.map(r => r.id === id ? { ...r, is_shared: !r.is_shared } : r));
-    } catch (e) {
-      toast(e.message, 'error');
-    }
-  };
-
-  const items = view === 'templates' ? templates : recipes;
+function ContentList({ items, type, onToggle, stationFilter, setStationFilter }) {
   const filtered = stationFilter === 'All' ? items : items.filter(i => i.station === stationFilter);
-  const _sharedCount = items.filter(i => i.is_shared).length;
-
   return (
     <div className="tab-content">
       <div className="stat-row">
-        <div className="stat-card"><div className="stat-val">{templates.length}</div><div className="stat-lbl">Templates</div></div>
-        <div className="stat-card"><div className="stat-val">{recipes.length}</div><div className="stat-lbl">Recipes</div></div>
-        <div className="stat-card"><div className="stat-val" style={{ color:'#10B981' }}>{templates.filter(t=>t.is_shared).length}</div><div className="stat-lbl">Shared templates</div></div>
-        <div className="stat-card"><div className="stat-val" style={{ color:'#10B981' }}>{recipes.filter(r=>r.is_shared).length}</div><div className="stat-lbl">Shared recipes</div></div>
+        <div className="stat-card"><div className="stat-val">{items.length}</div><div className="stat-lbl">{type === 'templates' ? 'Templates' : 'Recipes'}</div></div>
+        <div className="stat-card"><div className="stat-val" style={{ color:'#10B981' }}>{items.filter(i=>i.is_shared).length}</div><div className="stat-lbl">Shared</div></div>
       </div>
-
       <div className="toolbar">
-        <div className="seg-ctrl">
-          <button className={`seg-btn ${view==='templates'?'active':''}`} onClick={() => setView('templates')}>Templates</button>
-          <button className={`seg-btn ${view==='recipes'?'active':''}`} onClick={() => setView('recipes')}>Recipes</button>
-        </div>
         <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
           {['All', ...STATIONS].map(st => (
             <button key={st} className={`pill ${stationFilter===st?'pill-active':''}`}
@@ -366,20 +332,15 @@ function ContentTab() {
           ))}
         </div>
       </div>
-
-      <div className="security-note" style={{ marginBottom:16 }}>
-        🔒 Personal items are only visible to their creator. Shared items are visible to all kitchen staff.
-      </div>
-
       <div className="content-grid">
         {filtered.map(item => (
           <div key={item.id} className={`content-card ${item.is_shared ? 'shared' : ''}`}>
             <div className="content-card-top">
-              {view === 'templates' && <div className="content-color-dot" style={{ background: item.color }}/>}
+              {type === 'templates' && <div className="content-color-dot" style={{ background: item.color }}/>}
               <div className="content-card-info">
                 <div className="content-card-name">{item.name}</div>
                 <div className="content-card-meta">
-                  {view === 'templates' ? `${item.items?.length ?? 0} items` : `${item.ingredients?.length ?? 0} ingredients`}
+                  {type === 'templates' ? `${item.items?.length ?? 0} items` : `${item.ingredients?.length ?? 0} ingredients`}
                 </div>
               </div>
               <Badge color={STATION_COLORS[item.station] || '#6B7280'} small>{item.station}</Badge>
@@ -391,18 +352,46 @@ function ContentTab() {
                   {item.is_shared ? 'Shared with team' : 'Personal only'}
                 </span>
               </div>
-              <button
-                className={`share-toggle ${item.is_shared ? 'unshare' : 'share'}`}
-                onClick={() => toggleShared(item.id, view)}
-              >
+              <button className={`share-toggle ${item.is_shared ? 'unshare' : 'share'}`} onClick={() => onToggle(item.id)}>
                 {item.is_shared ? '↓ Unpublish' : '↑ Publish to team'}
               </button>
             </div>
           </div>
         ))}
+        {filtered.length === 0 && <div style={{ color:'var(--text-muted)', fontSize:13, padding:'20px 0' }}>No {type} found.</div>}
       </div>
     </div>
   );
+}
+
+function TasksTab() {
+  const [templates, setTemplates] = useState([]);
+  const [stationFilter, setStationFilter] = useState('All');
+  const { show: toast } = useToast();
+  useEffect(() => { getTemplates().then(setTemplates).catch(e => toast(e.message, 'error')); }, []);
+  const toggle = async (id) => {
+    const item = templates.find(t => t.id === id);
+    try {
+      await supabase.from('templates').update({ is_shared: !item.is_shared }).eq('id', id);
+      setTemplates(ts => ts.map(t => t.id === id ? { ...t, is_shared: !t.is_shared } : t));
+    } catch (e) { toast(e.message, 'error'); }
+  };
+  return <ContentList items={templates} type="templates" onToggle={toggle} stationFilter={stationFilter} setStationFilter={setStationFilter}/>;
+}
+
+function RecipesTab() {
+  const [recipes, setRecipes] = useState([]);
+  const [stationFilter, setStationFilter] = useState('All');
+  const { show: toast } = useToast();
+  useEffect(() => { getRecipes().then(setRecipes).catch(e => toast(e.message, 'error')); }, []);
+  const toggle = async (id) => {
+    const item = recipes.find(r => r.id === id);
+    try {
+      await supabase.from('recipes').update({ is_shared: !item.is_shared }).eq('id', id);
+      setRecipes(rs => rs.map(r => r.id === id ? { ...r, is_shared: !r.is_shared } : r));
+    } catch (e) { toast(e.message, 'error'); }
+  };
+  return <ContentList items={recipes} type="recipes" onToggle={toggle} stationFilter={stationFilter} setStationFilter={setStationFilter}/>;
 }
 
 //  REPORTS TAB
@@ -637,7 +626,8 @@ export default function Admin() {
 
   const TABS = [
     { id:'people',   label:'People',   icon:'👥' },
-    { id:'content',  label:'Content',  icon:'📋' },
+    { id:'tasks',    label:'Tasks',    icon:'✓'  },
+    { id:'recipes',  label:'Recipes',  icon:'⚗'  },
     { id:'reports',  label:'Reports',  icon:'📊' },
     { id:'security', label:'Security', icon:'🔒' },
   ];
@@ -683,7 +673,8 @@ export default function Admin() {
         </div>
 
         {tab === 'people'   && <PeopleTab/>}
-        {tab === 'content'  && <ContentTab/>}
+        {tab === 'tasks'    && <TasksTab/>}
+        {tab === 'recipes'  && <RecipesTab/>}
         {tab === 'reports'  && <ReportsTab/>}
         {tab === 'security' && <SecurityTab/>}
       </main>
