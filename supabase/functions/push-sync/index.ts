@@ -21,7 +21,7 @@
 //   supabase functions invoke push-sync
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const PUSH_API_TOKEN    = Deno.env.get("PUSH_API_TOKEN")!;
 const PUSH_COMPANY_UUID = Deno.env.get("PUSH_COMPANY_UUID")!;

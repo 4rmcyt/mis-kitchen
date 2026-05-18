@@ -12,7 +12,7 @@
 //   supabase secrets set PUSH_WEBHOOK_SECRET=your_webhook_secret
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2";
 import { crypto } from "https://deno.land/std@0.168.0/crypto/mod.ts";
 
 const PUSH_WEBHOOK_SECRET  = Deno.env.get("PUSH_WEBHOOK_SECRET") ?? "";
