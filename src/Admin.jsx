@@ -379,8 +379,7 @@ function ContentTab() {
               <div className="content-card-info">
                 <div className="content-card-name">{item.name}</div>
                 <div className="content-card-meta">
-                  by {item.created_by} ·{' '}
-                  {view === 'templates' ? `${item.items} items` : `${item.ingredients} ingredients`}
+                  {view === 'templates' ? `${item.items?.length ?? 0} items` : `${item.ingredients?.length ?? 0} ingredients`}
                 </div>
               </div>
               <Badge color={STATION_COLORS[item.station] || '#6B7280'} small>{item.station}</Badge>
