@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase, getRestaurantProfiles, adminUpdateProfile, getTemplates, getRecipes, getRestaurantReports, signOut } from "./lib/supabase.js";
 
 
@@ -633,6 +634,7 @@ CREATE POLICY "recipes_access" ON recipes
 //  MAIN APP 
 export default function Admin() {
   const [tab, setTab] = useState('people');
+  const navigate = useNavigate();
 
   const TABS = [
     { id:'people',   label:'People',   icon:'👥' },
@@ -677,6 +679,7 @@ export default function Admin() {
           <div style={{ display:'flex', alignItems:'center', gap:10 }}>
             <div className="live-badge">● Live</div>
             <div style={{ fontSize:11, color:'var(--text-muted)' }}>{new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}</div>
+            <button onClick={() => navigate('/')} style={{ background:'none', border:'1px solid var(--border)', color:'var(--text-muted)', fontSize:12, cursor:'pointer', padding:'4px 10px', borderRadius:6, fontFamily:'var(--font-mono)' }}>← App</button>
           </div>
         </div>
 
