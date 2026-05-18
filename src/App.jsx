@@ -46,6 +46,27 @@ const DEFAULT_TEMPLATES = [
     { id: "co17", text: "Oranges Sliced Peeled — min 1/3 small tray (up)", done: false, station: "Cold" },
     { id: "co18", text: "Banana Leafs — min 1/3 small tray (up)", done: false, station: "Cold" },
     { id: "co19", text: "Peaches Grilled — min 1/3 small tray (up)", done: false, station: "Cold" },
+  ]},
+  { id: "t4", name: "Cold Closing", color: "#0891B2", station: "Cold", items: [
+    { id: "cc1",  text: "Raita — wrapped & labelled",                    done: false, station: "Cold" },
+    { id: "cc2",  text: "Tamarind — wrapped & labelled",                 done: false, station: "Cold" },
+    { id: "cc3",  text: "Sweet Yogurt — wrapped & labelled",             done: false, station: "Cold" },
+    { id: "cc4",  text: "Hari Chutney — wrapped & labelled",             done: false, station: "Cold" },
+    { id: "cc5",  text: "Mint Vinaigrette — wrapped & labelled",         done: false, station: "Cold" },
+    { id: "cc6",  text: "Tomatoes Big — put away",                       done: false, station: "Cold" },
+    { id: "cc7",  text: "Tomatoes Small — put away",                     done: false, station: "Cold" },
+    { id: "cc8",  text: "Potatoes Boiled — wrapped & put away",          done: false, station: "Cold" },
+    { id: "cc9",  text: "Cilantro chopped — wrapped & put away",         done: false, station: "Cold" },
+    { id: "cc10", text: "Onion Diced — wrapped & put away",              done: false, station: "Cold" },
+    { id: "cc11", text: "Onion Sliced — wrapped & put away",             done: false, station: "Cold" },
+    { id: "cc12", text: "Mishti Doi — wrapped & labelled",               done: false, station: "Cold" },
+    { id: "cc13", text: "Oranges — wrapped & put away",                  done: false, station: "Cold" },
+    { id: "cc14", text: "Pomegranate — wrapped & put away",              done: false, station: "Cold" },
+    { id: "cc15", text: "Microgreens — wrapped & put away",              done: false, station: "Cold" },
+    { id: "cc16", text: "Pomegranate (up) — put away",                   done: false, station: "Cold" },
+    { id: "cc17", text: "Oranges Sliced Peeled (up) — put away",         done: false, station: "Cold" },
+    { id: "cc18", text: "Banana Leafs (up) — put away",                  done: false, station: "Cold" },
+    { id: "cc19", text: "Peaches Grilled (up) — put away",               done: false, station: "Cold" },
   ]}
 ];
 
