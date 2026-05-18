@@ -6,11 +6,13 @@ import App from './App.jsx'
 import Admin from './Admin.jsx'
 import Login from './Login.jsx'
 import Onboarding from './Onboarding.jsx'
+import ResetPassword from './ResetPassword.jsx'
 
 function Root() {
   const [session, setSession] = useState(undefined)
   const [needsOnboarding, setNeedsOnboarding] = useState(false)
   const [userRole, setUserRole] = useState(null)
+  const [needsPasswordReset, setNeedsPasswordReset] = useState(false)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -30,7 +32,12 @@ function Root() {
       })
     }
 
-    const { data: { subscription } } = onAuthChange(s => {
+    const { data: { subscription } } = onAuthChange((s, event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setSession(s)
+        setNeedsPasswordReset(true)
+        return
+      }
       setSession(s)
       if (s) checkOnboarding(s.user)
     })
@@ -52,6 +59,13 @@ function Root() {
   }
 
   if (session === undefined) return null
+
+  if (needsPasswordReset) return (
+    <ResetPassword onDone={() => {
+      setNeedsPasswordReset(false)
+      getSession().then(s => { setSession(s); if (s) checkOnboarding(s.user) })
+    }} />
+  )
 
   if (!session) return <Login onLogin={() => getSession().then(setSession)} />
 
