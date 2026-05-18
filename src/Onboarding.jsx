@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import { updateProfile, supabase } from './lib/supabase.js'
 
-const STATIONS = ['Common', 'Grill', 'Sauté', 'Cold', 'Garde', 'Pastry', 'Prep']
+const STATIONS = ['Common', 'Cold', 'Rolls', 'Hot', 'Grill', 'Tandoor']
 const STATION_COLORS = {
-  Grill: '#EF4444', Sauté: '#F97316', Cold: '#22D3EE',
-  Garde: '#10B981', Pastry: '#A78BFA', Prep: '#FBBF24', Common: '#6B7280',
+  Cold: '#22D3EE', Rolls: '#A78BFA', Hot: '#F97316',
+  Grill: '#EF4444', Tandoor: '#F59E0B', Common: '#6B7280',
 }
 
 export default function Onboarding({ user, onDone }) {

@@ -2,10 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { getRestaurantProfiles, signOut } from "./lib/supabase.js";
 
-const STATIONS = ["Common", "Grill", "Sauté", "Cold", "Garde", "Pastry", "Prep"];
+const STATIONS = ["Common", "Cold", "Rolls", "Hot", "Grill", "Tandoor"];
 const STATION_COLORS = {
-  Grill: "#EF4444", Sauté: "#F97316", Cold: "#22D3EE",
-  Garde: "#10B981", Pastry: "#A78BFA", Prep: "#FBBF24", Default: "#6B7280"
+  Cold: "#22D3EE", Rolls: "#A78BFA", Hot: "#F97316",
+  Grill: "#EF4444", Tandoor: "#F59E0B", Default: "#6B7280"
 };
 
 const save = (key, val) => { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} };
@@ -29,7 +29,7 @@ const DEFAULT_TEMPLATES = [
 ];
 
 const DEFAULT_RECIPES = [
-  { id: "r1", name: "Beurre Blanc", station: "Sauté", portions: 1,
+  { id: "r1", name: "Beurre Blanc", station: "Hot", portions: 1,
     ingredients: [
       { id: "i1", name: "White wine", amount: 120, unit: "ml" },
       { id: "i2", name: "Shallots, minced", amount: 30, unit: "g" },
@@ -39,7 +39,7 @@ const DEFAULT_RECIPES = [
     ],
     steps: ["Reduce wine + shallots until nearly dry.", "Add cream, reduce by half.", "Mount butter off heat, cube by cube. Season."]
   },
-  { id: "r2", name: "Garlic Confit", station: "Garde", portions: 1,
+  { id: "r2", name: "Garlic Confit", station: "Cold", portions: 1,
     ingredients: [
       { id: "j1", name: "Garlic cloves", amount: 200, unit: "g" },
       { id: "j2", name: "Olive oil", amount: 300, unit: "ml" },
@@ -515,7 +515,7 @@ function RecipesScreen() {
 
 function RecipeForm({ onSave, onCancel }) {
   const [name, setName] = useState('');
-  const [station, setStation] = useState('Sauté');
+  const [station, setStation] = useState('Hot');
   const [ings, setIngs] = useState([{ id: uid(), name: '', amount: '', unit: 'g' }]);
   const [steps, setSteps] = useState(['']);
   const addIng = () => setIngs(i => [...i, { id: uid(), name: '', amount: '', unit: 'g' }]);
