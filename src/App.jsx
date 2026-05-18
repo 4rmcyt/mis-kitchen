@@ -312,6 +312,7 @@ function TodayScreen({ templates }) {
   const [confirmReset, setConfirmReset] = useState(false);
   const [showCustomSection, setShowCustomSection] = useState(false);
   const [customSectionName, setCustomSectionName] = useState('');
+  const [showTemplatePicker, setShowTemplatePicker] = useState(false);
   const { timers, start, fmt } = useTimer();
 
   useEffect(() => { save('mis_today', sections); }, [sections]);
@@ -367,6 +368,7 @@ function TodayScreen({ templates }) {
           <div className="screen-sub">{today}</div>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+          <button className="report-trigger" onClick={() => setShowTemplatePicker(v => !v)} title="Add template">＋</button>
           {totalAll > 0 && <button className="report-trigger" onClick={() => setShowReport(true)}>📋</button>}
           {totalAll > 0 && (
             <div className="progress-ring">
@@ -388,6 +390,37 @@ function TodayScreen({ templates }) {
             onClick={() => setStationFilter(st)}>{st}</button>
         ))}
       </div>
+
+      {showTemplatePicker && (
+        <div className="tpl-picker">
+          {templates.map(tpl => (
+            <button key={tpl.id} className="tpl-chip" style={{ borderColor: tpl.color, color: tpl.color }}
+              onClick={() => { loadTemplate(tpl); setShowTemplatePicker(false); }}>
+              + {tpl.name}
+            </button>
+          ))}
+          {showCustomSection ? (
+            <div className="inline-input-row">
+              <input className="add-input" placeholder="Section name…" value={customSectionName} autoFocus
+                onChange={e => setCustomSectionName(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && customSectionName.trim()) {
+                    setSections(s => [...s, { id: uid(), name: customSectionName.trim(), color: '#888', station: 'Common', items: [] }]);
+                    setCustomSectionName(''); setShowCustomSection(false); setShowTemplatePicker(false);
+                  }
+                  if (e.key === 'Escape') { setCustomSectionName(''); setShowCustomSection(false); }
+                }}/>
+              <button className="add-confirm" onClick={() => {
+                if (customSectionName.trim()) setSections(s => [...s, { id: uid(), name: customSectionName.trim(), color: '#888', station: 'Common', items: [] }]);
+                setCustomSectionName(''); setShowCustomSection(false); setShowTemplatePicker(false);
+              }}>+</button>
+              <button className="action-btn" onClick={() => { setCustomSectionName(''); setShowCustomSection(false); }}>×</button>
+            </div>
+          ) : (
+            <button className="tpl-chip plain" onClick={() => setShowCustomSection(true)}>+ Custom</button>
+          )}
+        </div>
+      )}
 
       {nextShift.length > 0 && (
         <>
@@ -454,32 +487,6 @@ function TodayScreen({ templates }) {
       })}
 
       <div className="fab-area">
-        {templates.map(tpl => (
-          <button key={tpl.id} className="tpl-chip" style={{ borderColor: tpl.color, color: tpl.color }} onClick={() => loadTemplate(tpl)}>+ {tpl.name}</button>
-        ))}
-        {showCustomSection ? (
-          <div className="inline-input-row">
-            <input className="add-input" placeholder="Section name…" value={customSectionName}
-              autoFocus
-              onChange={e => setCustomSectionName(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter' && customSectionName.trim()) {
-                  setSections(s => [...s, { id: uid(), name: customSectionName.trim(), color: '#888', station: 'Common', items: [] }]);
-                  setCustomSectionName(''); setShowCustomSection(false);
-                }
-                if (e.key === 'Escape') { setCustomSectionName(''); setShowCustomSection(false); }
-              }}/>
-            <button className="add-confirm" onClick={() => {
-              if (customSectionName.trim()) {
-                setSections(s => [...s, { id: uid(), name: customSectionName.trim(), color: '#888', station: 'Common', items: [] }]);
-              }
-              setCustomSectionName(''); setShowCustomSection(false);
-            }}>+</button>
-            <button className="action-btn" onClick={() => { setCustomSectionName(''); setShowCustomSection(false); }}>×</button>
-          </div>
-        ) : (
-          <button className="tpl-chip plain" onClick={() => setShowCustomSection(true)}>+ Custom</button>
-        )}
         {totalAll > 0 && !confirmReset && (
           <button className="reset-btn" onClick={() => setConfirmReset(true)}>Reset</button>
         )}
@@ -920,6 +927,7 @@ const CSS = `
   .add-confirm{background:var(--accent);color:#fff;border:none;width:40px;border-radius:var(--radius);font-size:20px;cursor:pointer;font-weight:300}
   .add-task-btn{background:none;border:1px dashed var(--border);color:var(--text-muted);font-family:var(--font-mono);font-size:12px;padding:8px 12px;border-radius:var(--radius);cursor:pointer;margin-top:6px;width:100%;transition:border-color 0.15s,color 0.15s}
   .add-task-btn:hover{border-color:var(--accent);color:var(--accent)}
+  .tpl-picker{display:flex;flex-wrap:wrap;gap:8px;padding:12px 0 4px}
   .fab-area{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
   .tpl-chip{background:transparent;border:1px solid;padding:8px 14px;border-radius:20px;font-family:var(--font-mono);font-size:12px;cursor:pointer;transition:background 0.15s}
   .tpl-chip:hover{background:rgba(255,255,255,0.05)}
