@@ -82,6 +82,18 @@ const DEFAULT_TEMPLATES = [
     { id: "go11", text: "Steak Sous Vide — 1 pc (fridge)",               done: false, station: "Grill" },
     { id: "go12", text: "Chicken Malai — 1 pc (warming cabinet)",        done: false, station: "Grill" },
     { id: "go13", text: "Lamb Baked — 1 pc (warming cabinet)",           done: false, station: "Grill" },
+  ]},
+  { id: "t6", name: "Grill Closing", color: "#B91C1C", station: "Grill", items: [
+    { id: "gc1",  text: "Cabbage Seared — wrapped & put away",           done: false, station: "Grill" },
+    { id: "gc2",  text: "Kale Chopped — wrapped & put away",             done: false, station: "Grill" },
+    { id: "gc3",  text: "Cilantro Stem Chopped — wrapped & put away",    done: false, station: "Grill" },
+    { id: "gc4",  text: "Onion Chopped — wrapped & put away",            done: false, station: "Grill" },
+    { id: "gc5",  text: "Garlic Chopped — wrapped & put away",           done: false, station: "Grill" },
+    { id: "gc6",  text: "Ginger Cubes Chopped — wrapped & put away",     done: false, station: "Grill" },
+    { id: "gc7",  text: "Rogan Josh Lamb Sauce — wrapped & put away",    done: false, station: "Grill" },
+    { id: "gc8",  text: "Cabbage Sauce — wrapped & put away",            done: false, station: "Grill" },
+    { id: "gc9",  text: "Chicken Malai Sauce — wrapped & put away",      done: false, station: "Grill" },
+    { id: "gc10", text: "Demi-glace Sauce — wrapped & put away",         done: false, station: "Grill" },
   ]}
 ];
 
