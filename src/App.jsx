@@ -856,10 +856,9 @@ export default function App({ userRole, userStation = 'Common' }) {
           {tab==='today' && <TodayScreen templates={templates} userStation={userStation}/>}
           {tab==='lineup' && <LineupScreen/>}
           {tab==='recipes' && <RecipesScreen/>}
-          {tab==='templates' && <TemplatesScreen templates={templates} setTemplates={setTemplates}/>}
         </main>
         <nav className="bottom-nav">
-          {[{id:'today',label:'Today',icon:'✓'},{id:'lineup',label:'Lineup',icon:'◈'},{id:'recipes',label:'Recipes',icon:'⚗'},{id:'templates',label:'Tmpls',icon:'◫'}].map(t => (
+          {[{id:'today',label:'Today',icon:'✓'},{id:'lineup',label:'Lineup',icon:'◈'},{id:'recipes',label:'Recipes',icon:'⚗'}].map(t => (
             <button key={t.id} className={`nav-btn ${tab===t.id?'active':''}`} onClick={() => setTab(t.id)}>
               <span className="nav-icon">{t.icon}</span>
               <span className="nav-label">{t.label}</span>
