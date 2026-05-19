@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { getRestaurantProfiles, signOut, getTemplates, createTemplate, updateTemplate, deleteTemplate } from "./lib/supabase.js";
+import { getRestaurantProfiles, signOut, getTemplates, getTasks, createTask, createTasksBatch, updateTask, completeTask, uncompleteTask, commentTask, deleteTask } from "./lib/supabase.js";
 
 const STATIONS = ["Common", "Cold", "Rolls", "Hot", "Grill", "Tandoor"];
 const STATION_COLORS = {
@@ -300,81 +300,156 @@ function ReportModal({ sections, nextShift, onClose }) {
   );
 }
 
-function TodayScreen({ templates, userStation = 'Common' }) {
-  const [sections, setSections] = useState(() => load('mis_today', []));
-  const [nextShift, setNextShift] = useState(() => load('mis_next_shift', []));
+const SECTIONS = ['Opening', 'Closing', 'Other'];
+const SECTION_COLORS = { Opening: '#F97316', Closing: '#6366F1', Other: '#6B7280' };
+const SOURCE_LABELS = { template: 'template', admin: 'admin', manual: null };
+
+function dateStr(offset = 0) {
+  const d = new Date();
+  d.setDate(d.getDate() + offset);
+  return d.toISOString().split('T')[0];
+}
+
+function formatDateLabel(isoDate) {
+  const today = dateStr(0);
+  const yesterday = dateStr(-1);
+  const tomorrow = dateStr(1);
+  if (isoDate === today) return new Date(isoDate + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+  if (isoDate === yesterday) return 'Yesterday';
+  if (isoDate === tomorrow) return 'Tomorrow';
+  return new Date(isoDate + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+function AddTaskModal({ userStation, onSave, onClose }) {
+  const [text, setText] = useState('');
+  const [station, setStation] = useState(userStation);
+  const [section, setSection] = useState('Other');
+  const [date, setDate] = useState(dateStr(0));
+  const [saving, setSaving] = useState(false);
+
+  const minDate = dateStr(0);
+
+  const save = async () => {
+    if (!text.trim()) return;
+    setSaving(true);
+    await onSave({ text: text.trim(), station, section, date });
+    onClose();
+  };
+
+  return (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal" style={{ display:'flex', flexDirection:'column', gap:14 }}>
+        <div className="modal-header"><span>Add Task</span><button className="action-btn del" onClick={onClose}>×</button></div>
+        <input className="form-input" placeholder="Task description…" value={text} onChange={e => setText(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && save()} autoFocus/>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+          <div>
+            <div className="form-label">Station</div>
+            <select className="form-input" value={station} onChange={e => setStation(e.target.value)}>
+              {STATIONS.map(s => <option key={s}>{s}</option>)}
+            </select>
+          </div>
+          <div>
+            <div className="form-label">Section</div>
+            <select className="form-input" value={section} onChange={e => setSection(e.target.value)}>
+              {SECTIONS.map(s => <option key={s}>{s}</option>)}
+            </select>
+          </div>
+        </div>
+        <div>
+          <div className="form-label">Date</div>
+          <input className="form-input" type="date" value={date} min={minDate} onChange={e => setDate(e.target.value)}/>
+        </div>
+        <button className="save-btn" onClick={save} disabled={saving || !text.trim()}>
+          {saving ? 'Saving…' : 'Add Task'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function TodayScreen({ userStation = 'Common', userRole }) {
+  const [dateOffset, setDateOffset] = useState(0);
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [stationFilter, setStationFilter] = useState(userStation);
-  const [activeSection, setActiveSection] = useState(null);
-  const [newText, setNewText] = useState('');
-  const [newStation, setNewStation] = useState('Common');
-  const [showReport, setShowReport] = useState(false);
-  const [showNext, setShowNext] = useState(false);
-  const [confirmReset, setConfirmReset] = useState(false);
-  const [showCustomSection, setShowCustomSection] = useState(false);
-  const [customSectionName, setCustomSectionName] = useState('');
-  const [showTemplatePicker, setShowTemplatePicker] = useState(false);
+  const [showAddTask, setShowAddTask] = useState(false);
+  const [commentingId, setCommentingId] = useState(null);
+  const [commentText, setCommentText] = useState('');
   const { timers, start, fmt } = useTimer();
 
-  useEffect(() => { save('mis_today', sections); }, [sections]);
-  useEffect(() => { save('mis_next_shift', nextShift); }, [nextShift]);
+  const selectedDate = dateStr(dateOffset);
+
   useEffect(() => { setStationFilter(userStation); }, [userStation]);
 
   useEffect(() => {
-    const carried = load('mis_carried', []);
-    if (carried.length > 0) {
-      setSections(s => s.find(x => x.id === 'carried') ? s : [{ id: 'carried', name: 'Carried Over', color: '#F97316', station: 'Common', items: carried }, ...s]);
-      save('mis_carried', []);
-    }
-  }, []);
+    setLoading(true);
+    getTasks(selectedDate)
+      .then(rows => setTasks(rows || []))
+      .catch(() => setTasks([]))
+      .finally(() => setLoading(false));
+  }, [selectedDate]);
 
-  const loadTemplate = (tpl) => {
-    if (sections.find(s => s.templateId === tpl.id)) return;
-    setSections(s => [...s, { id: uid(), templateId: tpl.id, name: tpl.name, color: tpl.color, station: tpl.station||'Common', items: tpl.items.map(i => ({ ...i, id: uid(), done: false })) }]);
+  const toggle = async (task) => {
+    try {
+      const updated = task.done
+        ? await uncompleteTask(task.id)
+        : await completeTask(task.id);
+      setTasks(ts => ts.map(t => t.id === task.id ? { ...t, ...updated } : t));
+    } catch {}
   };
 
-  const addItem = (secId) => {
-    if (!newText.trim()) return;
-    setSections(s => s.map(sec => sec.id === secId ? { ...sec, items: [...sec.items, { id: uid(), text: newText.trim(), done: false, station: newStation }] } : sec));
-    setNewText(''); setActiveSection(null);
+  const handleAddTask = async ({ text, station, section, date }) => {
+    try {
+      const task = await createTask({ text, station, section, date, source: 'manual' });
+      if (date === selectedDate) setTasks(ts => [...ts, task]);
+    } catch {}
   };
 
-  const toggleItem = (secId, itemId) => setSections(s => s.map(sec => sec.id === secId ? { ...sec, items: sec.items.map(i => i.id === itemId ? { ...i, done: !i.done } : i) } : sec));
-  const deleteItem = (secId, itemId) => setSections(s => s.map(sec => sec.id === secId ? { ...sec, items: sec.items.filter(i => i.id !== itemId) } : sec));
-
-  const deferItem = (secId, itemId) => {
-    let deferred = null;
-    setSections(s => s.map(sec => {
-      if (sec.id !== secId) return sec;
-      const item = sec.items.find(i => i.id === itemId);
-      if (item) deferred = { ...item, id: uid(), done: false };
-      return { ...sec, items: sec.items.filter(i => i.id !== itemId) };
-    }));
-    if (deferred) setNextShift(n => [...n, deferred]);
+  const saveComment = async (taskId) => {
+    try {
+      const updated = await commentTask(taskId, commentText);
+      setTasks(ts => ts.map(t => t.id === taskId ? { ...t, ...updated } : t));
+      setCommentingId(null);
+      setCommentText('');
+    } catch {}
   };
 
-  const totalDone = sections.reduce((a,s) => a + s.items.filter(i => i.done).length, 0);
-  const totalAll = sections.reduce((a,s) => a + s.items.length, 0);
-  const pct = totalAll ? Math.round((totalDone/totalAll)*100) : 0;
-  const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+  const handleDelete = async (taskId) => {
+    try {
+      await deleteTask(taskId);
+      setTasks(ts => ts.filter(t => t.id !== taskId));
+    } catch {}
+  };
 
-  const filteredSections = sections
-    .map(sec => ({ ...sec, items: stationFilter === 'All' ? sec.items : sec.items.filter(i => (i.station||'Common') === stationFilter || (sec.station||'Common') === stationFilter) }))
-    .filter(sec => stationFilter === 'All' || sec.items.length > 0);
+  const isAdmin = userRole === 'admin' || userRole === 'superadmin';
+
+  const filtered = stationFilter === 'All'
+    ? tasks
+    : tasks.filter(t => t.station === stationFilter || t.station === 'Common');
+
+  const bySection = SECTIONS.reduce((acc, sec) => {
+    acc[sec] = filtered.filter(t => t.section === sec);
+    return acc;
+  }, {});
+
+  const totalDone = filtered.filter(t => t.done).length;
+  const totalAll = filtered.length;
+  const pct = totalAll ? Math.round((totalDone / totalAll) * 100) : 0;
 
   return (
     <div className="screen">
       <div className="screen-header">
         <div>
           <div className="screen-title">Today</div>
-          <div className="screen-sub">{today}</div>
+          <div className="screen-sub">{formatDateLabel(selectedDate)}</div>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-          <button className="report-trigger" onClick={() => setShowTemplatePicker(v => !v)} title="Add template">＋</button>
-          {totalAll > 0 && <button className="report-trigger" onClick={() => setShowReport(true)}>📋</button>}
+          <button className="report-trigger" onClick={() => setShowAddTask(true)} title="Add task">＋</button>
           {totalAll > 0 && (
             <div className="progress-ring">
               <svg viewBox="0 0 48 48">
-                <circle cx="24" cy="24" r="20" fill="none" stroke="#1a1a1a" strokeWidth="4"/>
+                <circle cx="24" cy="24" r="20" fill="none" stroke="#222" strokeWidth="4"/>
                 <circle cx="24" cy="24" r="20" fill="none" stroke="#F97316" strokeWidth="4"
                   strokeDasharray={`${pct*1.257} 125.7`} strokeLinecap="round" transform="rotate(-90 24 24)"/>
               </svg>
@@ -384,6 +459,16 @@ function TodayScreen({ templates, userStation = 'Common' }) {
         </div>
       </div>
 
+      {/* Date switcher */}
+      <div className="date-switcher">
+        {[-3,-2,-1,0,1,2,3].map(off => (
+          <button key={off} className={`date-pill ${dateOffset===off?'active':''}`} onClick={() => setDateOffset(off)}>
+            {off === 0 ? 'Today' : off === -1 ? 'Yest' : off === 1 ? 'Tmrw' : new Date(dateStr(off)+'T12:00:00').toLocaleDateString('en-US',{weekday:'short'})}
+          </button>
+        ))}
+      </div>
+
+      {/* Station filter */}
       <div className="station-filter">
         {['All', ...STATIONS].map(st => (
           <button key={st} className={`station-pill ${stationFilter===st?'active':''}`}
@@ -392,123 +477,69 @@ function TodayScreen({ templates, userStation = 'Common' }) {
         ))}
       </div>
 
-      {showTemplatePicker && (
-        <div className="tpl-picker">
-          {templates.map(tpl => (
-            <button key={tpl.id} className="tpl-chip" style={{ borderColor: tpl.color, color: tpl.color }}
-              onClick={() => { loadTemplate(tpl); setShowTemplatePicker(false); }}>
-              + {tpl.station !== 'Common' ? `${tpl.station} ` : ''}{tpl.name}
-            </button>
-          ))}
-          {showCustomSection ? (
-            <div className="inline-input-row">
-              <input className="add-input" placeholder="Section name…" value={customSectionName} autoFocus
-                onChange={e => setCustomSectionName(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter' && customSectionName.trim()) {
-                    setSections(s => [...s, { id: uid(), name: customSectionName.trim(), color: '#888', station: 'Common', items: [] }]);
-                    setCustomSectionName(''); setShowCustomSection(false); setShowTemplatePicker(false);
-                  }
-                  if (e.key === 'Escape') { setCustomSectionName(''); setShowCustomSection(false); }
-                }}/>
-              <button className="add-confirm" onClick={() => {
-                if (customSectionName.trim()) setSections(s => [...s, { id: uid(), name: customSectionName.trim(), color: '#888', station: 'Common', items: [] }]);
-                setCustomSectionName(''); setShowCustomSection(false); setShowTemplatePicker(false);
-              }}>+</button>
-              <button className="action-btn" onClick={() => { setCustomSectionName(''); setShowCustomSection(false); }}>×</button>
-            </div>
-          ) : (
-            <button className="tpl-chip plain" onClick={() => setShowCustomSection(true)}>+ Custom</button>
-          )}
+      {loading && <div style={{ textAlign:'center', padding:40, color:'var(--text-muted)', fontSize:13 }}>Loading…</div>}
+
+      {!loading && totalAll === 0 && (
+        <div className="empty-state">
+          <div className="empty-icon">🔪</div>
+          <div className="empty-title">No tasks yet</div>
+          <div className="empty-sub">Tap + to add a task</div>
         </div>
       )}
 
-      {nextShift.length > 0 && (
-        <>
-          <button className="next-shift-banner" onClick={() => setShowNext(s=>!s)}>
-            <span>→ {nextShift.length} task{nextShift.length>1?'s':''} for next shift</span>
-            <span>{showNext?'▲':'▼'}</span>
-          </button>
-          {showNext && (
-            <div className="next-shift-panel">
-              {nextShift.map(item => (
-                <div key={item.id} className="check-item">
-                  <div className="item-body">
-                    <span className="item-text">{item.text}</span>
-                  </div>
-                  <button className="action-btn del" onClick={() => setNextShift(n => n.filter(i => i.id !== item.id))}>×</button>
-                </div>
-              ))}
-              <button className="save-btn" style={{ marginTop:8 }} onClick={() => { save('mis_carried', nextShift); setNextShift([]); }}>
-                Carry to next shift →
-              </button>
-            </div>
-          )}
-        </>
-      )}
-
-      {filteredSections.length === 0 && !nextShift.length && (
-        <div className="empty-state"><div className="empty-icon">🔪</div><div className="empty-title">No tasks yet</div><div className="empty-sub">Load a template or add tasks manually</div></div>
-      )}
-
-      {filteredSections.map(sec => {
-        const done = sec.items.filter(i => i.done).length;
+      {!loading && SECTIONS.map(sec => {
+        const items = bySection[sec];
+        if (!items.length) return null;
+        const doneCnt = items.filter(t => t.done).length;
         return (
-          <div className="section" key={sec.id}>
+          <div className="section" key={sec}>
             <div className="section-header">
-              <div className="section-dot" style={{ background: sec.color }}/>
-              <span className="section-name">{sec.name}</span>
-              {sec.station && sec.station!=='Common' && <span className="item-station" style={{ background: STATION_COLORS[sec.station]||STATION_COLORS.Default, fontSize:10 }}>{sec.station}</span>}
-              <span className="section-count">{done}/{sec.items.length}</span>
-              <button className="action-btn del" onClick={() => setSections(s => s.filter(x => x.id !== sec.id))}>×</button>
+              <div className="section-dot" style={{ background: SECTION_COLORS[sec] }}/>
+              <span className="section-name">{sec}</span>
+              <span className="section-count">{doneCnt}/{items.length}</span>
             </div>
-            {sec.items.map(item => (
-              <CheckItem key={item.id} item={item}
-                onToggle={id => toggleItem(sec.id, id)}
-                onDelete={id => deleteItem(sec.id, id)}
-                onDefer={id => deferItem(sec.id, id)}
-                timer={timers[item.id]} onStartTimer={start} fmt={fmt}/>
-            ))}
-            {activeSection === sec.id ? (
-              <div className="add-row">
-                <select className="add-station-select" value={newStation} onChange={e => setNewStation(e.target.value)}>
-                  {STATIONS.map(s => <option key={s}>{s}</option>)}
-                </select>
-                <input className="add-input" placeholder="New task..." value={newText}
-                  onChange={e => setNewText(e.target.value)}
-                  onKeyDown={e => { if (e.key==='Enter') addItem(sec.id); if (e.key==='Escape') { setActiveSection(null); setNewText(''); } }}
-                  autoFocus/>
-                <button className="add-confirm" onClick={() => addItem(sec.id)}>+</button>
+            {items.map(task => (
+              <div key={task.id} className={`check-item ${task.done ? 'done' : ''}`}>
+                <button className="check-btn" onClick={() => toggle(task)}>
+                  <span className="check-inner">{task.done && <CheckIcon/>}</span>
+                </button>
+                <div className="item-body" style={{ flexDirection:'column', alignItems:'flex-start', gap:2 }}>
+                  <span className="item-text">{task.text}</span>
+                  <div style={{ display:'flex', gap:6, alignItems:'center', flexWrap:'wrap' }}>
+                    {task.station !== 'Common' && (
+                      <span style={{ fontSize:10, background: STATION_COLORS[task.station]||'#888', color:'#000', padding:'1px 6px', borderRadius:4, fontFamily:'var(--font-display)', fontWeight:600 }}>{task.station}</span>
+                    )}
+                    {task.source !== 'manual' && (
+                      <span style={{ fontSize:10, color:'var(--text-muted)', border:'1px solid var(--border)', padding:'1px 6px', borderRadius:4 }}>{task.source}</span>
+                    )}
+                    {task.comment && (
+                      <span style={{ fontSize:11, color:'var(--text-muted)', fontStyle:'italic' }}>💬 {task.comment}</span>
+                    )}
+                  </div>
+                </div>
+                <div className="item-actions">
+                  <button className="action-btn" title="Comment"
+                    onClick={() => { setCommentingId(task.id); setCommentText(task.comment || ''); }}>💬</button>
+                  {isAdmin && (
+                    <button className="action-btn del" onClick={() => handleDelete(task.id)}>×</button>
+                  )}
+                </div>
+                {commentingId === task.id && (
+                  <div className="timer-row" style={{ width:'100%' }}>
+                    <input className="add-input" placeholder="Add comment…" value={commentText}
+                      autoFocus onChange={e => setCommentText(e.target.value)}
+                      onKeyDown={e => { if (e.key==='Enter') saveComment(task.id); if (e.key==='Escape') setCommentingId(null); }}/>
+                    <button className="add-confirm" onClick={() => saveComment(task.id)}>✓</button>
+                    <button className="action-btn" onClick={() => setCommentingId(null)}>×</button>
+                  </div>
+                )}
               </div>
-            ) : (
-              <button className="add-task-btn" onClick={() => setActiveSection(sec.id)}>+ Add task</button>
-            )}
+            ))}
           </div>
         );
       })}
 
-      <div className="fab-area">
-        {totalAll > 0 && !confirmReset && (
-          <button className="reset-btn" onClick={() => setConfirmReset(true)}>Reset</button>
-        )}
-        {confirmReset && (
-          <div className="confirm-row">
-            <span className="confirm-text">Reset today?</span>
-            <button className="confirm-yes" onClick={() => { setSections([]); setConfirmReset(false); }}>Yes, reset</button>
-            <button className="confirm-no" onClick={() => setConfirmReset(false)}>Cancel</button>
-          </div>
-        )}
-      </div>
-
-      {Object.entries(timers).filter(([,t]) => t.running).length > 0 && (
-        <div className="timer-bar">
-          {sections.flatMap(s => s.items).filter(i => timers[i.id]?.running).map(i => (
-            <span key={i.id} className="timer-chip">⏱ {i.text.slice(0,14)}… {fmt(timers[i.id].remaining)}</span>
-          ))}
-        </div>
-      )}
-
-      {showReport && <ReportModal sections={sections} nextShift={nextShift} onClose={() => setShowReport(false)}/>}
+      {showAddTask && <AddTaskModal userStation={stationFilter !== 'All' ? stationFilter : userStation} onSave={handleAddTask} onClose={() => setShowAddTask(false)}/>}
     </div>
   );
 }
@@ -853,7 +884,7 @@ export default function App({ userRole, userStation = 'Common' }) {
           </div>
         </header>
         <main className="app-main">
-          {tab==='today' && <TodayScreen templates={templates} userStation={userStation}/>}
+          {tab==='today' && <TodayScreen userStation={userStation} userRole={userRole}/>}
           {tab==='lineup' && <LineupScreen/>}
           {tab==='recipes' && <RecipesScreen/>}
         </main>
@@ -982,6 +1013,10 @@ const CSS = `
   .form-input{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:10px 12px;border-radius:var(--radius);width:100%;outline:none;resize:none}
   .form-input:focus{border-color:var(--accent)}
   .form-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-top:4px;display:flex;align-items:center;justify-content:space-between}
+  .date-switcher{display:flex;gap:4px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px;scrollbar-width:none}
+  .date-switcher::-webkit-scrollbar{display:none}
+  .date-pill{background:transparent;border:1px solid var(--border);color:var(--text-muted);font-family:var(--font-mono);font-size:11px;padding:4px 10px;border-radius:20px;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all 0.15s}
+  .date-pill.active{border-color:var(--accent);color:var(--accent);background:rgba(249,115,22,0.08)}
   .ing-form-row{display:flex;gap:6px}
   .flex1{flex:1}.flex2{flex:2}
   .save-btn{background:var(--accent);color:#fff;border:none;padding:14px;border-radius:var(--radius);font-family:var(--font-display);font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;transition:opacity 0.15s}

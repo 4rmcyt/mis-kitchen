@@ -201,6 +201,93 @@ export async function deleteRecipe(id) {
   return q(() => supabase.from("recipes").delete().eq("id", id));
 }
 
+// ── DAY TEMPLATES ─────────────────────────────────────────────
+
+export async function getDayTemplates() {
+  return q(() =>
+    supabase.from("day_templates").select("*").order("created_at", { ascending: false })
+  );
+}
+
+export async function createDayTemplate({ name, entries }) {
+  const profile = await getCurrentProfile();
+  return q(() =>
+    supabase.from("day_templates").insert({
+      name, entries,
+      created_by: profile.id,
+      restaurant_id: profile.restaurant_id,
+    }).select().single()
+  );
+}
+
+export async function updateDayTemplate(id, updates) {
+  return q(() =>
+    supabase.from("day_templates").update(updates).eq("id", id).select().single()
+  );
+}
+
+export async function deleteDayTemplate(id) {
+  return q(() => supabase.from("day_templates").delete().eq("id", id));
+}
+
+// ── TASKS ──────────────────────────────────────────────────────
+
+export async function getTasks(date) {
+  return q(() =>
+    supabase.from("tasks").select("*, profiles!done_by(name)").eq("date", date).order("section").order("created_at")
+  );
+}
+
+export async function createTask({ text, station, section, date, source = "manual", template_id = null }) {
+  const profile = await getCurrentProfile();
+  return q(() =>
+    supabase.from("tasks").insert({
+      text, station, section, date, source, template_id,
+      created_by: profile.id,
+      restaurant_id: profile.restaurant_id,
+    }).select().single()
+  );
+}
+
+export async function createTasksBatch(tasks) {
+  const profile = await getCurrentProfile();
+  const rows = tasks.map(t => ({
+    ...t,
+    created_by: profile.id,
+    restaurant_id: profile.restaurant_id,
+  }));
+  return q(() => supabase.from("tasks").insert(rows).select());
+}
+
+export async function updateTask(id, updates) {
+  return q(() =>
+    supabase.from("tasks").update(updates).eq("id", id).select().single()
+  );
+}
+
+export async function deleteTask(id) {
+  return q(() => supabase.from("tasks").delete().eq("id", id));
+}
+
+export async function completeTask(id) {
+  const { data: { user } } = await supabase.auth.getUser();
+  return q(() =>
+    supabase.from("tasks").update({ done: true, done_at: new Date().toISOString(), done_by: user.id }).eq("id", id).select().single()
+  );
+}
+
+export async function uncompleteTask(id) {
+  return q(() =>
+    supabase.from("tasks").update({ done: false, done_at: null, done_by: null }).eq("id", id).select().single()
+  );
+}
+
+export async function commentTask(id, comment) {
+  return q(() =>
+    supabase.from("tasks").update({ comment }).eq("id", id).select().single()
+  );
+}
+
 // ── DAILY REPORTS ─────────────────────────────────────────────
 
 export async function saveReport({ sections, nextShift }) {
