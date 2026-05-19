@@ -203,6 +203,12 @@ export async function deleteRecipe(id) {
 
 // ── DAY TEMPLATES ─────────────────────────────────────────────
 
+export async function getDefaultDayTemplate() {
+  return q(() =>
+    supabase.from("day_templates").select("*").eq("is_default", true).maybeSingle()
+  );
+}
+
 export async function getDayTemplates() {
   return q(() =>
     supabase.from("day_templates").select("*").order("created_at", { ascending: false })

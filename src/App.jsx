@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getRestaurantProfiles, signOut, getTasks, createTask, completeTask, uncompleteTask, commentTask, deleteTask } from "./lib/supabase.js";
+import { getRestaurantProfiles, signOut, getTasks, createTask, createTasksBatch, completeTask, uncompleteTask, commentTask, deleteTask, getDefaultDayTemplate } from "./lib/supabase.js";
 
 const STATIONS = ["Common", "Garmo", "Rolls", "Pans", "Grill", "Tandoor"];
 const STATION_COLORS = {
@@ -119,10 +119,22 @@ function TodayScreen({ userStation = 'Common', userRole }) {
 
   useEffect(() => {
     setLoading(true);
-    getTasks(selectedDate)
-      .then(rows => setTasks(rows || []))
-      .catch(() => setTasks([]))
-      .finally(() => setLoading(false));
+    getTasks(selectedDate).then(async (rows) => {
+      if (rows && rows.length > 0) {
+        setTasks(rows);
+        return;
+      }
+      const tpl = await getDefaultDayTemplate().catch(() => null);
+      if (!tpl || !tpl.entries?.length) {
+        setTasks([]);
+        return;
+      }
+      const batch = tpl.entries.map(e => ({
+        text: e.text, station: e.station, section: e.section, date: selectedDate, source: 'template',
+      }));
+      const created = await createTasksBatch(batch).catch(() => null);
+      setTasks(created || []);
+    }).catch(() => setTasks([])).finally(() => setLoading(false));
   }, [selectedDate]);
 
   const toggle = async (task) => {
