@@ -881,7 +881,16 @@ function ReportsTab() {
 //  MAIN APP 
 export default function Admin() {
   const [tab, setTab] = useState('people');
+  const [me, setMe] = useState(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return;
+      supabase.from('profiles').select('name,role').eq('id', user.id).single()
+        .then(({ data }) => { if (data) setMe(data); });
+    });
+  }, []);
 
   const TABS = [
     { id:'people',   label:'People',   icon:'👥' },
@@ -908,10 +917,10 @@ export default function Admin() {
           ))}
         </nav>
         <div className="sidebar-footer">
-          <Avatar name="Admin User" size={32}/>
+          <Avatar name={me?.name || '?'} size={32}/>
           <div style={{ flex:1 }}>
-            <div style={{ fontSize:12, fontWeight:600 }}>You</div>
-            <div style={{ fontSize:10, color:'var(--text-muted)' }}>superadmin</div>
+            <div style={{ fontSize:12, fontWeight:600 }}>{me?.name || '…'}</div>
+            <div style={{ fontSize:10, color: ROLE_COLORS[me?.role] || 'var(--text-muted)' }}>{ROLE_LABELS[me?.role] || ''}</div>
           </div>
           <button onClick={() => signOut()} title="Sign out" style={{ background:'none', border:'none', color:'var(--text-muted)', fontSize:18, cursor:'pointer', padding:'4px 6px', borderRadius:6 }}>⏻</button>
         </div>
