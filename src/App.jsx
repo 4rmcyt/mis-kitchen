@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getRestaurantProfiles, signOut, getTemplates, getTasks, createTask, createTasksBatch, updateTask, completeTask, uncompleteTask, commentTask, deleteTask } from "./lib/supabase.js";
+import { getRestaurantProfiles, signOut, getTasks, createTask, completeTask, uncompleteTask, commentTask, deleteTask } from "./lib/supabase.js";
 
 const STATIONS = ["Common", "Cold", "Rolls", "Hot", "Grill", "Tandoor"];
 const STATION_COLORS = {
@@ -10,92 +10,6 @@ const STATION_COLORS = {
 
 const save = (key, val) => { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} };
 const load = (key, fallback) => { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; } };
-
-const DEFAULT_TEMPLATES = [
-  { id: "t1", name: "Opening", color: "#F97316", station: "Common", items: [
-    { id: "ti1", text: "Check fridge temps", done: false, station: "Common" },
-    { id: "ti2", text: "Pull proteins from walk-in", done: false, station: "Common" },
-    { id: "ti3", text: "Clarify butter 500g", done: false, amount: "500g", station: "Common" },
-    { id: "ti4", text: "Mise en place — cold section", done: false, station: "Common" },
-    { id: "ti5", text: "Stock check", done: false, station: "Common" },
-  ]},
-  { id: "t2", name: "Closing", color: "#6366F1", station: "Common", items: [
-    { id: "tc1", text: "Wrap and label all preps", done: false, station: "Common" },
-    { id: "tc2", text: "Cool stocks, log temp", done: false, station: "Common" },
-    { id: "tc3", text: "Clean grill and flat top", done: false, station: "Common" },
-    { id: "tc4", text: "Sweep station", done: false, station: "Common" },
-    { id: "tc5", text: "Fridge doors sealed", done: false, station: "Common" },
-  ]},
-  { id: "t3", name: "Opening", color: "#22D3EE", station: "Cold", items: [
-    { id: "co1",  text: "Raita — 4pc",                  done: false, station: "Cold" },
-    { id: "co2",  text: "Tamarind — 4pc",               done: false, station: "Cold" },
-    { id: "co3",  text: "Sweet Yogurt — 4pc",           done: false, station: "Cold" },
-    { id: "co4",  text: "Hari Chutney — 2pc",           done: false, station: "Cold" },
-    { id: "co5",  text: "Mint Vinaigrette — 2pc",       done: false, station: "Cold" },
-    { id: "co6",  text: "Tomatoes Big — 1 big tray",    done: false, station: "Cold" },
-    { id: "co7",  text: "Tomatoes Small — 1 big tray",  done: false, station: "Cold" },
-    { id: "co8",  text: "Potatoes Boiled — 2 trays",    done: false, station: "Cold" },
-    { id: "co9",  text: "Cilantro chopped — 1 box",     done: false, station: "Cold" },
-    { id: "co10", text: "Onion Diced — 1 box",          done: false, station: "Cold" },
-    { id: "co11", text: "Onion Sliced — 1 box",         done: false, station: "Cold" },
-    { id: "co12", text: "Mishti Doi — 1 box",           done: false, station: "Cold" },
-    { id: "co13", text: "Oranges — 1 big tray",         done: false, station: "Cold" },
-    { id: "co14", text: "Pomegranate — 1 big tray",     done: false, station: "Cold" },
-    { id: "co15", text: "Microgreens — 3 box",          done: false, station: "Cold" },
-    { id: "co16", text: "Pomegranate — 1 small tray (up)", done: false, station: "Cold" },
-    { id: "co17", text: "Oranges Sliced Peeled — min 1/3 small tray (up)", done: false, station: "Cold" },
-    { id: "co18", text: "Banana Leafs — min 1/3 small tray (up)", done: false, station: "Cold" },
-    { id: "co19", text: "Peaches Grilled — min 1/3 small tray (up)", done: false, station: "Cold" },
-  ]},
-  { id: "t4", name: "Closing", color: "#0891B2", station: "Cold", items: [
-    { id: "cc1",  text: "Raita — wrapped & labelled",                    done: false, station: "Cold" },
-    { id: "cc2",  text: "Tamarind — wrapped & labelled",                 done: false, station: "Cold" },
-    { id: "cc3",  text: "Sweet Yogurt — wrapped & labelled",             done: false, station: "Cold" },
-    { id: "cc4",  text: "Hari Chutney — wrapped & labelled",             done: false, station: "Cold" },
-    { id: "cc5",  text: "Mint Vinaigrette — wrapped & labelled",         done: false, station: "Cold" },
-    { id: "cc6",  text: "Tomatoes Big — put away",                       done: false, station: "Cold" },
-    { id: "cc7",  text: "Tomatoes Small — put away",                     done: false, station: "Cold" },
-    { id: "cc8",  text: "Potatoes Boiled — wrapped & put away",          done: false, station: "Cold" },
-    { id: "cc9",  text: "Cilantro chopped — wrapped & put away",         done: false, station: "Cold" },
-    { id: "cc10", text: "Onion Diced — wrapped & put away",              done: false, station: "Cold" },
-    { id: "cc11", text: "Onion Sliced — wrapped & put away",             done: false, station: "Cold" },
-    { id: "cc12", text: "Mishti Doi — wrapped & labelled",               done: false, station: "Cold" },
-    { id: "cc13", text: "Oranges — wrapped & put away",                  done: false, station: "Cold" },
-    { id: "cc14", text: "Pomegranate — wrapped & put away",              done: false, station: "Cold" },
-    { id: "cc15", text: "Microgreens — wrapped & put away",              done: false, station: "Cold" },
-    { id: "cc16", text: "Pomegranate (up) — put away",                   done: false, station: "Cold" },
-    { id: "cc17", text: "Oranges Sliced Peeled (up) — put away",         done: false, station: "Cold" },
-    { id: "cc18", text: "Banana Leafs (up) — put away",                  done: false, station: "Cold" },
-    { id: "cc19", text: "Peaches Grilled (up) — put away",               done: false, station: "Cold" },
-  ]},
-  { id: "t5", name: "Opening", color: "#EF4444", station: "Grill", items: [
-    { id: "go1",  text: "Cabbage Seared — 2 big tray (up)",              done: false, station: "Grill" },
-    { id: "go2",  text: "Kale Chopped — 2 big tray (up)",                done: false, station: "Grill" },
-    { id: "go3",  text: "Cilantro Stem Chopped — min 1/3 small tray (up)", done: false, station: "Grill" },
-    { id: "go4",  text: "Onion Chopped — 1 small tray (up)",             done: false, station: "Grill" },
-    { id: "go5",  text: "Garlic Chopped — 1 medium tray (up)",           done: false, station: "Grill" },
-    { id: "go6",  text: "Ginger Cubes Chopped — 1 small tray (up)",      done: false, station: "Grill" },
-    { id: "go7",  text: "Rogan Josh Lamb Sauce — 1 box (fridge)",        done: false, station: "Grill" },
-    { id: "go8",  text: "Cabbage Sauce — 1 box (fridge)",                done: false, station: "Grill" },
-    { id: "go9",  text: "Chicken Malai Sauce — 1 box (fridge)",          done: false, station: "Grill" },
-    { id: "go10", text: "Demi-glace Sauce — 1 box (fridge)",             done: false, station: "Grill" },
-    { id: "go11", text: "Steak Sous Vide — 1 pc (fridge)",               done: false, station: "Grill" },
-    { id: "go12", text: "Chicken Malai — 1 pc (warming cabinet)",        done: false, station: "Grill" },
-    { id: "go13", text: "Lamb Baked — 1 pc (warming cabinet)",           done: false, station: "Grill" },
-  ]},
-  { id: "t6", name: "Closing", color: "#B91C1C", station: "Grill", items: [
-    { id: "gc1",  text: "Cabbage Seared — wrapped & put away",           done: false, station: "Grill" },
-    { id: "gc2",  text: "Kale Chopped — wrapped & put away",             done: false, station: "Grill" },
-    { id: "gc3",  text: "Cilantro Stem Chopped — wrapped & put away",    done: false, station: "Grill" },
-    { id: "gc4",  text: "Onion Chopped — wrapped & put away",            done: false, station: "Grill" },
-    { id: "gc5",  text: "Garlic Chopped — wrapped & put away",           done: false, station: "Grill" },
-    { id: "gc6",  text: "Ginger Cubes Chopped — wrapped & put away",     done: false, station: "Grill" },
-    { id: "gc7",  text: "Rogan Josh Lamb Sauce — wrapped & put away",    done: false, station: "Grill" },
-    { id: "gc8",  text: "Cabbage Sauce — wrapped & put away",            done: false, station: "Grill" },
-    { id: "gc9",  text: "Chicken Malai Sauce — wrapped & put away",      done: false, station: "Grill" },
-    { id: "gc10", text: "Demi-glace Sauce — wrapped & put away",         done: false, station: "Grill" },
-  ]}
-];
 
 const DEFAULT_RECIPES = [
   { id: "r1", name: "Beurre Blanc", station: "Hot", portions: 1,
@@ -121,188 +35,13 @@ const DEFAULT_RECIPES = [
 
 function uid() { return Math.random().toString(36).slice(2, 9); }
 
-function useTimer() {
-  const [timers, setTimers] = useState({});
-  const refs = useRef({});
-  const start = (id, seconds) => {
-    if (refs.current[id]) clearInterval(refs.current[id]);
-    setTimers(t => ({ ...t, [id]: { remaining: seconds, running: true } }));
-    refs.current[id] = setInterval(() => {
-      setTimers(t => {
-        const cur = t[id];
-        if (!cur || cur.remaining <= 0) {
-          clearInterval(refs.current[id]);
-          if (Notification.permission === 'granted') new Notification('Mis — Timer done!', { icon: '/icons/icon-192.png' });
-          return { ...t, [id]: { ...cur, running: false, done: true } };
-        }
-        return { ...t, [id]: { ...cur, remaining: cur.remaining - 1 } };
-      });
-    }, 1000);
-  };
-  const fmt = (s) => { if (!s && s !== 0) return null; return `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`; };
-  return { timers, start, fmt };
-}
-
 function CheckIcon() {
   return <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><polyline points="2,7 5.5,10.5 12,3" stroke="#F97316" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>;
 }
 
-function CheckItem({ item, onToggle, onDelete, onDefer, timer, onStartTimer, fmt }) {
-  const [showTimer, setShowTimer] = useState(false);
-  const [mins, setMins] = useState("5");
-  return (
-    <div className={`check-item ${item.done ? 'done' : ''}`}>
-      <button className="check-btn" onClick={() => onToggle(item.id)}>
-        <span className="check-inner">{item.done && <CheckIcon />}</span>
-      </button>
-      <div className="item-body">
-        <span className="item-text">{item.text}</span>
-        {item.amount && <span className="item-amount">{item.amount}</span>}
-        {timer?.running && <span className="timer-badge">⏱ {fmt(timer.remaining)}</span>}
-        {timer?.done && <span className="timer-badge done">✓ done</span>}
-      </div>
-      <div className="item-actions">
-        {!item.done && <>
-          <button className="action-btn" onClick={() => setShowTimer(s => !s)} title="Timer">⏱</button>
-          <button className="action-btn defer" onClick={() => onDefer(item.id)} title="Next shift">→</button>
-        </>}
-        <button className="action-btn del" onClick={() => onDelete(item.id)}>×</button>
-      </div>
-      {showTimer && !item.done && (
-        <div className="timer-row">
-          <input type="number" value={mins} onChange={e => setMins(e.target.value)} className="timer-input" min="1" max="999"/>
-          <span className="timer-unit">min</span>
-          <button className="timer-go" onClick={() => { onStartTimer(item.id, parseInt(mins)*60); setShowTimer(false); }}>GO</button>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function ReportModal({ sections, nextShift, onClose }) {
-  const [email, setEmail] = useState(() => load('mis_email', ''));
-  const [apiKey, setApiKey] = useState(() => load('mis_resend_key', ''));
-  const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState(false);
-  const [error, setError] = useState('');
-  const [showKey, setShowKey] = useState(false);
-
-  const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
-  const totalDone = sections.reduce((a,s) => a + s.items.filter(i => i.done).length, 0);
-  const totalAll = sections.reduce((a,s) => a + s.items.length, 0);
-  const pct = totalAll ? Math.round((totalDone/totalAll)*100) : 0;
-
-  const openingSec = sections.find(s => s.name.toLowerCase() === 'opening');
-  const closingSec = sections.find(s => s.name.toLowerCase() === 'closing');
-  const openingDone = openingSec && openingSec.items.length > 0 && openingSec.items.every(i => i.done);
-  const closingDone = closingSec && closingSec.items.length > 0 && closingSec.items.every(i => i.done);
-  const canSend = openingDone && closingDone;
-
-  const buildHTML = () => {
-    const secs = sections.map(sec => {
-      const done = sec.items.filter(i => i.done);
-      const missed = sec.items.filter(i => !i.done);
-      return `<div style="margin-bottom:20px">
-        <div style="border-bottom:1px solid #252525;padding-bottom:8px;margin-bottom:10px;display:flex;gap:8px;align-items:center">
-          <span style="width:8px;height:8px;border-radius:50%;background:${sec.color};display:inline-block"></span>
-          <strong style="color:#e8e8e0;font-size:13px;text-transform:uppercase;letter-spacing:0.5px">${sec.name}</strong>
-          <span style="color:#555;font-size:11px;margin-left:auto">${done.length}/${sec.items.length}</span>
-        </div>
-        ${done.map(i => `<div style="padding:5px 0;color:#666;font-size:13px">✓ ${i.text}</div>`).join('')}
-        ${missed.map(i => `<div style="padding:5px 0;color:#ef4444;font-size:13px">✗ ${i.text}</div>`).join('')}
-      </div>`;
-    }).join('');
-    const nextRows = nextShift.length > 0 ? `
-      <div style="margin-top:20px;padding:14px;background:#1a1a1a;border-radius:8px;border:1px solid rgba(249,115,22,0.3)">
-        <div style="color:#f97316;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">→ Carried to next shift</div>
-        ${nextShift.map(i => `<div style="padding:4px 0;color:#e8e8e0;font-size:13px">• ${i.text}</div>`).join('')}
-      </div>` : '';
-    return `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
-    <body style="background:#0c0c0c;color:#e8e8e0;font-family:'Courier New',monospace;padding:32px;max-width:580px;margin:0 auto">
-      <div style="margin-bottom:28px"><div style="font-size:26px;font-weight:800;letter-spacing:-1px">mis<span style="color:#f97316">.</span></div><div style="color:#555;font-size:11px;margin-top:3px;text-transform:uppercase;letter-spacing:0.5px">End of shift report</div></div>
-      <div style="background:#141414;border-radius:10px;padding:18px;margin-bottom:24px;border:1px solid #252525">
-        <div style="color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px">${today}</div>
-        <div style="font-size:42px;font-weight:700;color:#f97316;margin-top:6px;line-height:1">${pct}%</div>
-        <div style="color:#888;font-size:13px;margin-top:4px">${totalDone} of ${totalAll} tasks completed</div>
-      </div>
-      ${secs}${nextRows}
-      <div style="margin-top:28px;color:#333;font-size:10px;text-transform:uppercase;letter-spacing:0.5px">sent by mis — line cook app</div>
-    </body></html>`;
-  };
-
-  const send = async () => {
-    if (!email || !apiKey) { setError('Enter email and API key'); return; }
-    setSending(true); setError('');
-    save('mis_email', email); save('mis_resend_key', apiKey);
-    try {
-      const res = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ from: 'Mis App <onboarding@resend.dev>', to: [email], subject: `Shift report — ${today} (${pct}% done)`, html: buildHTML() })
-      });
-      if (res.ok) setSent(true);
-      else { const d = await res.json(); setError(d.message || 'Send failed'); }
-    } catch { setError('Network error'); }
-    setSending(false);
-  };
-
-  return (
-    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="modal report-modal">
-        <div className="modal-header"><span>End of Shift Report</span><button className="action-btn del" onClick={onClose}>×</button></div>
-        <div className="report-summary">
-          <div className="report-pct">{pct}%</div>
-          <div className="report-sub">{totalDone}/{totalAll} tasks · {today}</div>
-        </div>
-        <div className="report-sections">
-          {sections.map(sec => {
-            const done = sec.items.filter(i => i.done).length;
-            const p = sec.items.length ? (done/sec.items.length)*100 : 0;
-            return (
-              <div key={sec.id} className="report-sec-row">
-                <span className="section-dot" style={{ background: sec.color }}/>
-                <span className="report-sec-name">{sec.name}</span>
-                <div className="report-sec-bar"><div className="report-sec-fill" style={{ width: `${p}%`, background: sec.color }}/></div>
-                <span className="report-sec-count">{done}/{sec.items.length}</span>
-              </div>
-            );
-          })}
-        </div>
-        {nextShift.length > 0 && (
-          <div className="report-next">
-            <div className="report-next-label">→ Carried to next shift</div>
-            {nextShift.map(i => (
-              <div key={i.id} className="report-next-item">
-                <span>{i.text}</span>
-              </div>
-            ))}
-          </div>
-        )}
-        <div className="report-divider"/>
-        {sent ? <div className="report-sent">✓ Report sent to {email}</div> : <>
-          <div className="form-label">Email</div>
-          <input className="form-input" type="email" placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)}/>
-          <div className="form-label"><span>Resend API Key</span><button className="link-btn" onClick={() => window.open('https://resend.com/api-keys','_blank')}>Get free key →</button></div>
-          <input className="form-input" type={showKey?'text':'password'} placeholder="re_xxxxxxxxxxxx" value={apiKey} onChange={e => setApiKey(e.target.value)}/>
-          <button className="link-btn small" onClick={() => setShowKey(s=>!s)}>{showKey?'Hide':'Show'} key</button>
-          {!canSend && (
-            <div className="report-error" style={{ background: '#1a1200', borderColor: '#F97316aa', color: '#F97316' }}>
-              {!openingSec || !openingDone ? '✗ Opening not complete' : ''}
-              {(!openingSec || !openingDone) && (!closingSec || !closingDone) ? ' · ' : ''}
-              {!closingSec || !closingDone ? '✗ Closing not complete' : ''}
-            </div>
-          )}
-          {error && <div className="report-error">{error}</div>}
-          <button className="save-btn" onClick={send} disabled={sending || !canSend}>{sending ? 'Sending…' : 'Send Report'}</button>
-        </>}
-      </div>
-    </div>
-  );
-}
 
 const SECTIONS = ['Opening', 'Closing', 'Other'];
 const SECTION_COLORS = { Opening: '#F97316', Closing: '#6366F1', Other: '#6B7280' };
-const SOURCE_LABELS = { template: 'template', admin: 'admin', manual: null };
 
 function dateStr(offset = 0) {
   const d = new Date();
@@ -376,7 +115,6 @@ function TodayScreen({ userStation = 'Common', userRole }) {
   const [showAddTask, setShowAddTask] = useState(false);
   const [commentingId, setCommentingId] = useState(null);
   const [commentText, setCommentText] = useState('');
-  const { timers, start, fmt } = useTimer();
 
   const selectedDate = dateStr(dateOffset);
 
@@ -659,113 +397,6 @@ function RecipeForm({ onSave, onCancel }) {
   );
 }
 
-function TemplatesScreen({ templates, setTemplates }) {
-  const [active, setActive] = useState(null);
-  const [newItemText, setNewItemText] = useState('');
-  const [newItemStation, setNewItemStation] = useState('Common');
-  const [showNewTpl, setShowNewTpl] = useState(false);
-  const [newTplName, setNewTplName] = useState('');
-  const COLORS = ['#F97316','#6366F1','#22D3EE','#EF4444','#A78BFA','#10B981'];
-
-  const addItem = async (tplId) => {
-    if (!newItemText.trim()) return;
-    const updated = templates.map(t => t.id===tplId ? { ...t, items: [...t.items, { id: uid(), text: newItemText.trim(), done: false, station: newItemStation }] } : t);
-    setTemplates(updated);
-    setNewItemText('');
-    const tpl = updated.find(t => t.id === tplId);
-    if (tpl?.created_by) await updateTemplate(tplId, { items: tpl.items }).catch(() => {});
-  };
-
-  const deleteItem = async (tplId, itemId) => {
-    const updated = templates.map(t => t.id===tplId ? { ...t, items: t.items.filter(i=>i.id!==itemId) } : t);
-    setTemplates(updated);
-    const tpl = updated.find(t => t.id === tplId);
-    if (tpl?.created_by) await updateTemplate(tplId, { items: tpl.items }).catch(() => {});
-  };
-
-  const handleCreateTemplate = async () => {
-    if (!newTplName.trim()) return;
-    const color = COLORS[Math.floor(Math.random()*COLORS.length)];
-    try {
-      const saved = await createTemplate({ name: newTplName.trim(), color, station: 'Common', items: [] });
-      setTemplates(ts => [...ts, saved]);
-    } catch {
-      setTemplates(ts => [...ts, { id: uid(), name: newTplName.trim(), color, station: 'Common', items: [] }]);
-    }
-    setNewTplName(''); setShowNewTpl(false);
-  };
-
-  const handleDeleteTemplate = async (tpl) => {
-    setTemplates(ts => ts.filter(t => t.id !== tpl.id));
-    setActive(null);
-    if (tpl.created_by) await deleteTemplate(tpl.id).catch(() => {});
-  };
-
-  const currentTpl = active ? templates.find(t => t.id === active.id) : null;
-
-  if (currentTpl) return (
-    <div className="screen">
-      <div className="screen-header">
-        <button className="back-btn" onClick={() => setActive(null)}>← Back</button>
-        <button className="action-btn del" onClick={() => handleDeleteTemplate(currentTpl)}>Delete</button>
-      </div>
-      <div className="section-header" style={{ marginBottom:16 }}>
-        <div className="section-dot" style={{ background: currentTpl.color }}/>
-        <span className="section-name" style={{ fontSize:20 }}>{currentTpl.name}</span>
-      </div>
-      {currentTpl.items.map(item => (
-        <div key={item.id} className="check-item">
-          <div className="item-body">
-            <span className="item-text">{item.text}</span>
-          </div>
-          <button className="action-btn del" onClick={() => deleteItem(currentTpl.id, item.id)}>×</button>
-        </div>
-      ))}
-      <div className="add-row" style={{ marginTop:12 }}>
-        <select className="add-station-select" value={newItemStation} onChange={e => setNewItemStation(e.target.value)}>
-          {STATIONS.map(s => <option key={s}>{s}</option>)}
-        </select>
-        <input className="add-input" placeholder="New item..." value={newItemText}
-          onChange={e => setNewItemText(e.target.value)}
-          onKeyDown={e => { if (e.key==='Enter') addItem(currentTpl.id); }}/>
-        <button className="add-confirm" onClick={() => addItem(currentTpl.id)}>+</button>
-      </div>
-    </div>
-  );
-
-  return (
-    <div className="screen">
-      <div className="screen-header">
-        <div className="screen-title">Templates</div>
-        {showNewTpl ? (
-          <div className="inline-input-row">
-            <input className="add-input" placeholder="Template name…" value={newTplName} autoFocus
-              onChange={e => setNewTplName(e.target.value)}
-              onKeyDown={e => { if (e.key==='Enter') handleCreateTemplate(); if (e.key==='Escape') { setNewTplName(''); setShowNewTpl(false); } }}/>
-            <button className="add-confirm" onClick={handleCreateTemplate}>+</button>
-            <button className="action-btn" onClick={() => { setNewTplName(''); setShowNewTpl(false); }}>×</button>
-          </div>
-        ) : (
-          <button className="fab-btn" onClick={() => setShowNewTpl(true)}>+</button>
-        )}
-      </div>
-      <div className="tpl-list">
-        {templates.map(tpl => (
-          <button key={tpl.id} className="tpl-card" onClick={() => setActive(tpl)}>
-            <div className="tpl-card-bar" style={{ background: tpl.color }}/>
-            <div className="tpl-card-body">
-              <div className="tpl-card-name">{tpl.name}</div>
-              <div className="tpl-card-meta">{tpl.items?.length ?? 0} items{tpl.station&&tpl.station!=='Common'?` · ${tpl.station}`:''}</div>
-            </div>
-            <div className="tpl-arrow">→</div>
-          </button>
-        ))}
-        {templates.length === 0 && <div className="empty-state"><div className="empty-icon">📋</div><div className="empty-title">No templates yet</div></div>}
-      </div>
-    </div>
-  );
-}
-
 function LineupScreen() {
   const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -845,27 +476,8 @@ function LineupScreen() {
 
 export default function App({ userRole, userStation = 'Common' }) {
   const [tab, setTab] = useState('today');
-  const [templates, setTemplates] = useState(DEFAULT_TEMPLATES);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    getTemplates().then(async rows => {
-      if (rows && rows.length > 0) {
-        setTemplates(rows);
-      } else {
-        // First run — seed default templates into Supabase
-        try {
-          await Promise.all(DEFAULT_TEMPLATES.map(tpl =>
-            createTemplate({ name: tpl.name, color: tpl.color, station: tpl.station, items: tpl.items })
-          ));
-          const seeded = await getTemplates();
-          if (seeded && seeded.length > 0) setTemplates(seeded);
-        } catch {
-          // Keep DEFAULT_TEMPLATES as fallback
-        }
-      }
-    }).catch(() => {});
-  }, []);
   useEffect(() => { if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); }, []);
 
   const isAdmin = userRole === 'admin' || userRole === 'superadmin';
