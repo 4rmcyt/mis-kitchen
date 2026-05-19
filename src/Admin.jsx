@@ -43,8 +43,9 @@ function ToastContainer({ toasts }) {
 }
 
 function Avatar({ name, size = 36 }) {
-  const initials = name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
-  const hue = name.split('').reduce((a,c) => a + c.charCodeAt(0), 0) % 360;
+  const safeName = name || '?';
+  const initials = safeName.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+  const hue = safeName.split('').reduce((a,c) => a + c.charCodeAt(0), 0) % 360;
   return (
     <div style={{
       width: size, height: size, borderRadius: '50%',
@@ -793,7 +794,7 @@ function ReportsTab() {
           return (
             <button key={r.id} className="heat-cell" onClick={() => setSelected(r)} style={{ borderColor: c + '44' }}>
               <Avatar name={r.name} size={32}/>
-              <div className="heat-name">{r.name.split(' ')[0]}</div>
+              <div className="heat-name">{(r.name || '?').split(' ')[0]}</div>
               <div className="heat-pct" style={{ color: c }}>{r.pct}%</div>
               <PctBar pct={r.pct} color={c}/>
             </button>
