@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase, getRestaurantProfiles, adminUpdateProfile, getTemplates, getRecipes, getRestaurantReports, signOut } from "./lib/supabase.js";
+import { supabase, getRestaurantProfiles, adminUpdateProfile, getTemplates, createTemplate, updateTemplate, deleteTemplate, getRecipes, getRestaurantReports, signOut } from "./lib/supabase.js";
 
 
 const STATIONS = ["Common", "Cold", "Rolls", "Hot", "Grill", "Tandoor"];
@@ -367,16 +367,148 @@ function ContentList({ items, type, onToggle, stationFilter, setStationFilter })
 function TasksTab() {
   const [templates, setTemplates] = useState([]);
   const [stationFilter, setStationFilter] = useState('All');
+  const [selected, setSelected] = useState(null);
+  const [showNew, setShowNew] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newStation, setNewStation] = useState('Common');
+  const [newColor, setNewColor] = useState('#F97316');
+  const [saving, setSaving] = useState(false);
+  const [newItemText, setNewItemText] = useState('');
   const { show: toast } = useToast();
+
   useEffect(() => { getTemplates().then(setTemplates).catch(e => toast(e.message, 'error')); }, []);
-  const toggle = async (id) => {
-    const item = templates.find(t => t.id === id);
+
+  const filtered = stationFilter === 'All' ? templates : templates.filter(t => t.station === stationFilter);
+
+  const openTemplate = (tpl) => setSelected({ ...tpl, items: tpl.items || [] });
+
+  const saveItems = async (items) => {
     try {
-      await supabase.from('templates').update({ is_shared: !item.is_shared }).eq('id', id);
-      setTemplates(ts => ts.map(t => t.id === id ? { ...t, is_shared: !t.is_shared } : t));
+      const updated = await updateTemplate(selected.id, { items });
+      setTemplates(ts => ts.map(t => t.id === selected.id ? { ...t, items } : t));
+      setSelected(s => ({ ...s, items }));
     } catch (e) { toast(e.message, 'error'); }
   };
-  return <ContentList items={templates} type="templates" onToggle={toggle} stationFilter={stationFilter} setStationFilter={setStationFilter}/>;
+
+  const addItem = () => {
+    if (!newItemText.trim()) return;
+    const items = [...selected.items, { id: Math.random().toString(36).slice(2), text: newItemText.trim(), done: false, station: selected.station }];
+    saveItems(items);
+    setNewItemText('');
+  };
+
+  const removeItem = (itemId) => saveItems(selected.items.filter(i => i.id !== itemId));
+
+  const deleteThisTemplate = async () => {
+    if (!confirm(`Delete "${selected.name}"?`)) return;
+    try {
+      await deleteTemplate(selected.id);
+      setTemplates(ts => ts.filter(t => t.id !== selected.id));
+      setSelected(null);
+    } catch (e) { toast(e.message, 'error'); }
+  };
+
+  const createNew = async () => {
+    if (!newName.trim()) return;
+    setSaving(true);
+    try {
+      const tpl = await createTemplate({ name: newName.trim(), station: newStation, color: newColor, items: [] });
+      setTemplates(ts => [tpl, ...ts]);
+      setNewName(''); setShowNew(false);
+      setSelected({ ...tpl, items: [] });
+    } catch (e) { toast(e.message, 'error'); }
+    setSaving(false);
+  };
+
+  if (selected) {
+    return (
+      <div className="tab-content">
+        <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:4 }}>
+          <button className="btn-secondary" onClick={() => setSelected(null)}>← Back</button>
+          <div style={{ display:'flex', alignItems:'center', gap:8, flex:1 }}>
+            <div style={{ width:10, height:10, borderRadius:'50%', background: selected.color, flexShrink:0 }}/>
+            <span style={{ fontFamily:'var(--font-display)', fontSize:18, fontWeight:700 }}>{selected.name}</span>
+            <Badge color={STATION_COLORS[selected.station]||'#6B7280'} small>{selected.station}</Badge>
+          </div>
+          <button className="btn-danger" onClick={deleteThisTemplate}>Delete</button>
+        </div>
+        <div style={{ color:'var(--text-muted)', fontSize:12, marginBottom:16 }}>{selected.items.length} items</div>
+
+        <div style={{ display:'flex', flexDirection:'column', gap:2 }}>
+          {selected.items.map((item, idx) => (
+            <div key={item.id} style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 12px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--radius)' }}>
+              <span style={{ color:'var(--text-muted)', fontSize:11, width:20, textAlign:'right', flexShrink:0 }}>{idx+1}</span>
+              <span style={{ flex:1, fontSize:13 }}>{item.text}</span>
+              <button className="icon-btn" onClick={() => removeItem(item.id)} style={{ color:'#EF4444', fontSize:16 }}>×</button>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ display:'flex', gap:8, marginTop:12 }}>
+          <input
+            className="search-inp" style={{ flex:1 }}
+            placeholder="Add item…"
+            value={newItemText}
+            onChange={e => setNewItemText(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && addItem()}
+          />
+          <button className="btn-primary" onClick={addItem}>Add</button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="tab-content">
+      <div className="stat-row">
+        <div className="stat-card"><div className="stat-val">{templates.length}</div><div className="stat-lbl">Templates</div></div>
+        <div className="stat-card"><div className="stat-val" style={{ color:'#10B981' }}>{templates.filter(t=>t.is_shared).length}</div><div className="stat-lbl">Shared</div></div>
+      </div>
+      <div className="toolbar">
+        <div style={{ display:'flex', gap:6, flexWrap:'wrap', flex:1 }}>
+          {['All', ...STATIONS].map(st => (
+            <button key={st} className={`pill ${stationFilter===st?'pill-active':''}`}
+              style={stationFilter===st && st!=='All' ? { background: STATION_COLORS[st], color:'#000', borderColor: STATION_COLORS[st] } : {}}
+              onClick={() => setStationFilter(st)}>{st}</button>
+          ))}
+        </div>
+        <button className="btn-primary" onClick={() => setShowNew(true)}>+ New</button>
+      </div>
+
+      {showNew && (
+        <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--radius)', padding:16, display:'flex', flexDirection:'column', gap:10 }}>
+          <div style={{ fontFamily:'var(--font-display)', fontSize:14, fontWeight:600 }}>New Template</div>
+          <input className="search-inp" style={{ width:'100%', maxWidth:'100%' }} placeholder="Name" value={newName} onChange={e => setNewName(e.target.value)} autoFocus/>
+          <div style={{ display:'flex', gap:8 }}>
+            <select className="form-sel" style={{ flex:1 }} value={newStation} onChange={e => setNewStation(e.target.value)}>
+              {STATIONS.map(s => <option key={s}>{s}</option>)}
+            </select>
+            <input type="color" value={newColor} onChange={e => setNewColor(e.target.value)} style={{ width:40, height:36, border:'1px solid var(--border)', borderRadius:6, cursor:'pointer', background:'none', padding:2 }}/>
+          </div>
+          <div style={{ display:'flex', gap:8 }}>
+            <button className="btn-primary" onClick={createNew} disabled={saving}>{saving ? 'Creating…' : 'Create'}</button>
+            <button className="btn-secondary" onClick={() => { setShowNew(false); setNewName(''); }}>Cancel</button>
+          </div>
+        </div>
+      )}
+
+      <div className="content-grid">
+        {filtered.map(tpl => (
+          <div key={tpl.id} className="content-card" style={{ cursor:'pointer' }} onClick={() => openTemplate(tpl)}>
+            <div className="content-card-top">
+              <div className="content-color-dot" style={{ background: tpl.color }}/>
+              <div className="content-card-info">
+                <div className="content-card-name">{tpl.name}</div>
+                <div className="content-card-meta">{tpl.items?.length ?? 0} items</div>
+              </div>
+              <Badge color={STATION_COLORS[tpl.station]||'#6B7280'} small>{tpl.station}</Badge>
+            </div>
+          </div>
+        ))}
+        {filtered.length === 0 && <div style={{ color:'var(--text-muted)', fontSize:13, padding:'20px 0' }}>No templates found.</div>}
+      </div>
+    </div>
+  );
 }
 
 function RecipesTab() {
