@@ -173,17 +173,17 @@ export default function Onboarding({ user, onDone }) {
 }
 
 const s = {
-  root: { minHeight: '100vh', background: '#0C0C0C', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, fontFamily: "'DM Mono', monospace" },
-  card: { width: '100%', maxWidth: 380, background: '#141414', border: '1px solid #252525', borderRadius: 16, padding: 32, display: 'flex', flexDirection: 'column', gap: 16 },
+  root: { minHeight: '100vh', background: '#111111', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, fontFamily: "'DM Mono', monospace" },
+  card: { width: '100%', maxWidth: 380, background: '#1A1A1A', border: '1px solid #333333', borderRadius: 16, padding: 32, display: 'flex', flexDirection: 'column', gap: 16 },
   logo: { fontFamily: "'Syne', sans-serif", fontSize: 26, fontWeight: 800, letterSpacing: -1 },
-  title: { fontFamily: "'Syne', sans-serif", fontSize: 24, fontWeight: 700, lineHeight: 1.2, color: '#E8E8E0' },
-  sub: { fontSize: 13, color: '#666', lineHeight: 1.6 },
-  input: { background: '#1C1C1C', border: '1px solid #252525', borderRadius: 10, padding: '12px 14px', color: '#E8E8E0', fontFamily: "'DM Mono', monospace", fontSize: 14, outline: 'none', width: '100%' },
+  title: { fontFamily: "'Syne', sans-serif", fontSize: 24, fontWeight: 700, lineHeight: 1.2, color: '#F0F0E8' },
+  sub: { fontSize: 13, color: '#888', lineHeight: 1.6 },
+  input: { background: '#222222', border: '1px solid #333333', borderRadius: 10, padding: '12px 14px', color: '#F0F0E8', fontFamily: "'DM Mono', monospace", fontSize: 14, outline: 'none', width: '100%' },
   btn: { background: '#F97316', color: '#fff', border: 'none', borderRadius: 10, padding: '14px 20px', fontFamily: "'Syne', sans-serif", fontSize: 15, fontWeight: 700, cursor: 'pointer', marginTop: 4 },
   stationGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 },
-  stationBtn: { background: 'transparent', border: '1px solid #252525', borderRadius: 10, padding: '12px 8px', color: '#888', fontFamily: "'DM Mono', monospace", fontSize: 13, cursor: 'pointer', transition: 'all 0.15s' },
+  stationBtn: { background: 'transparent', border: '1px solid #333333', borderRadius: 10, padding: '12px 8px', color: '#999', fontFamily: "'DM Mono', monospace", fontSize: 13, cursor: 'pointer', transition: 'all 0.15s' },
   dots: { display: 'flex', gap: 6, justifyContent: 'center', marginTop: 8 },
-  dot: { width: 6, height: 6, borderRadius: '50%', background: '#252525' },
+  dot: { width: 6, height: 6, borderRadius: '50%', background: '#333333' },
   dotActive: { background: '#F97316' },
   error: { color: '#EF4444', fontSize: 12 },
 }

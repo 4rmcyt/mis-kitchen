@@ -696,9 +696,9 @@ const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&display=swap');
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   :root{
-    --bg:#0A0A0A; --surface:#111; --surface2:#181818; --surface3:#1E1E1E;
-    --border:#222; --border2:#2A2A2A;
-    --text:#E8E8E0; --text-muted:#4A4A4A;
+    --bg:#111111; --surface:#1A1A1A; --surface2:#222222; --surface3:#2A2A2A;
+    --border:#333333; --border2:#3A3A3A;
+    --text:#F0F0E8; --text-muted:#777;
     --accent:#F97316;
     --font-display:'Syne',sans-serif; --font-mono:'DM Mono',monospace;
     --radius:8px;

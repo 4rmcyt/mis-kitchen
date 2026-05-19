@@ -874,7 +874,7 @@ export default function App({ userRole, userStation = 'Common' }) {
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&display=swap');
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  :root{--bg:#0C0C0C;--surface:#141414;--surface2:#1C1C1C;--border:#252525;--text:#E8E8E0;--text-muted:#555;--accent:#F97316;--font-display:'Syne',sans-serif;--font-mono:'DM Mono',monospace;--radius:10px}
+  :root{--bg:#111111;--surface:#1A1A1A;--surface2:#222222;--border:#333333;--text:#F0F0E8;--text-muted:#777;--accent:#F97316;--font-display:'Syne',sans-serif;--font-mono:'DM Mono',monospace;--radius:10px}
   html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font-mono)}
   .app{min-height:100vh;display:flex;justify-content:center;background:var(--bg)}
   .app-inner{width:100%;max-width:430px;min-height:100vh;display:flex;flex-direction:column}
