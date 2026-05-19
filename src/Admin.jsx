@@ -678,6 +678,15 @@ export default function Admin() {
         {tab === 'reports'  && <ReportsTab/>}
         {tab === 'security' && <SecurityTab/>}
       </main>
+
+      <nav className="bottom-nav">
+        {TABS.map(t => (
+          <button key={t.id} className={`bottom-nav-item ${tab===t.id?'active':''}`} onClick={() => setTab(t.id)}>
+            <span className="bottom-nav-icon">{t.icon}</span>
+            <span className="bottom-nav-label">{t.label}</span>
+          </button>
+        ))}
+      </nav>
     </div>
   );
 }
@@ -810,10 +819,27 @@ const CSS = `
   .form-inp:focus{border-color:var(--accent)}
   .form-sel{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 12px;border-radius:var(--radius);outline:none;width:100%}
 
+  .bottom-nav{display:none}
+
   @media (max-width: 768px) {
     .sidebar{display:none}
     .stat-row{grid-template-columns:1fr 1fr}
     .tab-content{padding:16px}
     .admin-header{padding:14px 16px}
+    .admin-main{padding-bottom:64px}
+    .bottom-nav{
+      display:flex;position:fixed;bottom:0;left:0;right:0;
+      background:var(--surface);border-top:1px solid var(--border);
+      z-index:50;height:60px;
+    }
+    .bottom-nav-item{
+      flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+      gap:2px;border:none;background:transparent;color:var(--text-muted);
+      font-family:var(--font-mono);font-size:10px;cursor:pointer;padding:6px 2px;
+      transition:color 0.15s;
+    }
+    .bottom-nav-item.active{color:var(--accent)}
+    .bottom-nav-icon{font-size:18px;line-height:1}
+    .bottom-nav-label{font-size:9px;letter-spacing:0.3px;text-transform:uppercase}
   }
 `;

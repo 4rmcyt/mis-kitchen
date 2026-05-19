@@ -317,6 +317,7 @@ function TodayScreen({ templates, userStation = 'Common' }) {
 
   useEffect(() => { save('mis_today', sections); }, [sections]);
   useEffect(() => { save('mis_next_shift', nextShift); }, [nextShift]);
+  useEffect(() => { setStationFilter(userStation); }, [userStation]);
 
   useEffect(() => {
     const carried = load('mis_carried', []);
