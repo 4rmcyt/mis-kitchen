@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase, getRestaurantProfiles, adminUpdateProfile, getTemplates, createTemplate, updateTemplate, deleteTemplate, getRecipes, getRestaurantReports, signOut } from "./lib/supabase.js";
+import { supabase, getRestaurantProfiles, adminUpdateProfile, getTemplates, createTemplate, updateTemplate, deleteTemplate, getDayTemplates, createDayTemplate, updateDayTemplate, deleteDayTemplate, createTasksBatch, getRecipes, getRestaurantReports, signOut } from "./lib/supabase.js";
 
 
 const STATIONS = ["Common", "Cold", "Rolls", "Hot", "Grill", "Tandoor"];
@@ -364,7 +364,10 @@ function ContentList({ items, type, onToggle, stationFilter, setStationFilter })
   );
 }
 
-function TasksTab() {
+const SECTIONS = ['Opening', 'Closing', 'Other'];
+const SECTION_COLORS = { Opening: '#F97316', Closing: '#6366F1', Other: '#6B7280' };
+
+function StationTemplatesView() {
   const [templates, setTemplates] = useState([]);
   const [stationFilter, setStationFilter] = useState('All');
   const [selected, setSelected] = useState(null);
@@ -380,11 +383,9 @@ function TasksTab() {
 
   const filtered = stationFilter === 'All' ? templates : templates.filter(t => t.station === stationFilter);
 
-  const openTemplate = (tpl) => setSelected({ ...tpl, items: tpl.items || [] });
-
   const saveItems = async (items) => {
     try {
-      const updated = await updateTemplate(selected.id, { items });
+      await updateTemplate(selected.id, { items });
       setTemplates(ts => ts.map(t => t.id === selected.id ? { ...t, items } : t));
       setSelected(s => ({ ...s, items }));
     } catch (e) { toast(e.message, 'error'); }
@@ -392,7 +393,7 @@ function TasksTab() {
 
   const addItem = () => {
     if (!newItemText.trim()) return;
-    const items = [...selected.items, { id: Math.random().toString(36).slice(2), text: newItemText.trim(), done: false, station: selected.station }];
+    const items = [...selected.items, { id: Math.random().toString(36).slice(2), text: newItemText.trim(), done: false }];
     saveItems(items);
     setNewItemText('');
   };
@@ -432,8 +433,7 @@ function TasksTab() {
           </div>
           <button className="btn-danger" onClick={deleteThisTemplate}>Delete</button>
         </div>
-        <div style={{ color:'var(--text-muted)', fontSize:12, marginBottom:16 }}>{selected.items.length} items</div>
-
+        <div style={{ color:'var(--text-muted)', fontSize:12, marginBottom:12 }}>{selected.items.length} items</div>
         <div style={{ display:'flex', flexDirection:'column', gap:2 }}>
           {selected.items.map((item, idx) => (
             <div key={item.id} style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 12px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--radius)' }}>
@@ -443,15 +443,9 @@ function TasksTab() {
             </div>
           ))}
         </div>
-
         <div style={{ display:'flex', gap:8, marginTop:12 }}>
-          <input
-            className="search-inp" style={{ flex:1 }}
-            placeholder="Add item…"
-            value={newItemText}
-            onChange={e => setNewItemText(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && addItem()}
-          />
+          <input className="search-inp" style={{ flex:1 }} placeholder="Add item…" value={newItemText}
+            onChange={e => setNewItemText(e.target.value)} onKeyDown={e => e.key === 'Enter' && addItem()} autoFocus/>
           <button className="btn-primary" onClick={addItem}>Add</button>
         </div>
       </div>
@@ -461,8 +455,8 @@ function TasksTab() {
   return (
     <div className="tab-content">
       <div className="stat-row">
-        <div className="stat-card"><div className="stat-val">{templates.length}</div><div className="stat-lbl">Templates</div></div>
-        <div className="stat-card"><div className="stat-val" style={{ color:'#10B981' }}>{templates.filter(t=>t.is_shared).length}</div><div className="stat-lbl">Shared</div></div>
+        <div className="stat-card"><div className="stat-val">{templates.length}</div><div className="stat-lbl">Station Templates</div></div>
+        <div className="stat-card"><div className="stat-val">{templates.reduce((a,t) => a + (t.items?.length||0), 0)}</div><div className="stat-lbl">Total Items</div></div>
       </div>
       <div className="toolbar">
         <div style={{ display:'flex', gap:6, flexWrap:'wrap', flex:1 }}>
@@ -474,11 +468,10 @@ function TasksTab() {
         </div>
         <button className="btn-primary" onClick={() => setShowNew(true)}>+ New</button>
       </div>
-
       {showNew && (
         <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--radius)', padding:16, display:'flex', flexDirection:'column', gap:10 }}>
-          <div style={{ fontFamily:'var(--font-display)', fontSize:14, fontWeight:600 }}>New Template</div>
-          <input className="search-inp" style={{ width:'100%', maxWidth:'100%' }} placeholder="Name" value={newName} onChange={e => setNewName(e.target.value)} autoFocus/>
+          <div style={{ fontFamily:'var(--font-display)', fontSize:14, fontWeight:600 }}>New Station Template</div>
+          <input className="search-inp" style={{ width:'100%', maxWidth:'100%' }} placeholder="Name (e.g. Cold Station)" value={newName} onChange={e => setNewName(e.target.value)} autoFocus/>
           <div style={{ display:'flex', gap:8 }}>
             <select className="form-sel" style={{ flex:1 }} value={newStation} onChange={e => setNewStation(e.target.value)}>
               {STATIONS.map(s => <option key={s}>{s}</option>)}
@@ -491,10 +484,9 @@ function TasksTab() {
           </div>
         </div>
       )}
-
       <div className="content-grid">
         {filtered.map(tpl => (
-          <div key={tpl.id} className="content-card" style={{ cursor:'pointer' }} onClick={() => openTemplate(tpl)}>
+          <div key={tpl.id} className="content-card" style={{ cursor:'pointer' }} onClick={() => setSelected({ ...tpl, items: tpl.items||[] })}>
             <div className="content-card-top">
               <div className="content-color-dot" style={{ background: tpl.color }}/>
               <div className="content-card-info">
@@ -507,6 +499,202 @@ function TasksTab() {
         ))}
         {filtered.length === 0 && <div style={{ color:'var(--text-muted)', fontSize:13, padding:'20px 0' }}>No templates found.</div>}
       </div>
+    </div>
+  );
+}
+
+function DayTemplatesView() {
+  const [dayTemplates, setDayTemplates] = useState([]);
+  const [stationTemplates, setStationTemplates] = useState([]);
+  const [selected, setSelected] = useState(null);
+  const [showNew, setShowNew] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [assigning, setAssigning] = useState(null);
+  const [assignDate, setAssignDate] = useState(new Date().toISOString().split('T')[0]);
+  const { show: toast } = useToast();
+
+  useEffect(() => {
+    getDayTemplates().then(setDayTemplates).catch(e => toast(e.message, 'error'));
+    getTemplates().then(setStationTemplates).catch(() => {});
+  }, []);
+
+  const createNew = async () => {
+    if (!newName.trim()) return;
+    setSaving(true);
+    try {
+      const dt = await createDayTemplate({ name: newName.trim(), entries: [] });
+      setDayTemplates(ds => [dt, ...ds]);
+      setNewName(''); setShowNew(false);
+      setSelected({ ...dt, entries: [] });
+    } catch (e) { toast(e.message, 'error'); }
+    setSaving(false);
+  };
+
+  const deleteDay = async (dt) => {
+    if (!confirm(`Delete "${dt.name}"?`)) return;
+    try {
+      await deleteDayTemplate(dt.id);
+      setDayTemplates(ds => ds.filter(d => d.id !== dt.id));
+      if (selected?.id === dt.id) setSelected(null);
+    } catch (e) { toast(e.message, 'error'); }
+  };
+
+  const addEntry = async (templateId, section) => {
+    const entries = [...(selected.entries||[]), { template_id: templateId, section }];
+    try {
+      await updateDayTemplate(selected.id, { entries });
+      setDayTemplates(ds => ds.map(d => d.id === selected.id ? { ...d, entries } : d));
+      setSelected(s => ({ ...s, entries }));
+    } catch (e) { toast(e.message, 'error'); }
+  };
+
+  const removeEntry = async (idx) => {
+    const entries = selected.entries.filter((_, i) => i !== idx);
+    try {
+      await updateDayTemplate(selected.id, { entries });
+      setDayTemplates(ds => ds.map(d => d.id === selected.id ? { ...d, entries } : d));
+      setSelected(s => ({ ...s, entries }));
+    } catch (e) { toast(e.message, 'error'); }
+  };
+
+  const applyToDate = async (dt, date) => {
+    setAssigning(dt.id);
+    try {
+      const tasks = (dt.entries || []).flatMap(entry => {
+        const tpl = stationTemplates.find(t => t.id === entry.template_id);
+        if (!tpl) return [];
+        return (tpl.items || []).map(item => ({
+          text: item.text,
+          station: tpl.station,
+          section: entry.section,
+          date,
+          source: 'template',
+          template_id: tpl.id,
+        }));
+      });
+      if (!tasks.length) { toast('No tasks to create', 'error'); setAssigning(null); return; }
+      await createTasksBatch(tasks);
+      toast(`${tasks.length} tasks created for ${date}`, 'success');
+    } catch (e) { toast(e.message, 'error'); }
+    setAssigning(null);
+  };
+
+  if (selected) {
+    const entries = selected.entries || [];
+    return (
+      <div className="tab-content">
+        <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:4 }}>
+          <button className="btn-secondary" onClick={() => setSelected(null)}>← Back</button>
+          <span style={{ fontFamily:'var(--font-display)', fontSize:18, fontWeight:700, flex:1 }}>{selected.name}</span>
+          <button className="btn-danger" onClick={() => deleteDay(selected)}>Delete</button>
+        </div>
+        <div style={{ color:'var(--text-muted)', fontSize:12, marginBottom:12 }}>{entries.length} station templates assigned</div>
+
+        <div style={{ display:'flex', flexDirection:'column', gap:4, marginBottom:16 }}>
+          {entries.map((entry, idx) => {
+            const tpl = stationTemplates.find(t => t.id === entry.template_id);
+            return (
+              <div key={idx} style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 12px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--radius)' }}>
+                {tpl && <div style={{ width:8, height:8, borderRadius:'50%', background: tpl.color, flexShrink:0 }}/>}
+                <span style={{ flex:1, fontSize:13 }}>{tpl ? tpl.name : 'Unknown'}</span>
+                {tpl && <Badge color={STATION_COLORS[tpl.station]||'#6B7280'} small>{tpl.station}</Badge>}
+                <span style={{ fontSize:11, color: SECTION_COLORS[entry.section], border:`1px solid ${SECTION_COLORS[entry.section]}44`, padding:'2px 8px', borderRadius:4 }}>{entry.section}</span>
+                <button className="icon-btn" onClick={() => removeEntry(idx)} style={{ color:'#EF4444', fontSize:16 }}>×</button>
+              </div>
+            );
+          })}
+          {entries.length === 0 && <div style={{ color:'var(--text-muted)', fontSize:13 }}>No station templates added yet.</div>}
+        </div>
+
+        <div style={{ fontFamily:'var(--font-display)', fontSize:13, fontWeight:600, marginBottom:8 }}>Add station template</div>
+        <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+          {stationTemplates.map(tpl => (
+            <div key={tpl.id} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 12px', background:'var(--surface2)', border:'1px solid var(--border)', borderRadius:'var(--radius)' }}>
+              <div style={{ width:8, height:8, borderRadius:'50%', background: tpl.color, flexShrink:0 }}/>
+              <span style={{ flex:1, fontSize:13 }}>{tpl.name}</span>
+              <Badge color={STATION_COLORS[tpl.station]||'#6B7280'} small>{tpl.station}</Badge>
+              <div style={{ display:'flex', gap:4 }}>
+                {SECTIONS.map(sec => (
+                  <button key={sec} className="btn-secondary" style={{ fontSize:11, padding:'3px 8px', color: SECTION_COLORS[sec], borderColor: SECTION_COLORS[sec]+'44' }}
+                    onClick={() => addEntry(tpl.id, sec)}>{sec}</button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ marginTop:20, paddingTop:16, borderTop:'1px solid var(--border)' }}>
+          <div style={{ fontFamily:'var(--font-display)', fontSize:13, fontWeight:600, marginBottom:8 }}>Apply to date</div>
+          <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+            <input type="date" className="search-inp" value={assignDate} min={new Date().toISOString().split('T')[0]}
+              onChange={e => setAssignDate(e.target.value)} style={{ width:160 }}/>
+            <button className="btn-primary" onClick={() => applyToDate(selected, assignDate)} disabled={!!assigning}>
+              {assigning === selected.id ? 'Creating…' : `Apply → ${assignDate}`}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="tab-content">
+      <div className="stat-row">
+        <div className="stat-card"><div className="stat-val">{dayTemplates.length}</div><div className="stat-lbl">Day Templates</div></div>
+      </div>
+      <div className="toolbar">
+        <div style={{ flex:1 }}/>
+        <button className="btn-primary" onClick={() => setShowNew(true)}>+ New</button>
+      </div>
+      {showNew && (
+        <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--radius)', padding:16, display:'flex', flexDirection:'column', gap:10 }}>
+          <div style={{ fontFamily:'var(--font-display)', fontSize:14, fontWeight:600 }}>New Day Template</div>
+          <input className="search-inp" style={{ width:'100%', maxWidth:'100%' }} placeholder="Name (e.g. Tuesday Setup)" value={newName} onChange={e => setNewName(e.target.value)} autoFocus
+            onKeyDown={e => e.key === 'Enter' && createNew()}/>
+          <div style={{ display:'flex', gap:8 }}>
+            <button className="btn-primary" onClick={createNew} disabled={saving}>{saving ? 'Creating…' : 'Create'}</button>
+            <button className="btn-secondary" onClick={() => { setShowNew(false); setNewName(''); }}>Cancel</button>
+          </div>
+        </div>
+      )}
+      <div className="content-grid">
+        {dayTemplates.map(dt => {
+          const totalItems = (dt.entries||[]).reduce((a, entry) => {
+            const tpl = stationTemplates.find(t => t.id === entry.template_id);
+            return a + (tpl?.items?.length || 0);
+          }, 0);
+          return (
+            <div key={dt.id} className="content-card" style={{ cursor:'pointer' }} onClick={() => setSelected({ ...dt, entries: dt.entries||[] })}>
+              <div className="content-card-top">
+                <div className="content-card-info">
+                  <div className="content-card-name">{dt.name}</div>
+                  <div className="content-card-meta">{(dt.entries||[]).length} station templates · {totalItems} tasks</div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+        {dayTemplates.length === 0 && <div style={{ color:'var(--text-muted)', fontSize:13, padding:'20px 0' }}>No day templates yet.</div>}
+      </div>
+    </div>
+  );
+}
+
+function TasksTab() {
+  const [subTab, setSubTab] = useState('station');
+  return (
+    <div style={{ display:'flex', flexDirection:'column', height:'100%' }}>
+      <div style={{ display:'flex', gap:2, padding:'0 28px', borderBottom:'1px solid var(--border)', background:'var(--bg)' }}>
+        {[{id:'station', label:'Station Templates'}, {id:'day', label:'Day Templates'}].map(t => (
+          <button key={t.id} onClick={() => setSubTab(t.id)} style={{
+            padding:'10px 16px', border:'none', borderBottom: subTab===t.id ? '2px solid var(--accent)' : '2px solid transparent',
+            background:'transparent', color: subTab===t.id ? 'var(--text)' : 'var(--text-muted)',
+            fontFamily:'var(--font-mono)', fontSize:13, cursor:'pointer', transition:'all 0.15s', marginBottom:-1,
+          }}>{t.label}</button>
+        ))}
+      </div>
+      {subTab === 'station' ? <StationTemplatesView/> : <DayTemplatesView/>}
     </div>
   );
 }
