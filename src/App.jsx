@@ -196,9 +196,9 @@ function TodayScreen({ userStation = 'Common', userRole }) {
 
       {/* Date switcher */}
       <div className="date-switcher">
-        {[-3,-2,-1,0,1,2,3].map(off => (
+        {[0,1,2,3].map(off => (
           <button key={off} className={`date-pill ${dateOffset===off?'active':''}`} onClick={() => setDateOffset(off)}>
-            {off === 0 ? 'Today' : off === -1 ? 'Yest' : off === 1 ? 'Tmrw' : new Date(dateStr(off)+'T12:00:00').toLocaleDateString('en-US',{weekday:'short'})}
+            {off === 0 ? 'Today' : off === 1 ? 'Tmrw' : new Date(dateStr(off)+'T12:00:00').toLocaleDateString('en-US',{weekday:'short'})}
           </button>
         ))}
       </div>
