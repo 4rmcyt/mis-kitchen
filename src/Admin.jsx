@@ -876,93 +876,7 @@ function ReportsTab() {
 }
 
 //  SECURITY TAB 
-function SecurityTab() {
-  const [resendKey, setResendKey] = useState('re_••••••••••••••••');
-  const [showKey, setShowKey] = useState(false);
-  const [saved, setSaved] = useState(false);
 
-  const saveKey = () => { setSaved(true); setTimeout(() => setSaved(false), 2000); };
-
-  const policies = [
-    { label: "Row Level Security", status: "enabled", desc: "Every DB query is scoped to the authenticated user's restaurant" },
-    { label: "JWT Expiry", status: "1 hour", desc: "Access tokens rotate automatically, refresh tokens are HTTP-only cookies" },
-    { label: "API keys in env", status: "secure", desc: "Resend key stored server-side only, never exposed to client" },
-    { label: "Invite-only registration", status: "enabled", desc: "New accounts require admin invite — no self-signup" },
-    { label: "HTTPS only", status: "enforced", desc: "All traffic encrypted via Vercel/Cloudflare TLS" },
-    { label: "Password hashing", status: "bcrypt", desc: "Supabase Auth — passwords never stored in plaintext" },
-  ];
-
-  const STATUS_COLORS = { enabled:'#10B981', secure:'#10B981', enforced:'#10B981', bcrypt:'#10B981', '1 hour':'#F97316' };
-
-  return (
-    <div className="tab-content">
-      <div className="stat-row">
-        {[
-          { val:'6', lbl:'Security policies active', c:'#10B981' },
-          { val:'RLS', lbl:'Row Level Security', c:'#10B981' },
-          { val:'0', lbl:'Exposed secrets', c:'#10B981' },
-          { val:'Invite', lbl:'Registration mode', c:'#6366F1' },
-        ].map((s,i) => (
-          <div key={i} className="stat-card"><div className="stat-val" style={{ color:s.c }}>{s.val}</div><div className="stat-lbl">{s.lbl}</div></div>
-        ))}
-      </div>
-
-      <div className="section-block">
-        <div className="section-block-title">Security Policies</div>
-        {policies.map((p,i) => (
-          <div key={i} className="policy-row">
-            <div className="policy-check">✓</div>
-            <div style={{ flex:1 }}>
-              <div style={{ fontSize:13, fontWeight:500 }}>{p.label}</div>
-              <div style={{ fontSize:11, color:'var(--text-muted)', marginTop:2 }}>{p.desc}</div>
-            </div>
-            <Badge color={STATUS_COLORS[p.status] || '#6B7280'}>{p.status}</Badge>
-          </div>
-        ))}
-      </div>
-
-      <div className="section-block">
-        <div className="section-block-title">Server-side Secrets</div>
-        <div className="security-note" style={{ marginBottom:12 }}>
-          🔒 These values are stored as environment variables in Supabase Edge Functions. They are never sent to the client browser.
-        </div>
-        <div className="form-row">
-          <label className="form-label-sm">Resend API Key (email reports)</label>
-          <div style={{ display:'flex', gap:8 }}>
-            <input className="form-inp" type={showKey?'text':'password'} value={resendKey} onChange={e => setResendKey(e.target.value)} style={{ flex:1 }}/>
-            <button className="btn-secondary" onClick={() => setShowKey(s=>!s)}>{showKey?'Hide':'Show'}</button>
-            <button className="btn-primary" onClick={saveKey}>{saved ? '✓ Saved' : 'Save'}</button>
-          </div>
-        </div>
-      </div>
-
-      <div className="section-block">
-        <div className="section-block-title">Data Isolation</div>
-        <div className="code-block">
-{`-- No cook can access another cook's data
--- This policy is enforced at the database level
-
-CREATE POLICY "users_own_data" ON daily_reports
-  FOR ALL USING (auth.uid() = user_id);
-
-CREATE POLICY "admin_sees_restaurant" ON daily_reports
-  FOR SELECT USING (
-    get_user_role() IN ('admin', 'superadmin') AND
-    restaurant_id = get_user_restaurant()
-  );
-
--- Recipes: personal vs shared
-CREATE POLICY "recipes_access" ON recipes
-  FOR SELECT USING (
-    user_id = auth.uid() OR
-    (is_shared = true AND
-     restaurant_id = get_user_restaurant())
-  );`}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 //  MAIN APP 
 export default function Admin() {
@@ -974,7 +888,6 @@ export default function Admin() {
     { id:'tasks',    label:'Tasks',    icon:'✓'  },
     { id:'recipes',  label:'Recipes',  icon:'⚗'  },
     { id:'reports',  label:'Reports',  icon:'📊' },
-    { id:'security', label:'Security', icon:'🔒' },
   ];
 
   return (
@@ -1021,7 +934,6 @@ export default function Admin() {
         {tab === 'tasks'    && <TasksTab/>}
         {tab === 'recipes'  && <RecipesTab/>}
         {tab === 'reports'  && <ReportsTab/>}
-        {tab === 'security' && <SecurityTab/>}
       </main>
 
       <nav className="bottom-nav">
