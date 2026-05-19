@@ -8,7 +8,6 @@ const STATION_COLORS = {
   Grill: "#EF4444", Tandoor: "#F59E0B", Default: "#6B7280"
 };
 
-const save = (key, val) => { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} };
 const load = (key, fallback) => { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; } };
 
 const DEFAULT_RECIPES = [
@@ -32,8 +31,6 @@ const DEFAULT_RECIPES = [
     steps: ["Peel garlic, place in small pot.", "Cover with olive oil + herbs.", "90°C, 45 min. Cool in oil. Keeps 2 weeks."]
   }
 ];
-
-function uid() { return Math.random().toString(36).slice(2, 9); }
 
 function CheckIcon() {
   return <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><polyline points="2,7 5.5,10.5 12,3" stroke="#F97316" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>;
@@ -283,14 +280,11 @@ function TodayScreen({ userStation = 'Common', userRole }) {
 }
 
 function RecipesScreen() {
-  const [recipes, setRecipes] = useState(() => load('mis_recipes', DEFAULT_RECIPES));
+  const [recipes] = useState(() => load('mis_recipes', DEFAULT_RECIPES));
   const [active, setActive] = useState(null);
   const [multiplier, setMultiplier] = useState(1);
-  const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState('');
   const [stationFilter, setStationFilter] = useState('All');
-
-  useEffect(() => { save('mis_recipes', recipes); }, [recipes]);
 
   const filtered = recipes.filter(r => {
     const ms = r.name.toLowerCase().includes(search.toLowerCase()) || r.station.toLowerCase().includes(search.toLowerCase());
@@ -301,7 +295,6 @@ function RecipesScreen() {
     <div className="screen">
       <div className="screen-header">
         <button className="back-btn" onClick={() => setActive(null)}>← Back</button>
-        <button className="action-btn del" onClick={() => { setRecipes(r => r.filter(x => x.id !== active.id)); setActive(null); }}>Delete</button>
       </div>
       <div className="recipe-detail">
         <div className="recipe-station-badge" style={{ background: STATION_COLORS[active.station]||STATION_COLORS.Default }}>{active.station}</div>
@@ -332,7 +325,7 @@ function RecipesScreen() {
 
   return (
     <div className="screen">
-      <div className="screen-header"><div className="screen-title">Recipes</div><button className="fab-btn" onClick={() => setShowForm(true)}>+</button></div>
+      <div className="screen-header"><div className="screen-title">Recipes</div></div>
       <input className="search-input" placeholder="Search recipes..." value={search} onChange={e => setSearch(e.target.value)}/>
       <div className="station-filter" style={{ marginBottom:16 }}>
         {['All', ...STATIONS].map(st => (
@@ -350,48 +343,6 @@ function RecipesScreen() {
           </button>
         ))}
         {filtered.length === 0 && <div className="empty-state" style={{ gridColumn:'1/-1' }}><div className="empty-icon">📖</div><div className="empty-title">No recipes found</div></div>}
-      </div>
-      {showForm && <RecipeForm onSave={r => { setRecipes(rs => [...rs, r]); setShowForm(false); }} onCancel={() => setShowForm(false)}/>}
-    </div>
-  );
-}
-
-function RecipeForm({ onSave, onCancel }) {
-  const [name, setName] = useState('');
-  const [station, setStation] = useState('Hot');
-  const [ings, setIngs] = useState([{ id: uid(), name: '', amount: '', unit: 'g' }]);
-  const [steps, setSteps] = useState(['']);
-  const addIng = () => setIngs(i => [...i, { id: uid(), name: '', amount: '', unit: 'g' }]);
-  const updateIng = (id, f, v) => setIngs(i => i.map(x => x.id===id ? { ...x, [f]:v } : x));
-  const addStep = () => setSteps(s => [...s, '']);
-  const updateStep = (i, v) => setSteps(s => s.map((x,j) => j===i ? v : x));
-  const handleSave = () => {
-    if (!name.trim()) return;
-    onSave({ id: uid(), name: name.trim(), station, portions: 1, ingredients: ings.filter(i=>i.name).map(i=>({...i,amount:parseFloat(i.amount)||0})), steps: steps.filter(Boolean) });
-  };
-  return (
-    <div className="modal-overlay">
-      <div className="modal">
-        <div className="modal-header"><span>New Recipe</span><button className="action-btn del" onClick={onCancel}>×</button></div>
-        <input className="form-input" placeholder="Recipe name" value={name} onChange={e => setName(e.target.value)}/>
-        <select className="form-input" value={station} onChange={e => setStation(e.target.value)}>
-          {STATIONS.map(s => <option key={s}>{s}</option>)}
-        </select>
-        <div className="form-label">Ingredients</div>
-        {ings.map(ing => (
-          <div key={ing.id} className="ing-form-row">
-            <input className="form-input flex2" placeholder="Name" value={ing.name} onChange={e => updateIng(ing.id,'name',e.target.value)}/>
-            <input className="form-input flex1" placeholder="Amt" type="number" value={ing.amount} onChange={e => updateIng(ing.id,'amount',e.target.value)}/>
-            <select className="form-input flex1" value={ing.unit} onChange={e => updateIng(ing.id,'unit',e.target.value)}>
-              {['g','kg','ml','l','pcs','tbsp','tsp'].map(u => <option key={u}>{u}</option>)}
-            </select>
-          </div>
-        ))}
-        <button className="add-task-btn" onClick={addIng}>+ Ingredient</button>
-        <div className="form-label">Steps</div>
-        {steps.map((s,i) => <textarea key={i} className="form-input" placeholder={`Step ${i+1}`} value={s} onChange={e => updateStep(i,e.target.value)} rows={2}/>)}
-        <button className="add-task-btn" onClick={addStep}>+ Step</button>
-        <button className="save-btn" onClick={handleSave}>Save Recipe</button>
       </div>
     </div>
   );
