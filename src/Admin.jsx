@@ -3,9 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { supabase, getRestaurantProfiles, adminUpdateProfile, getDayTemplates, createDayTemplate, updateDayTemplate, deleteDayTemplate, createTasksBatch, getRecipes, createRecipe, updateRecipe, deleteRecipe, getRestaurantReports, signOut } from "./lib/supabase.js";
 
 
-const STATIONS = ["Common", "Cold", "Rolls", "Hot", "Grill", "Tandoor"];
+const STATIONS = ["Common", "Garmo", "Rolls", "Pans", "Grill", "Tandoor"];
 const STATION_COLORS = {
-  Cold:"#22D3EE", Rolls:"#A78BFA", Hot:"#F97316",
+  Garmo:"#22D3EE", Rolls:"#A78BFA", Pans:"#F97316",
   Grill:"#EF4444", Tandoor:"#F59E0B", Common:"#6B7280", All:"#6B7280"
 };
 

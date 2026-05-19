@@ -2,16 +2,16 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getRestaurantProfiles, signOut, getTasks, createTask, completeTask, uncompleteTask, commentTask, deleteTask } from "./lib/supabase.js";
 
-const STATIONS = ["Common", "Cold", "Rolls", "Hot", "Grill", "Tandoor"];
+const STATIONS = ["Common", "Garmo", "Rolls", "Pans", "Grill", "Tandoor"];
 const STATION_COLORS = {
-  Cold: "#22D3EE", Rolls: "#A78BFA", Hot: "#F97316",
+  Garmo: "#22D3EE", Rolls: "#A78BFA", Pans: "#F97316",
   Grill: "#EF4444", Tandoor: "#F59E0B", Default: "#6B7280"
 };
 
 const load = (key, fallback) => { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; } };
 
 const DEFAULT_RECIPES = [
-  { id: "r1", name: "Beurre Blanc", station: "Hot", portions: 1,
+  { id: "r1", name: "Beurre Blanc", station: "Pans", portions: 1,
     ingredients: [
       { id: "i1", name: "White wine", amount: 120, unit: "ml" },
       { id: "i2", name: "Shallots, minced", amount: 30, unit: "g" },
@@ -21,7 +21,7 @@ const DEFAULT_RECIPES = [
     ],
     steps: ["Reduce wine + shallots until nearly dry.", "Add cream, reduce by half.", "Mount butter off heat, cube by cube. Season."]
   },
-  { id: "r2", name: "Garlic Confit", station: "Cold", portions: 1,
+  { id: "r2", name: "Garlic Confit", station: "Garmo", portions: 1,
     ingredients: [
       { id: "j1", name: "Garlic cloves", amount: 200, unit: "g" },
       { id: "j2", name: "Olive oil", amount: 300, unit: "ml" },
