@@ -397,7 +397,7 @@ function TodayScreen({ templates, userStation = 'Common' }) {
           {templates.map(tpl => (
             <button key={tpl.id} className="tpl-chip" style={{ borderColor: tpl.color, color: tpl.color }}
               onClick={() => { loadTemplate(tpl); setShowTemplatePicker(false); }}>
-              + {tpl.name}
+              + {tpl.station !== 'Common' ? `${tpl.station} ` : ''}{tpl.name}
             </button>
           ))}
           {showCustomSection ? (
