@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getRestaurantProfiles, signOut, getTasks, createTask, createTasksBatch, completeTask, uncompleteTask, commentTask, deleteTask, getDefaultDayTemplate } from "./lib/supabase.js";
+import { getRestaurantProfiles, signOut, getTasks, createTask, createTasksBatch, completeTask, uncompleteTask, commentTask, deleteTask, getDefaultDayTemplate, getRecipes } from "./lib/supabase.js";
 
 const STATIONS = ["Common", "Garmo", "Rolls", "Pans", "Grill", "Tandoor"];
 const STATION_COLORS = {
@@ -271,12 +271,17 @@ function TodayScreen({ userStation = 'Common', userRole }) {
 }
 
 function RecipesScreen() {
-  const [recipes] = useState(() => load('mis_recipes', []));
+  const [recipes, setRecipes] = useState([]);
   const [active, setActive] = useState(null);
   const [multiplier, setMultiplier] = useState(1);
   const [search, setSearch] = useState('');
+
+  useEffect(() => {
+    getRecipes().then(data => setRecipes(data || []));
+  }, []);
+
   const filtered = recipes.filter(r =>
-    r.name.toLowerCase().includes(search.toLowerCase()) || r.station.toLowerCase().includes(search.toLowerCase())
+    r.name.toLowerCase().includes(search.toLowerCase()) || (r.station || '').toLowerCase().includes(search.toLowerCase())
   );
 
   if (active) return (

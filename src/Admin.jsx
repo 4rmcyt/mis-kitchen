@@ -125,6 +125,8 @@ function PeopleTab() {
   const [showInvite, setShowInvite] = useState(false);
   const [inviteRole, setInviteRole] = useState('cook');
   const [inviteStation, setInviteStation] = useState('Grill');
+  const [inviteMode, setInviteMode] = useState('link'); // 'link' | 'email'
+  const [inviteEmail, setInviteEmail] = useState('');
   const [inviteLink, setInviteLink] = useState('');
   const [copied, setCopied] = useState(false);
   const [search, setSearch] = useState('');
@@ -153,7 +155,7 @@ function PeopleTab() {
       const { error: invErr } = await supabase.from('invites').insert({
         restaurant_id: myProfile.restaurant_id,
         invited_by: me.id,
-        email: null,
+        email: inviteMode === 'email' ? inviteEmail.trim() || null : null,
         role: inviteRole,
         station: inviteStation,
         token,
@@ -182,6 +184,8 @@ function PeopleTab() {
     setCopied(false);
     setInviteRole('cook');
     setInviteStation('Grill');
+    setInviteMode('link');
+    setInviteEmail('');
   };
 
   const toggleActive = async (id) => {
@@ -313,11 +317,13 @@ function PeopleTab() {
 
       {/* Invite modal */}
       {showInvite && (
-        <Modal title="Generate Invite Link" onClose={closeInvite}>
+        <Modal title="Invite Person" onClose={closeInvite}>
           {inviteLink ? (
             <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
               <div style={{ fontSize:13, color:'var(--text-muted)' }}>
-                Share this link via WhatsApp, Signal, or any messenger. It expires in 48 hours.
+                {inviteMode === 'email'
+                  ? `Share this link with ${inviteEmail}. It expires in 48 hours.`
+                  : 'Share this link via WhatsApp, Signal, or any messenger. It expires in 48 hours.'}
               </div>
               <div style={{ background:'var(--surface2)', border:'1px solid var(--border)', borderRadius:8, padding:'10px 12px', fontSize:12, color:'var(--text)', wordBreak:'break-all', fontFamily:'var(--font-mono)' }}>
                 {inviteLink}
@@ -331,6 +337,30 @@ function PeopleTab() {
             </div>
           ) : (
             <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+              <div style={{ display:'flex', gap:8, marginBottom:4 }}>
+                <button
+                  onClick={() => setInviteMode('link')}
+                  style={{ flex:1, padding:'8px 0', borderRadius:8, border:'1px solid', cursor:'pointer', fontSize:12, fontFamily:'var(--font-mono)',
+                    background: inviteMode==='link' ? 'var(--accent)' : 'transparent',
+                    color: inviteMode==='link' ? '#000' : 'var(--text-muted)',
+                    borderColor: inviteMode==='link' ? 'var(--accent)' : 'var(--border)' }}>
+                  Generate Link
+                </button>
+                <button
+                  onClick={() => setInviteMode('email')}
+                  style={{ flex:1, padding:'8px 0', borderRadius:8, border:'1px solid', cursor:'pointer', fontSize:12, fontFamily:'var(--font-mono)',
+                    background: inviteMode==='email' ? 'var(--accent)' : 'transparent',
+                    color: inviteMode==='email' ? '#000' : 'var(--text-muted)',
+                    borderColor: inviteMode==='email' ? 'var(--accent)' : 'var(--border)' }}>
+                  Invite by Email
+                </button>
+              </div>
+              {inviteMode === 'email' && (
+                <div><label className="form-label-sm">Email</label>
+                  <input className="form-inp" type="email" placeholder="colleague@email.com"
+                    value={inviteEmail} onChange={e => setInviteEmail(e.target.value)}/>
+                </div>
+              )}
               <div><label className="form-label-sm">Role</label>
                 <select className="form-sel" value={inviteRole} onChange={e => setInviteRole(e.target.value)}>
                   <option value="cook">Cook</option><option value="admin">Admin</option>
@@ -339,11 +369,13 @@ function PeopleTab() {
                 <select className="form-sel" value={inviteStation} onChange={e => setInviteStation(e.target.value)}>
                   {STATIONS.map(st => <option key={st}>{st}</option>)}
                 </select></div>
-              <div className="security-note">
-                🔒 No email needed. The person fills in their details when they open the link.
-              </div>
-              <button className="btn-primary" onClick={generateInvite} disabled={loading} data-testid="generate-invite-btn">
-                {loading ? 'Generating…' : 'Generate Link'}
+              {inviteMode === 'link' && (
+                <div className="security-note">
+                  🔒 No email needed. The person fills in their details when they open the link.
+                </div>
+              )}
+              <button className="btn-primary" onClick={generateInvite} disabled={loading || (inviteMode==='email' && !inviteEmail.trim())} data-testid="generate-invite-btn">
+                {loading ? 'Generating…' : inviteMode === 'email' ? 'Send Invite' : 'Generate Link'}
               </button>
             </div>
           )}
