@@ -13,6 +13,26 @@ When('I select invite station {string}', async function (station) {
   await this.page.locator('.form-sel').last().selectOption(station);
 });
 
+When('I select invite mode {string}', async function (mode) {
+  const label = mode === 'email' ? 'Invite by Email' : 'Generate Link';
+  await this.page.getByText(label, { exact: true }).click();
+  await this.page.waitForTimeout(300);
+});
+
+When('I fill in invite email {string}', async function (email) {
+  await this.page.fill('input[type="email"]', email);
+});
+
+When('I click Send Invite', async function () {
+  await this.page.locator('[data-testid="generate-invite-btn"]').waitFor({ timeout: 5_000 });
+  await this.page.locator('[data-testid="generate-invite-btn"]').click();
+  await this.page.waitForTimeout(2000);
+});
+
+Then('I should see a success toast', async function () {
+  await expect(this.page.getByText('Invite sent!')).toBeVisible({ timeout: 10_000 });
+});
+
 When('I click Generate Link', async function () {
   await this.page.locator('[data-testid="generate-invite-btn"]').waitFor({ timeout: 5_000 });
   await this.page.locator('[data-testid="generate-invite-btn"]').click();

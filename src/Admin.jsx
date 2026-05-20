@@ -164,7 +164,7 @@ function PeopleTab() {
         });
         if (error || data?.error) throw new Error(error?.message || data?.error);
         toast('Invite sent!', 'success');
-        closeInvite();
+        setTimeout(closeInvite, 1500);
         return;
       }
 

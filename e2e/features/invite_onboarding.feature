@@ -9,6 +9,17 @@ Feature: Invite and Onboarding
     And I click Generate Link
     Then I should see a copyable invite link
 
+  Scenario: Admin can send invite by email
+    Given I am logged in as admin
+    When I navigate to Admin People tab
+    And I click "+ Invite"
+    And I select invite mode "email"
+    And I fill in invite email "e2e-invite-target@mis-kitchen.test"
+    And I select invite role "cook"
+    And I select invite station "Grill"
+    And I click Send Invite
+    Then I should see a success toast
+
   Scenario: Invited user completes onboarding via link
     Given a token-based invite link exists for role "cook" and station "Grill"
     When I open the invite link
