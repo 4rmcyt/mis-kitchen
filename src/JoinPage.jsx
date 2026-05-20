@@ -2,8 +2,6 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from './lib/supabase.js';
 
-const STATIONS = ['Common', 'Garmo', 'Rolls', 'Pans', 'Grill', 'Tandoor'];
-
 export default function JoinPage() {
   const { token } = useParams();
   const navigate = useNavigate();
