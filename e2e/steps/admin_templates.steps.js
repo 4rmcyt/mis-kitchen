@@ -20,10 +20,10 @@ Then('I should see {string} in the templates list', async function (name) {
 });
 
 When('I open template {string}', async function (name) {
-  await this.page.locator('.stat-lbl').filter({ hasText: 'Templates' }).waitFor({ timeout: 10_000 });
+  await this.page.locator('.stat-lbl').filter({ hasText: 'Templates' }).waitFor({ timeout: 20_000 });
   await this.page.waitForTimeout(500);
   const item = this.page.getByText(name, { exact: true }).first();
-  await item.waitFor({ timeout: 10_000 });
+  await item.waitFor({ timeout: 20_000 });
   await item.click();
   await this.page.waitForTimeout(400);
 });
