@@ -149,13 +149,31 @@ function PeopleTab() {
     setLoading(true);
     try {
       const { data: { user: me } } = await supabase.auth.getUser();
-      const { data: myProfile } = await supabase.from('profiles').select('restaurant_id').eq('id', me.id).single();
+      const { data: myProfile } = await supabase.from('profiles').select('restaurant_id, name').eq('id', me.id).single();
+
+      if (inviteMode === 'email') {
+        const { data, error } = await supabase.functions.invoke('send-invite', {
+          body: {
+            email: inviteEmail.trim(),
+            role: inviteRole,
+            station: inviteStation,
+            restaurant_id: myProfile.restaurant_id,
+            invited_by: me.id,
+            invited_by_name: myProfile.name,
+          },
+        });
+        if (error || data?.error) throw new Error(error?.message || data?.error);
+        toast('Invite sent!', 'success');
+        closeInvite();
+        return;
+      }
+
       const token = crypto.randomUUID();
       const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
       const { error: invErr } = await supabase.from('invites').insert({
         restaurant_id: myProfile.restaurant_id,
         invited_by: me.id,
-        email: inviteMode === 'email' ? inviteEmail.trim() || null : null,
+        email: null,
         role: inviteRole,
         station: inviteStation,
         token,
@@ -163,8 +181,7 @@ function PeopleTab() {
         expires_at: expiresAt,
       });
       if (invErr) throw new Error(invErr.message);
-      const link = `${window.location.origin}/join/${token}`;
-      setInviteLink(link);
+      setInviteLink(`${window.location.origin}/join/${token}`);
     } catch (e) {
       toast(e.message, 'error');
     } finally {
