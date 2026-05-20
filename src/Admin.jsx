@@ -12,6 +12,32 @@ const STATION_COLORS = {
 const ROLE_COLORS = { superadmin:"#F97316", admin:"#6366F1", cook:"#3A3A3A" };
 const ROLE_LABELS = { superadmin:"Super Admin", admin:"Admin", cook:"Cook" };
 
+// CONFIRM
+function ConfirmDialog({ message, onConfirm, onCancel }) {
+  return (
+    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:200 }}>
+      <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--radius)', padding:'24px', maxWidth:320, width:'90%', display:'flex', flexDirection:'column', gap:16 }}>
+        <div style={{ fontSize:14, color:'var(--text)' }}>{message}</div>
+        <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
+          <button className="btn-secondary" onClick={onCancel}>Cancel</button>
+          <button className="btn-danger" data-testid="confirm-delete" onClick={onConfirm}>Delete</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function useConfirm() {
+  const [state, setState] = useState(null);
+  const confirm = (message) => new Promise(resolve => {
+    setState({ message, resolve });
+  });
+  const handleConfirm = () => { state.resolve(true); setState(null); };
+  const handleCancel = () => { state.resolve(false); setState(null); };
+  const dialog = state ? <ConfirmDialog message={state.message} onConfirm={handleConfirm} onCancel={handleCancel}/> : null;
+  return { confirm, dialog };
+}
+
 //  TOAST
 function useToast() {
   const [toasts, setToasts] = useState([]);
@@ -316,6 +342,7 @@ function TasksTab() {
   const [newStation, setNewStation] = useState('Common');
   const [newSection, setNewSection] = useState('Opening');
   const { show: toast } = useToast();
+  const { confirm, dialog: confirmDialog } = useConfirm();
 
   useEffect(() => { getDayTemplates().then(setDayTemplates).catch(e => toast(e.message, 'error')); }, []);
 
@@ -332,7 +359,7 @@ function TasksTab() {
   };
 
   const deleteTemplate = async (dt) => {
-    if (!confirm(`Delete "${dt.name}"?`)) return;
+    if (!await confirm(`Delete "${dt.name}"?`)) return;
     try {
       await deleteDayTemplate(dt.id);
       setDayTemplates(ds => ds.filter(d => d.id !== dt.id));
@@ -373,6 +400,7 @@ function TasksTab() {
     const entries = selected.entries || [];
     return (
       <div className="tab-content">
+        {confirmDialog}
         <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:4 }}>
           <button className="btn-secondary" onClick={() => setSelected(null)}>← Back</button>
           <span style={{ fontFamily:'var(--font-display)', fontSize:18, fontWeight:700, flex:1 }}>{selected.name}</span>
@@ -453,7 +481,7 @@ function TasksTab() {
 const UNITS = ['g', 'kg', 'ml', 'L', 'pcs', 'tsp', 'tbsp', 'cup', 'portion'];
 
 function emptyRecipe() {
-  return { name: '', station: 'Common', portions: 1, is_shared: false, ingredients: [], steps: [] };
+  return { name: '', portions: 1, is_shared: false, ingredients: [], steps: [] };
 }
 
 function RecipeForm({ initial, onSave, onCancel, saving }) {
@@ -485,12 +513,6 @@ function RecipeForm({ initial, onSave, onCancel, saving }) {
         <div style={{ flex:1 }}>
           <label className="form-label-sm">Name</label>
           <input className="form-inp" value={form.name} onChange={e => set('name', e.target.value)} placeholder="Recipe name" autoFocus/>
-        </div>
-        <div style={{ width:130 }}>
-          <label className="form-label-sm">Station</label>
-          <select className="form-sel" value={form.station} onChange={e => set('station', e.target.value)}>
-            {STATIONS.map(s => <option key={s}>{s}</option>)}
-          </select>
         </div>
         <div style={{ width:90 }}>
           <label className="form-label-sm">Portions</label>
@@ -556,16 +578,14 @@ function RecipeForm({ initial, onSave, onCancel, saving }) {
 
 function RecipesTab() {
   const [recipes, setRecipes] = useState([]);
-  const [stationFilter, setStationFilter] = useState('All');
   const [selected, setSelected] = useState(null);
   const [showNew, setShowNew] = useState(false);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const { show: toast } = useToast();
+  const { confirm, dialog: confirmDialog } = useConfirm();
 
   useEffect(() => { getRecipes().then(setRecipes).catch(e => toast(e.message, 'error')); }, []);
-
-  const filtered = stationFilter === 'All' ? recipes : recipes.filter(r => r.station === stationFilter);
 
   const handleCreate = async (form) => {
     setSaving(true);
@@ -592,7 +612,7 @@ function RecipesTab() {
   };
 
   const handleDelete = async () => {
-    if (!confirm(`Delete "${selected.name}"?`)) return;
+    if (!await confirm(`Delete "${selected.name}"?`)) return;
     try {
       await deleteRecipe(selected.id);
       setRecipes(rs => rs.filter(r => r.id !== selected.id));
@@ -627,6 +647,7 @@ function RecipesTab() {
     const steps = selected.steps || [];
     return (
       <div className="tab-content">
+        {confirmDialog}
         <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:4 }}>
           <button className="btn-secondary" onClick={() => setSelected(null)}>← Back</button>
           <span style={{ fontFamily:'var(--font-display)', fontSize:20, fontWeight:700, flex:1 }}>{selected.name}</span>
@@ -634,7 +655,6 @@ function RecipesTab() {
           <button className="btn-danger" onClick={handleDelete}>Delete</button>
         </div>
         <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-          <Badge color={STATION_COLORS[selected.station]||'#6B7280'} small>{selected.station}</Badge>
           <span style={{ fontSize:12, color:'var(--text-muted)' }}>{selected.portions} portion{selected.portions!==1?'s':''}</span>
           <span style={{ fontSize:12, color: selected.is_shared ? '#10B981' : 'var(--text-muted)' }}>
             {selected.is_shared ? '● Shared' : '○ Personal'}
@@ -699,17 +719,10 @@ function RecipesTab() {
         <div className="stat-card"><div className="stat-val" style={{ color:'#10B981' }}>{recipes.filter(r=>r.is_shared).length}</div><div className="stat-lbl">Shared</div></div>
       </div>
       <div className="toolbar">
-        <div style={{ display:'flex', gap:6, flexWrap:'wrap', flex:1 }}>
-          {['All', ...STATIONS].map(st => (
-            <button key={st} className={`pill ${stationFilter===st?'pill-active':''}`}
-              style={stationFilter===st && st!=='All' ? { background:STATION_COLORS[st], color:'#000', borderColor:STATION_COLORS[st] } : {}}
-              onClick={() => setStationFilter(st)}>{st}</button>
-          ))}
-        </div>
         <button className="btn-primary" onClick={() => setShowNew(true)}>+ New Recipe</button>
       </div>
       <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
-        {filtered.map(r => (
+        {recipes.map(r => (
           <div key={r.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'11px 14px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--radius)', cursor:'pointer', transition:'border-color 0.15s' }}
             onClick={() => setSelected(r)}>
             <div style={{ flex:1 }}>
@@ -718,11 +731,10 @@ function RecipesTab() {
                 {r.ingredients?.length||0} ingredients · {r.steps?.length||0} steps · {r.portions}p
               </div>
             </div>
-            <Badge color={STATION_COLORS[r.station]||'#6B7280'} small>{r.station}</Badge>
             {r.is_shared && <span style={{ fontSize:11, color:'#10B981' }}>● Shared</span>}
           </div>
         ))}
-        {filtered.length === 0 && <div style={{ color:'var(--text-muted)', fontSize:13, padding:'8px 0' }}>No recipes yet.</div>}
+        {recipes.length === 0 && <div style={{ color:'var(--text-muted)', fontSize:13, padding:'8px 0' }}>No recipes yet.</div>}
       </div>
     </div>
   );
