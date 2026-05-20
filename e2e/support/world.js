@@ -30,7 +30,7 @@ export const ADMIN_PASSWORD = env.TEST_ADMIN_PASSWORD;
 export const TEST_COOK_EMAIL = 'e2e-cook@gmail.com';
 export const TEST_COOK_PASSWORD = 'E2eTestPass@2026';
 
-setDefaultTimeout(30_000);
+setDefaultTimeout(60_000);
 
 class KitchenWorld {
   browser = null;

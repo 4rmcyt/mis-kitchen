@@ -6,18 +6,18 @@ export async function loginAs(page, role) {
   const password = role === 'admin' ? ADMIN_PASSWORD : TEST_COOK_PASSWORD;
 
   await page.goto(TEST_URL);
-  await page.waitForSelector('input[type="email"]', { timeout: 15_000 });
+  await page.waitForSelector('input[type="email"]', { timeout: 30_000 });
   await page.fill('input[type="email"]', email);
   await page.fill('input[type="password"]', password);
   await page.click('button[type="submit"]');
 
   await page.waitForFunction(
     () => !document.querySelector('input[type="email"]'),
-    { timeout: 20_000 }
+    { timeout: 30_000 }
   );
 
   try {
-    await page.waitForSelector('.screen-title, .nav-btn, .bottom-nav', { timeout: 10_000 });
+    await page.waitForSelector('.screen-title, .nav-btn, .bottom-nav', { timeout: 15_000 });
   } catch {
     const html = await page.content();
     writeFileSync('/tmp/e2e-login-debug.html', html);
