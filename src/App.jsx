@@ -10,27 +10,6 @@ const STATION_COLORS = {
 
 const load = (key, fallback) => { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; } };
 
-const DEFAULT_RECIPES = [
-  { id: "r1", name: "Beurre Blanc", station: "Pans", portions: 1,
-    ingredients: [
-      { id: "i1", name: "White wine", amount: 120, unit: "ml" },
-      { id: "i2", name: "Shallots, minced", amount: 30, unit: "g" },
-      { id: "i3", name: "Heavy cream", amount: 30, unit: "ml" },
-      { id: "i4", name: "Butter cold, cubed", amount: 200, unit: "g" },
-      { id: "i5", name: "Lemon juice", amount: 5, unit: "ml" },
-    ],
-    steps: ["Reduce wine + shallots until nearly dry.", "Add cream, reduce by half.", "Mount butter off heat, cube by cube. Season."]
-  },
-  { id: "r2", name: "Garlic Confit", station: "Garmo", portions: 1,
-    ingredients: [
-      { id: "j1", name: "Garlic cloves", amount: 200, unit: "g" },
-      { id: "j2", name: "Olive oil", amount: 300, unit: "ml" },
-      { id: "j3", name: "Thyme sprigs", amount: 3, unit: "pcs" },
-      { id: "j4", name: "Bay leaf", amount: 1, unit: "pcs" },
-    ],
-    steps: ["Peel garlic, place in small pot.", "Cover with olive oil + herbs.", "90°C, 45 min. Cool in oil. Keeps 2 weeks."]
-  }
-];
 
 function CheckIcon() {
   return <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><polyline points="2,7 5.5,10.5 12,3" stroke="#F97316" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>;
@@ -292,7 +271,7 @@ function TodayScreen({ userStation = 'Common', userRole }) {
 }
 
 function RecipesScreen() {
-  const [recipes] = useState(() => load('mis_recipes', DEFAULT_RECIPES));
+  const [recipes] = useState(() => load('mis_recipes', []));
   const [active, setActive] = useState(null);
   const [multiplier, setMultiplier] = useState(1);
   const [search, setSearch] = useState('');
