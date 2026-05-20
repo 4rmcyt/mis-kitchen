@@ -8,7 +8,6 @@ const STATION_COLORS = {
   Grill: "#EF4444", Tandoor: "#F59E0B", Default: "#6B7280"
 };
 
-const load = (key, fallback) => { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; } };
 
 
 function CheckIcon() {

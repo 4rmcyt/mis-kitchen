@@ -27,6 +27,7 @@ Then('I should only see recipes matching {string}', async function (query) {
 
 
 When('I tap the first recipe card', async function () {
+  await this.page.locator('.recipe-card').first().waitFor({ state: 'visible', timeout: 10_000 });
   await this.page.locator('.recipe-card').first().click();
   await this.page.waitForTimeout(500);
 });
