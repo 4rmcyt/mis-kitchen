@@ -26,6 +26,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: staging
 
       - uses: pnpm/action-setup@v5
         with: { version: "${{ env.PNPM_VERSION }}" }
