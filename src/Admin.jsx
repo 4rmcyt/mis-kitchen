@@ -957,7 +957,7 @@ export default function Admin() {
         <div className="admin-header">
           <div>
             <h1 className="admin-title">{TABS.find(t=>t.id===tab)?.label}</h1>
-            <div className="admin-sub">Kitchen OS · La Brasserie</div>
+
           </div>
           <div style={{ display:'flex', alignItems:'center', gap:10 }}>
             <div className="live-badge">● Live</div>
