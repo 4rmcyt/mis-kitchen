@@ -37,18 +37,19 @@ jobs:
         run: npx playwright install chromium --with-deps
 
       - name: Write .env.test
+        env:
+          TEST_URL: ${{ vars.STAGING_URL }}
+          TEST_ADMIN_EMAIL: ${{ secrets.TEST_ADMIN_EMAIL }}
+          TEST_ADMIN_PASSWORD: ${{ secrets.TEST_ADMIN_PASSWORD }}
+          TEST_COOK_EMAIL: ${{ secrets.TEST_COOK_EMAIL }}
+          TEST_COOK_PASSWORD: ${{ secrets.TEST_COOK_PASSWORD }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          MAILTRAP_API_TOKEN: ${{ secrets.MAILTRAP_API_TOKEN }}
+          MAILTRAP_INBOX_ID: ${{ secrets.MAILTRAP_INBOX_ID }}
         run: |
-          cat > .env.test << EOF
-          TEST_URL=${{ vars.STAGING_URL }}
-          TEST_ADMIN_EMAIL=${{ secrets.TEST_ADMIN_EMAIL }}
-          TEST_ADMIN_PASSWORD=${{ secrets.TEST_ADMIN_PASSWORD }}
-          TEST_COOK_EMAIL=${{ secrets.TEST_COOK_EMAIL }}
-          TEST_COOK_PASSWORD=${{ secrets.TEST_COOK_PASSWORD }}
-          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          MAILTRAP_API_TOKEN=${{ secrets.MAILTRAP_API_TOKEN }}
-          MAILTRAP_INBOX_ID=${{ secrets.MAILTRAP_INBOX_ID }}
-          EOF
+          printf 'TEST_URL=%s\nTEST_ADMIN_EMAIL=%s\nTEST_ADMIN_PASSWORD=%s\nTEST_COOK_EMAIL=%s\nTEST_COOK_PASSWORD=%s\nSUPABASE_URL=%s\nSUPABASE_SERVICE_ROLE_KEY=%s\nMAILTRAP_API_TOKEN=%s\nMAILTRAP_INBOX_ID=%s\n' \
+            "$TEST_URL" "$TEST_ADMIN_EMAIL" "$TEST_ADMIN_PASSWORD" "$TEST_COOK_EMAIL" "$TEST_COOK_PASSWORD" "$SUPABASE_URL" "$SUPABASE_SERVICE_ROLE_KEY" "$MAILTRAP_API_TOKEN" "$MAILTRAP_INBOX_ID" > .env.test
 
       - name: Run invite & onboarding E2E
         run: pnpm test:invite
