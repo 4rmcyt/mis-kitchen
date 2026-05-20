@@ -21,6 +21,9 @@ node_modules/
 .supabase/
 supabase/.temp/
 
+# Obsidian
+docs/.obsidian/
+
 # OS
 .DS_Store
 Thumbs.db
