@@ -932,7 +932,7 @@ export default function Admin() {
       <ToastContainer toasts={[]} />
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <span>mis<span style={{ color:'#F97316' }}>.</span></span>
+          <span style={{ cursor:'pointer' }} onClick={() => navigate('/')}>mis<span style={{ color:'#F97316' }}>.</span></span>
           <span className="sidebar-role">Admin</span>
         </div>
         <nav className="sidebar-nav">
