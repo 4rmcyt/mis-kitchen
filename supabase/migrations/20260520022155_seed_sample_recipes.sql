@@ -1,0 +1,1 @@
+-- seed_sample_recipes: applied directly via MCP, stub for local history alignment
