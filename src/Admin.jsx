@@ -205,14 +205,14 @@ function PeopleTab() {
                 </td>
                 <td><Badge color={ROLE_COLORS[u.role]}>{ROLE_LABELS[u.role]}</Badge></td>
                 <td><Badge color={STATION_COLORS[u.station] || '#6B7280'} small>{u.station}</Badge></td>
-                <td><span className="cell-num">{u.shifts_this_week} shifts</span></td>
+                <td><span className="cell-num">{u.shifts_this_week ?? '—'}</span></td>
                 <td>
                   <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                    <PctBar pct={u.avg_completion}/>
-                    <span className="cell-num" style={{ width:32, textAlign:'right' }}>{u.avg_completion}%</span>
+                    <PctBar pct={u.avg_completion ?? 0}/>
+                    <span className="cell-num" style={{ width:32, textAlign:'right' }}>{u.avg_completion != null ? `${u.avg_completion}%` : '—'}</span>
                   </div>
                 </td>
-                <td><span className="cell-muted">{u.last_seen}</span></td>
+                <td><span className="cell-muted">{u.last_seen ? new Date(u.last_seen).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}</span></td>
                 <td>
                   <span style={{ fontSize:11, color: u.active ? '#10B981' : '#555', fontWeight:600 }}>
                     {u.active ? '● Active' : '○ Inactive'}
