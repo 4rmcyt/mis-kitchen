@@ -169,7 +169,6 @@ function PeopleTab() {
         <div className="stat-card"><div className="stat-val">{users.length}</div><div className="stat-lbl">Total Users</div></div>
         <div className="stat-card"><div className="stat-val" style={{ color:'#10B981' }}>{activeCount}</div><div className="stat-lbl">Active</div></div>
         <div className="stat-card"><div className="stat-val" style={{ color:'#6366F1' }}>{adminCount}</div><div className="stat-lbl">Admins</div></div>
-        <div className="stat-card"><div className="stat-val" style={{ color:'#F97316' }}>{users.filter(u=>u.shifts_this_week>0).length}</div><div className="stat-lbl">On shift this week</div></div>
       </div>
 
       <div className="toolbar">
@@ -184,8 +183,6 @@ function PeopleTab() {
               <th>User</th>
               <th>Role</th>
               <th>Station</th>
-              <th>This week</th>
-              <th>Avg completion</th>
               <th>Last seen</th>
               <th>Status</th>
               <th></th>
@@ -205,13 +202,6 @@ function PeopleTab() {
                 </td>
                 <td><Badge color={ROLE_COLORS[u.role]}>{ROLE_LABELS[u.role]}</Badge></td>
                 <td><Badge color={STATION_COLORS[u.station] || '#6B7280'} small>{u.station}</Badge></td>
-                <td><span className="cell-num">{u.shifts_this_week ?? '—'}</span></td>
-                <td>
-                  <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                    <PctBar pct={u.avg_completion ?? 0}/>
-                    <span className="cell-num" style={{ width:32, textAlign:'right' }}>{u.avg_completion != null ? `${u.avg_completion}%` : '—'}</span>
-                  </div>
-                </td>
                 <td><span className="cell-muted">{u.last_seen ? new Date(u.last_seen).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}</span></td>
                 <td>
                   <span style={{ fontSize:11, color: u.active ? '#10B981' : '#555', fontWeight:600 }}>
@@ -258,8 +248,6 @@ function PeopleTab() {
               </select>
             </div>
             <div style={{ background:'var(--surface2)', borderRadius:8, padding:12, display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12 }}>
-              <div style={{ textAlign:'center' }}><div style={{ fontSize:22, fontWeight:700, color:'var(--accent)', fontFamily:'var(--font-display)' }}>{selected.shifts_this_week}</div><div style={{ fontSize:10, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.5px' }}>Shifts this week</div></div>
-              <div style={{ textAlign:'center' }}><div style={{ fontSize:22, fontWeight:700, color:'#10B981', fontFamily:'var(--font-display)' }}>{selected.avg_completion}%</div><div style={{ fontSize:10, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.5px' }}>Avg completion</div></div>
               <div style={{ textAlign:'center' }}><div style={{ fontSize:22, fontWeight:700, color: selected.active ? '#10B981' : '#555', fontFamily:'var(--font-display)' }}>{selected.active ? 'ON' : 'OFF'}</div><div style={{ fontSize:10, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.5px' }}>Status</div></div>
             </div>
             <div style={{ display:'flex', gap:8 }}>
