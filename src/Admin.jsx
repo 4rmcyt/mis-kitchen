@@ -123,10 +123,10 @@ function PeopleTab() {
   const [users, setUsers] = useState([]);
   const [selected, setSelected] = useState(null);
   const [showInvite, setShowInvite] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState('cook');
   const [inviteStation, setInviteStation] = useState('Grill');
-  const [inviteSent, setInviteSent] = useState(false);
+  const [inviteLink, setInviteLink] = useState('');
+  const [copied, setCopied] = useState(false);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const { show: toast } = useToast();
@@ -143,30 +143,45 @@ function PeopleTab() {
   const activeCount = users.filter(u => u.active).length;
   const adminCount = users.filter(u => u.role === 'admin' || u.role === 'superadmin').length;
 
-  const sendInvite = async () => {
-    if (!inviteEmail) return;
+  const generateInvite = async () => {
     setLoading(true);
     try {
       const { data: { user: me } } = await supabase.auth.getUser();
-      const { data: myProfile } = await supabase.from('profiles').select('name, restaurant_id').eq('id', me.id).single();
-      const { error } = await supabase.functions.invoke('send-invite', {
-        body: {
-          email: inviteEmail,
-          role: inviteRole,
-          station: inviteStation,
-          restaurant_id: myProfile.restaurant_id,
-          invited_by: me.id,
-          invited_by_name: myProfile.name,
-        },
+      const { data: myProfile } = await supabase.from('profiles').select('restaurant_id').eq('id', me.id).single();
+      const token = crypto.randomUUID();
+      const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+      const { error: invErr } = await supabase.from('invites').insert({
+        restaurant_id: myProfile.restaurant_id,
+        invited_by: me.id,
+        email: null,
+        role: inviteRole,
+        station: inviteStation,
+        token,
+        used: false,
+        expires_at: expiresAt,
       });
-      if (error) throw new Error(error.message);
-      setInviteSent(true);
-      setTimeout(() => { setShowInvite(false); setInviteSent(false); setInviteEmail(''); }, 1800);
+      if (invErr) throw new Error(invErr.message);
+      const link = `${window.location.origin}/join/${token}`;
+      setInviteLink(link);
     } catch (e) {
       toast(e.message, 'error');
     } finally {
       setLoading(false);
     }
+  };
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(inviteLink);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const closeInvite = () => {
+    setShowInvite(false);
+    setInviteLink('');
+    setCopied(false);
+    setInviteRole('cook');
+    setInviteStation('Grill');
   };
 
   const toggleActive = async (id) => {
@@ -298,15 +313,24 @@ function PeopleTab() {
 
       {/* Invite modal */}
       {showInvite && (
-        <Modal title="Invite User" onClose={() => setShowInvite(false)}>
-          {inviteSent ? (
-            <div style={{ textAlign:'center', padding:'24px 0', color:'#10B981', fontFamily:'var(--font-display)', fontSize:16 }}>
-              ✓ Invite sent to {inviteEmail}
+        <Modal title="Generate Invite Link" onClose={closeInvite}>
+          {inviteLink ? (
+            <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+              <div style={{ fontSize:13, color:'var(--text-muted)' }}>
+                Share this link via WhatsApp, Signal, or any messenger. It expires in 48 hours.
+              </div>
+              <div style={{ background:'var(--surface2)', border:'1px solid var(--border)', borderRadius:8, padding:'10px 12px', fontSize:12, color:'var(--text)', wordBreak:'break-all', fontFamily:'var(--font-mono)' }}>
+                {inviteLink}
+              </div>
+              <button className="btn-primary" onClick={copyLink} data-testid="copy-invite-link">
+                {copied ? '✓ Copied!' : 'Copy Link'}
+              </button>
+              <div style={{ fontSize:11, color:'var(--text-muted)', textAlign:'center' }}>
+                Role: <strong>{inviteRole}</strong> · Station: <strong>{inviteStation}</strong>
+              </div>
             </div>
           ) : (
             <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
-              <div><label className="form-label-sm">Email</label>
-                <input className="form-inp" type="email" placeholder="cook@restaurant.io" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)}/></div>
               <div><label className="form-label-sm">Role</label>
                 <select className="form-sel" value={inviteRole} onChange={e => setInviteRole(e.target.value)}>
                   <option value="cook">Cook</option><option value="admin">Admin</option>
@@ -316,9 +340,11 @@ function PeopleTab() {
                   {STATIONS.map(st => <option key={st}>{st}</option>)}
                 </select></div>
               <div className="security-note">
-                🔒 Invite link expires in 48 hours. User sets their own password.
+                🔒 No email needed. The person fills in their details when they open the link.
               </div>
-              <button className="btn-primary" onClick={sendInvite} disabled={loading}>{loading ? 'Sending…' : 'Send Invite'}</button>
+              <button className="btn-primary" onClick={generateInvite} disabled={loading} data-testid="generate-invite-btn">
+                {loading ? 'Generating…' : 'Generate Link'}
+              </button>
             </div>
           )}
         </Modal>

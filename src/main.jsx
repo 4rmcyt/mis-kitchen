@@ -7,6 +7,7 @@ import Admin from './Admin.jsx'
 import Login from './Login.jsx'
 import Onboarding from './Onboarding.jsx'
 import ResetPassword from './ResetPassword.jsx'
+import JoinPage from './JoinPage.jsx'
 
 function Root() {
   const [session, setSession] = useState(undefined)
@@ -61,6 +62,11 @@ function Root() {
 
   if (session === undefined) return null
 
+  // /join/:token is public — no auth required
+  if (window.location.pathname.startsWith('/join/')) {
+    return <BrowserRouter><Routes><Route path="/join/:token" element={<JoinPage />} /></Routes></BrowserRouter>
+  }
+
   if (needsPasswordReset) return (
     <ResetPassword onDone={() => {
       setNeedsPasswordReset(false)
@@ -81,6 +87,7 @@ function Root() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/join/:token" element={<JoinPage />} />
         <Route path="/admin/*" element={<Admin />} />
         <Route path="/*" element={<App userRole={userRole} userStation={userStation} />} />
       </Routes>

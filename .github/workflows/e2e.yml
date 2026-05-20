@@ -1,0 +1,63 @@
+name: E2E Sanity
+
+on:
+  workflow_run:
+    workflows: [Deploy]
+    branches: [staging]
+    types: [completed]
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+    inputs:
+      url:
+        description: Target URL (defaults to staging)
+        required: false
+
+env:
+  NODE_VERSION: "lts/*"
+  PNPM_VERSION: "9"
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  e2e:
+    name: Cucumber E2E
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v5
+        with: { version: "${{ env.PNPM_VERSION }}" }
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install chromium --with-deps
+
+      - name: Write .env.test
+        run: |
+          cat > .env.test << EOF
+          TEST_URL=${{ inputs.url || vars.STAGING_URL }}
+          TEST_ADMIN_EMAIL=${{ secrets.TEST_ADMIN_EMAIL }}
+          TEST_ADMIN_PASSWORD=${{ secrets.TEST_ADMIN_PASSWORD }}
+          TEST_COOK_EMAIL=${{ secrets.TEST_COOK_EMAIL }}
+          TEST_COOK_PASSWORD=${{ secrets.TEST_COOK_PASSWORD }}
+          EOF
+
+      - name: Run E2E tests
+        run: pnpm test:e2e
+
+      - name: Upload HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-report-${{ github.run_number }}
+          path: e2e/reports/report.html
+          retention-days: 14

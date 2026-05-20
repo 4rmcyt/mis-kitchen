@@ -1,0 +1,21 @@
+{
+  "default": {
+    "paths": [
+      "e2e/features/auth.feature",
+      "e2e/features/today.feature",
+      "e2e/features/add_task.feature",
+      "e2e/features/recipes.feature",
+      "e2e/features/lineup.feature",
+      "e2e/features/report_gate.feature",
+      "e2e/features/admin_templates.feature",
+      "e2e/features/admin_recipes.feature"
+    ],
+    "import": ["e2e/support/world.js", "e2e/steps/**/*.js"],
+    "format": ["progress-bar", "html:e2e/reports/report.html"]
+  },
+  "invite": {
+    "paths": ["e2e/features/invite_onboarding.feature"],
+    "import": ["e2e/support/world.js", "e2e/steps/**/*.js"],
+    "format": ["progress-bar", "html:e2e/reports/invite-report.html"]
+  }
+}

@@ -38,13 +38,12 @@ When('I change the recipe name to {string}', async function (name) {
 
 When('I click delete recipe', async function () {
   await this.page.locator('.btn-danger').first().click();
-  // confirm dialog appears — click the confirm button
+  await this.page.locator('[data-testid="confirm-delete"]').waitFor({ state: 'visible', timeout: 5_000 });
   await this.page.locator('[data-testid="confirm-delete"]').click();
   await this.page.waitForTimeout(1000);
 });
 
 Then('I should not see {string} in the recipes list', async function (name) {
-  // panel closes after delete — wait for ← Back to disappear
-  await this.page.getByRole('button', { name: '← Back' }).waitFor({ state: 'hidden', timeout: 8_000 }).catch(() => {});
-  await expect(this.page.getByText(name, { exact: true })).not.toBeVisible({ timeout: 5_000 });
+  await this.page.waitForTimeout(500);
+  await expect(this.page.getByText(name, { exact: true })).not.toBeVisible({ timeout: 8_000 });
 });

@@ -3,7 +3,7 @@ import { chromium } from 'playwright';
 import { readFileSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { createTestUser, deleteTestUser } from './supabase_admin.js';
+import { createTestUser, deleteTestUser, wipeE2EData } from './supabase_admin.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -60,11 +60,13 @@ class KitchenWorld {
 setWorldConstructor(KitchenWorld);
 
 BeforeAll(async function () {
+  await wipeE2EData().catch(() => {});
   await deleteTestUser(TEST_COOK_EMAIL).catch(() => {});
   await createTestUser({ email: TEST_COOK_EMAIL, password: TEST_COOK_PASSWORD });
 });
 
 AfterAll(async function () {
+  await wipeE2EData().catch(() => {});
   await deleteTestUser(TEST_COOK_EMAIL).catch(() => {});
 });
 

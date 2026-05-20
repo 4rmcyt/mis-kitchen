@@ -1,8 +1,7 @@
 # Environment
 .env
-.env.local
-.env.production
-.env.staging
+.env.*
+!.env.example
 
 # Terraform
 terraform/*.tfvars
@@ -25,3 +24,4 @@ supabase/.temp/
 # OS
 .DS_Store
 Thumbs.db
+e2e/reports/

@@ -1,0 +1,58 @@
+name: E2E Invite & Onboarding
+
+on:
+  workflow_run:
+    workflows: [E2E Sanity]
+    types: [completed]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: "lts/*"
+  PNPM_VERSION: "9"
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  e2e-invite:
+    name: Invite & Onboarding Flow
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v5
+        with: { version: "${{ env.PNPM_VERSION }}" }
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install chromium --with-deps
+
+      - name: Write .env.test
+        run: |
+          cat > .env.test << EOF
+          TEST_URL=${{ vars.STAGING_URL }}
+          TEST_ADMIN_EMAIL=${{ secrets.TEST_ADMIN_EMAIL }}
+          TEST_ADMIN_PASSWORD=${{ secrets.TEST_ADMIN_PASSWORD }}
+          TEST_COOK_EMAIL=${{ secrets.TEST_COOK_EMAIL }}
+          TEST_COOK_PASSWORD=${{ secrets.TEST_COOK_PASSWORD }}
+          MAILTRAP_API_TOKEN=${{ secrets.MAILTRAP_API_TOKEN }}
+          MAILTRAP_INBOX_ID=${{ secrets.MAILTRAP_INBOX_ID }}
+          EOF
+
+      - name: Run invite & onboarding E2E
+        run: pnpm test:invite
+
+      - name: Upload HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: invite-e2e-report-${{ github.run_number }}
+          path: e2e/reports/invite-report.html
+          retention-days: 14

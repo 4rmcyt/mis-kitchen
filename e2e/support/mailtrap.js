@@ -19,9 +19,10 @@ function loadEnvTest() {
 }
 
 const env = loadEnvTest();
-const BASE = 'https://sandbox.api.mailtrap.io/api/sandboxes';
 const TOKEN = env.MAILTRAP_API_TOKEN;
+const ACCOUNT_ID = env.MAILTRAP_ACCOUNT_ID || '2728646';
 const INBOX_ID = env.MAILTRAP_INBOX_ID;
+const BASE = `https://mailtrap.io/api/accounts/${ACCOUNT_ID}/inboxes/${INBOX_ID}`;
 
 function headers() {
   return { Authorization: `Bearer ${TOKEN}`, 'Content-Type': 'application/json' };
@@ -30,7 +31,7 @@ function headers() {
 export async function getLastEmail(toAddress, { timeoutMs = 15_000, pollMs = 1000 } = {}) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
-    const res = await fetch(`${BASE}/${INBOX_ID}/messages`, { headers: headers() });
+    const res = await fetch(`${BASE}/messages`, { headers: headers() });
     const messages = await res.json();
     const match = messages.find(m =>
       m.to_email === toAddress || m.to?.some?.(t => t.email === toAddress)
@@ -42,7 +43,7 @@ export async function getLastEmail(toAddress, { timeoutMs = 15_000, pollMs = 100
 }
 
 export async function getEmailBody(messageId) {
-  const res = await fetch(`${BASE}/${INBOX_ID}/messages/${messageId}/body.html`, { headers: headers() });
+  const res = await fetch(`${BASE}/messages/${messageId}/body.html`, { headers: headers() });
   return res.text();
 }
 
@@ -54,5 +55,5 @@ export async function extractLinkFromEmail(messageId, pattern = /https?:\/\/\S+/
 }
 
 export async function clearInbox() {
-  await fetch(`${BASE}/${INBOX_ID}/clean`, { method: 'PATCH', headers: headers() });
+  await fetch(`${BASE}/clean`, { method: 'PATCH', headers: headers() });
 }
