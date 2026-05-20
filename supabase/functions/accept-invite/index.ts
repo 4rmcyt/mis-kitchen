@@ -43,17 +43,21 @@ serve(async (req) => {
       email,
       password,
       email_confirm: true,
-      user_metadata: { name, role: invite.role, station: invite.station },
+      user_metadata: { name, role: invite.role, station: invite.station, invite_token: token },
     });
     if (authErr) throw new Error(authErr.message);
 
     const userId = authData.user.id;
 
-    // Patch profile (trigger creates the row, we fill in name + password_set)
-    await supabase.from("profiles").update({
+    // Upsert profile — trigger may not have run yet when we get here
+    await supabase.from("profiles").upsert({
+      id: userId,
       name,
       password_set: true,
-    }).eq("id", userId);
+      role: invite.role,
+      station: invite.station,
+      restaurant_id: invite.restaurant_id,
+    }, { onConflict: "id" });
 
     // Mark invite used
     await supabase.from("invites").update({ used: true }).eq("token", token);

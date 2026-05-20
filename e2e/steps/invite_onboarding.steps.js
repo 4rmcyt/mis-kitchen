@@ -54,7 +54,7 @@ When('I submit the join form', async function () {
 });
 
 Then('I should be signed in as a cook', async function () {
-  await expect(this.page.locator('.app, .screen, .nav-btn')).toBeVisible({ timeout: 10_000 });
+  await expect(this.page.locator('.app')).toBeVisible({ timeout: 10_000 });
 });
 
 // ── Reuse existing step ───────────────────────────────────────
