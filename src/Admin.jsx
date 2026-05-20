@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext, createContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase, getRestaurantProfiles, adminUpdateProfile, getDayTemplates, createDayTemplate, updateDayTemplate, deleteDayTemplate, createTasksBatch, getRecipes, createRecipe, updateRecipe, deleteRecipe, getRestaurantReports, signOut } from "./lib/supabase.js";
 
@@ -39,7 +39,12 @@ function useConfirm() {
 }
 
 //  TOAST
+const ToastContext = createContext(null);
+
 function useToast() {
+  const ctx = useContext(ToastContext);
+  if (ctx) return { show: ctx.show };
+  // fallback for standalone use (shouldn't happen inside Admin tree)
   const [toasts, setToasts] = useState([]);
   const show = (msg, type = "info") => {
     const id = Math.random().toString(36).slice(2);
@@ -959,6 +964,12 @@ export default function Admin() {
   const [tab, setTab] = useState('people');
   const [me, setMe] = useState(null);
   const navigate = useNavigate();
+  const [toasts, setToasts] = useState([]);
+  const showToast = (msg, type = "info") => {
+    const id = Math.random().toString(36).slice(2);
+    setToasts(t => [...t, { id, msg, type }]);
+    setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3500);
+  };
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -976,9 +987,10 @@ export default function Admin() {
   ];
 
   return (
+    <ToastContext.Provider value={{ show: showToast }}>
     <div className="admin-app">
       <style>{CSS}</style>
-      <ToastContainer toasts={[]} />
+      <ToastContainer toasts={toasts} />
       <aside className="sidebar">
         <div className="sidebar-logo">
           <span style={{ cursor:'pointer' }} onClick={() => navigate('/')}>mis<span style={{ color:'#F97316' }}>.</span></span>
@@ -1030,10 +1042,11 @@ export default function Admin() {
         ))}
       </nav>
     </div>
+    </ToastContext.Provider>
   );
 }
 
-//  CSS 
+//  CSS
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&display=swap');
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
