@@ -2,17 +2,17 @@
 
 ## Stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | React 18 + Vite, SPA |
-| Hosting | Cloudflare Pages |
-| Backend | Supabase (PostgreSQL + PostgREST + GoTrue) |
-| Edge Functions | Supabase Edge Functions (Deno) |
-| Email | Resend |
-| Push Notifications | Web Push API + FCM |
-| PWA | Service Worker, installable iOS/Android |
-| E2E Tests | Cucumber.js + Playwright |
-| CI/CD | GitHub Actions |
+| Layer              | Technology                                 |
+| ------------------ | ------------------------------------------ |
+| Frontend           | React 18 + Vite, SPA                       |
+| Hosting            | Cloudflare Pages                           |
+| Backend            | Supabase (PostgreSQL + PostgREST + GoTrue) |
+| Edge Functions     | Supabase Edge Functions (Deno)             |
+| Email              | Resend                                     |
+| Push Notifications | Web Push API + FCM                         |
+| PWA                | Service Worker, installable iOS/Android    |
+| E2E Tests          | Cucumber.js + Playwright                   |
+| CI/CD              | GitHub Actions                             |
 
 ## Environments
 
