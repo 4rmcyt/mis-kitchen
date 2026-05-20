@@ -40,12 +40,12 @@ jobs:
     name: Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
 
       - uses: pnpm/action-setup@v5
         with: { version: "${{ env.PNPM_VERSION }}" }
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4.4.0
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
@@ -70,12 +70,12 @@ jobs:
         environment: ${{ github.ref == 'refs/heads/main' && fromJson('["prod"]') || github.ref == 'refs/heads/staging' && fromJson('["staging"]') || fromJson('["preview"]') }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
 
       - uses: pnpm/action-setup@v5
         with: { version: "${{ env.PNPM_VERSION }}" }
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4.4.0
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
@@ -91,7 +91,7 @@ jobs:
           VITE_APP_ENV:           ${{ matrix.environment }}
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: dist-${{ matrix.environment }}
           path: dist/
@@ -105,7 +105,7 @@ jobs:
     if: github.event_name == 'push'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
 
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v2
@@ -135,7 +135,7 @@ jobs:
     if: github.event_name == 'push'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
 
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v2
@@ -171,26 +171,26 @@ jobs:
     if: github.event_name == 'push'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
 
       - uses: pnpm/action-setup@v5
         with: { version: "${{ env.PNPM_VERSION }}" }
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4.4.0
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
       - name: Download build (staging)
         if: github.ref == 'refs/heads/staging'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4.3.0
         with:
           name: dist-staging
           path: dist/
 
       - name: Download build (prod)
         if: github.ref == 'refs/heads/main'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4.3.0
         with:
           name: dist-prod
           path: dist/
@@ -228,10 +228,10 @@ jobs:
       pull-requests: write
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
 
       - name: Download preview build
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4.3.0
         with:
           name: dist-preview
           path: dist/
@@ -276,7 +276,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
 
       - name: Wait for deployment to propagate
         run: sleep 15

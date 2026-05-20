@@ -18,14 +18,14 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
         with:
           ref: staging
 
       - uses: pnpm/action-setup@v5
         with: { version: "${{ env.PNPM_VERSION }}" }
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4.4.0
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
@@ -44,6 +44,8 @@ jobs:
           TEST_ADMIN_PASSWORD=${{ secrets.TEST_ADMIN_PASSWORD }}
           TEST_COOK_EMAIL=${{ secrets.TEST_COOK_EMAIL }}
           TEST_COOK_PASSWORD=${{ secrets.TEST_COOK_PASSWORD }}
+          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           MAILTRAP_API_TOKEN=${{ secrets.MAILTRAP_API_TOKEN }}
           MAILTRAP_INBOX_ID=${{ secrets.MAILTRAP_INBOX_ID }}
           EOF
@@ -53,7 +55,7 @@ jobs:
 
       - name: Upload HTML report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: invite-e2e-report-${{ github.run_number }}
           path: e2e/reports/invite-report.html
