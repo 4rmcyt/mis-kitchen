@@ -57,7 +57,7 @@ jobs:
             "$TEST_URL" "$TEST_ADMIN_EMAIL" "$TEST_ADMIN_PASSWORD" "$TEST_COOK_EMAIL" "$TEST_COOK_PASSWORD" "$SUPABASE_URL" "$SUPABASE_SERVICE_ROLE_KEY" > .env.test
 
       - name: Run E2E tests
-        run: pnpm test:e2e
+        run: pnpm test:e2e --format progress
 
       - name: Upload HTML report
         if: always()

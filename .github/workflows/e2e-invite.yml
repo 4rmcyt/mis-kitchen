@@ -52,7 +52,7 @@ jobs:
             "$TEST_URL" "$TEST_ADMIN_EMAIL" "$TEST_ADMIN_PASSWORD" "$TEST_COOK_EMAIL" "$TEST_COOK_PASSWORD" "$SUPABASE_URL" "$SUPABASE_SERVICE_ROLE_KEY" "$MAILTRAP_API_TOKEN" "$MAILTRAP_INBOX_ID" > .env.test
 
       - name: Run invite & onboarding E2E
-        run: pnpm test:invite
+        run: pnpm test:invite --format progress
 
       - name: Upload HTML report
         if: always()
