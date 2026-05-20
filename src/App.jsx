@@ -275,12 +275,9 @@ function RecipesScreen() {
   const [active, setActive] = useState(null);
   const [multiplier, setMultiplier] = useState(1);
   const [search, setSearch] = useState('');
-  const [stationFilter, setStationFilter] = useState('All');
-
-  const filtered = recipes.filter(r => {
-    const ms = r.name.toLowerCase().includes(search.toLowerCase()) || r.station.toLowerCase().includes(search.toLowerCase());
-    return ms && (stationFilter === 'All' || r.station === stationFilter);
-  });
+  const filtered = recipes.filter(r =>
+    r.name.toLowerCase().includes(search.toLowerCase()) || r.station.toLowerCase().includes(search.toLowerCase())
+  );
 
   if (active) return (
     <div className="screen">
@@ -318,13 +315,6 @@ function RecipesScreen() {
     <div className="screen">
       <div className="screen-header"><div className="screen-title">Recipes</div></div>
       <input className="search-input" placeholder="Search recipes..." value={search} onChange={e => setSearch(e.target.value)}/>
-      <div className="station-filter" style={{ marginBottom:16 }}>
-        {['All', ...STATIONS].map(st => (
-          <button key={st} className={`station-pill ${stationFilter===st?'active':''}`}
-            style={stationFilter===st && st!=='All' ? { background: STATION_COLORS[st]||'#888', color:'#000', borderColor: STATION_COLORS[st]||'#888' } : {}}
-            onClick={() => setStationFilter(st)}>{st}</button>
-        ))}
-      </div>
       <div className="recipe-grid">
         {filtered.map(r => (
           <button key={r.id} className="recipe-card" onClick={() => { setActive(r); setMultiplier(1); }}>
@@ -542,7 +532,7 @@ const CSS = `
   .recipe-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:0;cursor:pointer;text-align:left;overflow:hidden;transition:border-color 0.15s,transform 0.1s}
   .recipe-card:hover{border-color:var(--accent);transform:translateY(-1px)}
   .recipe-card-station{font-size:10px;font-weight:600;padding:4px 10px;color:#000;font-family:var(--font-display);letter-spacing:0.5px}
-  .recipe-card-name{font-family:var(--font-display);font-size:15px;font-weight:700;padding:10px 10px 4px}
+  .recipe-card-name{font-family:var(--font-display);font-size:15px;font-weight:700;padding:10px 10px 4px;color:var(--text)}
   .recipe-card-meta{font-size:11px;color:var(--text-muted);padding:0 10px 10px}
   .recipe-detail{padding-top:4px}
   .recipe-station-badge{display:inline-block;font-size:10px;font-weight:700;font-family:var(--font-display);padding:3px 10px;border-radius:4px;color:#000;margin-bottom:8px}
