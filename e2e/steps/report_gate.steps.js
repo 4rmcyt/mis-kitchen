@@ -6,8 +6,7 @@ When('not all Opening tasks are done', async function () {
 });
 
 Then('the progress ring should show low completion', async function () {
-  // .ring-pct shows "X%" — if no tasks done or tasks exist, ring is visible
-  await expect(this.page.locator('.report-trigger')).toBeVisible({ timeout: 5_000 });
+  await expect(this.page.locator('button[title="Add task"]')).toBeVisible({ timeout: 5_000 });
 });
 
 When('all tasks are marked as done', async function () {
@@ -25,5 +24,5 @@ When('all tasks are marked as done', async function () {
 });
 
 Then('the add task button should be visible', async function () {
-  await expect(this.page.locator('.report-trigger')).toBeVisible({ timeout: 5_000 });
+  await expect(this.page.locator('button[title="Add task"]')).toBeVisible({ timeout: 5_000 });
 });
