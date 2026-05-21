@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext, createContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase, getRestaurantProfiles, adminUpdateProfile, getDayTemplates, createDayTemplate, updateDayTemplate, deleteDayTemplate, createTasksBatch, getRecipes, createRecipe, updateRecipe, deleteRecipe, getRestaurantReports, signOut } from "./lib/supabase.js";
+import { supabase, getRestaurantProfiles, adminUpdateProfile, getDayTemplates, createDayTemplate, updateDayTemplate, deleteDayTemplate, createTasksBatch, getRecipes, createRecipe, updateRecipe, deleteRecipe, getRestaurantReports, sendPushNotification, signOut } from "./lib/supabase.js";
 
 
 const STATIONS = ["Common", "Garmo", "Rolls", "Pans", "Grill", "Tandoor"];
@@ -956,10 +956,97 @@ function ReportsTab() {
   );
 }
 
-//  SECURITY TAB 
+//  SECURITY TAB
 
 
-//  MAIN APP 
+//  PUSH TAB
+function PushTab() {
+  const { show } = useContext(ToastContext);
+  const [title, setTitle]   = useState('');
+  const [body, setBody]     = useState('');
+  const [station, setStation] = useState('');
+  const [sending, setSending] = useState(false);
+
+  const handleSend = async () => {
+    if (!title.trim() || !body.trim()) return;
+    setSending(true);
+    try {
+      const res = await sendPushNotification({
+        title: title.trim(),
+        body:  body.trim(),
+        station: station || undefined,
+      });
+      show(`Sent to ${res.sent} device${res.sent !== 1 ? 's' : ''}`, 'success');
+      setTitle('');
+      setBody('');
+      setStation('');
+    } catch (e) {
+      show(e.message, 'error');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className="tab-content">
+      <div style={{ maxWidth: 480 }}>
+        <div style={{ marginBottom: 20, color: 'var(--text-muted)', fontSize: 13 }}>
+          Send a push notification to all staff or filter by station.
+        </div>
+
+        <div className="form-group">
+          <label className="form-label">Recipients</label>
+          <select
+            className="form-input"
+            value={station}
+            onChange={e => setStation(e.target.value)}
+          >
+            <option value="">All staff</option>
+            {STATIONS.filter(s => s !== 'Common').map(s => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="form-group" style={{ marginTop: 14 }}>
+          <label className="form-label">Title</label>
+          <input
+            className="form-input"
+            placeholder="e.g. Prep starts in 15 min"
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            maxLength={64}
+          />
+        </div>
+
+        <div className="form-group" style={{ marginTop: 14 }}>
+          <label className="form-label">Message</label>
+          <textarea
+            className="form-input"
+            placeholder="Message body…"
+            value={body}
+            onChange={e => setBody(e.target.value)}
+            maxLength={200}
+            rows={3}
+            style={{ resize: 'vertical' }}
+          />
+        </div>
+
+        <button
+          className="save-btn"
+          style={{ marginTop: 20, width: '100%' }}
+          onClick={handleSend}
+          disabled={sending || !title.trim() || !body.trim()}
+        >
+          {sending ? 'Sending…' : 'Send Notification'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+
+//  MAIN APP
 export default function Admin() {
   const [tab, setTab] = useState('people');
   const [me, setMe] = useState(null);
@@ -984,6 +1071,7 @@ export default function Admin() {
     { id:'tasks',    label:'Tasks',    icon:'✓'  },
     { id:'recipes',  label:'Recipes',  icon:'⚗'  },
     { id:'reports',  label:'Reports',  icon:'📊' },
+    { id:'push',     label:'Notify',   icon:'🔔' },
   ];
 
   return (
@@ -1031,6 +1119,7 @@ export default function Admin() {
         {tab === 'tasks'    && <TasksTab/>}
         {tab === 'recipes'  && <RecipesTab/>}
         {tab === 'reports'  && <ReportsTab/>}
+        {tab === 'push'     && <PushTab/>}
       </main>
 
       <nav className="bottom-nav">

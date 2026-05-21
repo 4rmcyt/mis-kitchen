@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getRestaurantProfiles, signOut, getTasks, createTask, createTasksBatch, completeTask, uncompleteTask, commentTask, deleteTask, getDefaultDayTemplate, getRecipes, saveReport, sendReportEmail } from "./lib/supabase.js";
+import { getRestaurantProfiles, signOut, getTasks, createTask, createTasksBatch, completeTask, uncompleteTask, commentTask, deleteTask, getDefaultDayTemplate, getRecipes, saveReport, sendReportEmail, subscribePush } from "./lib/supabase.js";
 
 const STATIONS = ["Common", "Garmo", "Rolls", "Pans", "Grill", "Tandoor"];
 const STATION_COLORS = {
@@ -506,7 +506,14 @@ export default function App({ userRole, userStation = 'Common' }) {
   const [tab, setTab] = useState('today');
   const navigate = useNavigate();
 
-  useEffect(() => { if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); }, []);
+  useEffect(() => {
+    if (!('Notification' in window)) return;
+    if (Notification.permission === 'granted') {
+      subscribePush();
+    } else if (Notification.permission === 'default') {
+      Notification.requestPermission().then(p => { if (p === 'granted') subscribePush(); });
+    }
+  }, []);
 
   const isAdmin = userRole === 'admin' || userRole === 'superadmin';
 
