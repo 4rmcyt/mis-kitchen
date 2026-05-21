@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { getSession, onAuthChange, supabase } from './lib/supabase.js'
+import { getSession } from './lib/supabase.js'
+import { useAuth } from './hooks/useAuth.js'
 import App from './App.jsx'
 import Admin from './Admin.jsx'
 import Login from './Login.jsx'
@@ -10,59 +10,20 @@ import ResetPassword from './ResetPassword.jsx'
 import JoinPage from './JoinPage.jsx'
 
 function Root() {
-  const [session, setSession] = useState(undefined)
-  const [needsOnboarding, setNeedsOnboarding] = useState(false)
-  const [userRole, setUserRole] = useState(null)
-  const [needsPasswordReset, setNeedsPasswordReset] = useState(false)
-  const [userStation, setUserStation] = useState('Common')
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const code = params.get('code')
-
-    if (code) {
-      supabase.auth.exchangeCodeForSession(code).then(({ data }) => {
-        const s = data?.session
-        setSession(s)
-        if (s) checkOnboarding(s.user)
-        window.history.replaceState({}, '', window.location.pathname)
-      })
-    } else {
-      getSession().then(s => {
-        setSession(s)
-        if (s) checkOnboarding(s.user)
-      })
-    }
-
-    const { data: { subscription } } = onAuthChange((s, event) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        setSession(s)
-        setNeedsPasswordReset(true)
-        return
-      }
-      setSession(s)
-      if (s) checkOnboarding(s.user)
-    })
-    return () => subscription.unsubscribe()
-  }, [])
-
-  async function checkOnboarding(user) {
-    if (!user) return
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('name, role, password_set, station')
-      .eq('id', user.id)
-      .limit(1)
-    const profile = profiles?.[0]
-    const isAdmin = profile?.role === 'admin' || profile?.role === 'superadmin'
-    setUserRole(profile?.role || null)
-    setUserStation(profile?.station || 'Common')
-    setNeedsOnboarding(!isAdmin && (!profile?.name || !profile?.password_set))
-  }
+  const {
+    session,
+    userRole,
+    userStation,
+    needsOnboarding,
+    needsPasswordReset,
+    setNeedsOnboarding,
+    setNeedsPasswordReset,
+    checkOnboarding,
+    setSession,
+  } = useAuth()
 
   if (session === undefined) return null
 
-  // /join/:token is public — no auth required
   if (window.location.pathname.startsWith('/join/')) {
     return <BrowserRouter><Routes><Route path="/join/:token" element={<JoinPage />} /></Routes></BrowserRouter>
   }
@@ -82,7 +43,6 @@ function Root() {
       onDone={() => { setNeedsOnboarding(false); checkOnboarding(session.user) }}
     />
   )
-
 
   return (
     <BrowserRouter>

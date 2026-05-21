@@ -1,16 +1,8 @@
 import { useState, useEffect, useContext, createContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase, getRestaurantProfiles, adminUpdateProfile, getDayTemplates, createDayTemplate, updateDayTemplate, deleteDayTemplate, createTasksBatch, getRecipes, createRecipe, updateRecipe, deleteRecipe, getRestaurantReports, sendPushNotification, signOut } from "./lib/supabase.js";
-
-
-const STATIONS = ["Common", "Garmo", "Rolls", "Pans", "Grill", "Tandoor"];
-const STATION_COLORS = {
-  Garmo:"#22D3EE", Rolls:"#A78BFA", Pans:"#F97316",
-  Grill:"#EF4444", Tandoor:"#F59E0B", Common:"#6B7280", All:"#6B7280"
-};
-
-const ROLE_COLORS = { superadmin:"#F97316", admin:"#6366F1", cook:"#3A3A3A" };
-const ROLE_LABELS = { superadmin:"Super Admin", admin:"Admin", cook:"Cook" };
+import { STATIONS, STATION_COLORS, SECTIONS, SECTION_COLORS, ROLE_COLORS, ROLE_LABELS } from "./lib/constants.js";
+import "./Admin.css";
 
 // CONFIRM
 function ConfirmDialog({ message, onConfirm, onCancel }) {
@@ -406,9 +398,6 @@ function PeopleTab() {
     </div>
   );
 }
-
-const SECTIONS = ['Opening', 'Closing', 'Other'];
-const SECTION_COLORS = { Opening: '#F97316', Closing: '#6366F1', Other: '#6B7280' };
 
 function TasksTab() {
   const [dayTemplates, setDayTemplates] = useState([]);
@@ -987,59 +976,86 @@ function PushTab() {
     }
   };
 
+  const canSend = title.trim() && body.trim() && !sending;
+
   return (
     <div className="tab-content">
-      <div style={{ maxWidth: 480 }}>
-        <div style={{ marginBottom: 20, color: 'var(--text-muted)', fontSize: 13 }}>
-          Send a push notification to all staff or filter by station.
-        </div>
+      <div style={{ maxWidth: 520 }}>
 
-        <div className="form-group">
-          <label className="form-label">Recipients</label>
-          <select
-            className="form-input"
-            value={station}
-            onChange={e => setStation(e.target.value)}
-          >
-            <option value="">All staff</option>
-            {STATIONS.filter(s => s !== 'Common').map(s => (
-              <option key={s} value={s}>{s}</option>
+        {/* Station pills */}
+        <div style={{ marginBottom: 24 }}>
+          <div className="form-label" style={{ marginBottom: 10 }}>Recipients</div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {[{ value: '', label: 'All staff' }, ...STATIONS.filter(s => s !== 'Common').map(s => ({ value: s, label: s }))].map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => setStation(opt.value)}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: 20,
+                  border: `1px solid ${station === opt.value ? (STATION_COLORS[opt.value] || 'var(--accent)') : 'var(--border)'}`,
+                  background: station === opt.value ? (STATION_COLORS[opt.value] ? STATION_COLORS[opt.value] + '22' : 'rgba(249,115,22,0.1)') : 'transparent',
+                  color: station === opt.value ? (STATION_COLORS[opt.value] || 'var(--accent)') : 'var(--text-muted)',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                }}
+              >{opt.label}</button>
             ))}
-          </select>
+          </div>
         </div>
 
-        <div className="form-group" style={{ marginTop: 14 }}>
-          <label className="form-label">Title</label>
-          <input
-            className="form-input"
-            placeholder="e.g. Prep starts in 15 min"
-            value={title}
-            onChange={e => setTitle(e.target.value)}
-            maxLength={64}
-          />
+        {/* Message card */}
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingBottom: 14, borderBottom: '1px solid var(--border)' }}>
+            <span style={{ fontSize: 20 }}>🔔</span>
+            <div>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 13, fontWeight: 700 }}>Push Notification</div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
+                → {station ? `${station} station` : 'All staff'}
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div className="form-label" style={{ marginBottom: 6 }}>Title</div>
+            <input
+              className="form-input"
+              placeholder="e.g. Prep starts in 15 min"
+              value={title}
+              onChange={e => setTitle(e.target.value)}
+              maxLength={64}
+              autoFocus
+            />
+          </div>
+
+          <div>
+            <div className="form-label" style={{ marginBottom: 6, display: 'flex', justifyContent: 'space-between' }}>
+              <span>Message</span>
+              <span style={{ color: body.length > 160 ? 'var(--accent)' : 'var(--text-muted)' }}>{body.length}/200</span>
+            </div>
+            <textarea
+              className="form-input"
+              placeholder="Message body…"
+              value={body}
+              onChange={e => setBody(e.target.value)}
+              maxLength={200}
+              rows={3}
+              style={{ resize: 'none' }}
+            />
+          </div>
+
+          <button
+            className="save-btn"
+            style={{ marginTop: 4 }}
+            onClick={handleSend}
+            disabled={!canSend}
+          >
+            {sending ? 'Sending…' : 'Send Notification'}
+          </button>
         </div>
 
-        <div className="form-group" style={{ marginTop: 14 }}>
-          <label className="form-label">Message</label>
-          <textarea
-            className="form-input"
-            placeholder="Message body…"
-            value={body}
-            onChange={e => setBody(e.target.value)}
-            maxLength={200}
-            rows={3}
-            style={{ resize: 'vertical' }}
-          />
-        </div>
-
-        <button
-          className="save-btn"
-          style={{ marginTop: 20, width: '100%' }}
-          onClick={handleSend}
-          disabled={sending || !title.trim() || !body.trim()}
-        >
-          {sending ? 'Sending…' : 'Send Notification'}
-        </button>
       </div>
     </div>
   );
@@ -1077,7 +1093,6 @@ export default function Admin() {
   return (
     <ToastContext.Provider value={{ show: showToast }}>
     <div className="admin-app">
-      <style>{CSS}</style>
       <ToastContainer toasts={toasts} />
       <aside className="sidebar">
         <div className="sidebar-logo">
@@ -1136,154 +1151,3 @@ export default function Admin() {
 }
 
 //  CSS
-const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&display=swap');
-  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  :root{
-    --bg:#111111; --surface:#1A1A1A; --surface2:#222222; --surface3:#2A2A2A;
-    --border:#333333; --border2:#3A3A3A;
-    --text:#F0F0E8; --text-muted:#777;
-    --accent:#F97316;
-    --font-display:'Syne',sans-serif; --font-mono:'DM Mono',monospace;
-    --radius:8px;
-  }
-  html,body,#root{height:100%;background:var(--bg);color:var(--text);font-family:var(--font-mono)}
-
-  .admin-app{display:flex;height:100vh;overflow:hidden}
-
-  /* Sidebar */
-  .sidebar{width:200px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:0}
-  .sidebar-logo{padding:20px 18px 16px;font-family:var(--font-display);font-size:20px;font-weight:800;letter-spacing:-1px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-  .sidebar-role{font-size:10px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px}
-  .sidebar-nav{flex:1;padding:12px 8px;display:flex;flex-direction:column;gap:2px}
-  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--radius);border:none;background:transparent;color:var(--text-muted);font-family:var(--font-mono);font-size:13px;cursor:pointer;text-align:left;transition:all 0.15s;width:100%}
-  .nav-item:hover{background:var(--surface2);color:var(--text)}
-  .nav-item.active{background:var(--surface3);color:var(--text);border-left:2px solid var(--accent);padding-left:8px}
-  .nav-item-icon{font-size:15px;width:20px;text-align:center}
-  .sidebar-footer{padding:12px 16px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px}
-
-  /* Main */
-  .admin-main{flex:1;overflow-y:auto;display:flex;flex-direction:column;min-width:0}
-  .admin-header{padding:20px 28px 16px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;position:sticky;top:0;background:var(--bg);z-index:10}
-  .admin-title{font-family:var(--font-display);font-size:22px;font-weight:700;line-height:1}
-  .admin-sub{font-size:11px;color:var(--text-muted);margin-top:3px;text-transform:uppercase;letter-spacing:0.5px}
-  .live-badge{font-size:11px;color:#10B981;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);padding:3px 8px;border-radius:20px;font-weight:600}
-
-  .tab-content{padding:24px 28px;display:flex;flex-direction:column;gap:20px}
-
-  /* Stats */
-  .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
-  .stat-val{font-family:var(--font-display);font-size:26px;font-weight:800;line-height:1}
-  .stat-lbl{font-size:11px;color:var(--text-muted);margin-top:4px;text-transform:uppercase;letter-spacing:0.3px}
-
-  /* Toolbar */
-  .toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-  .search-inp{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:8px 12px;border-radius:var(--radius);outline:none;flex:1;max-width:280px}
-  .search-inp:focus{border-color:var(--accent)}
-
-  /* Buttons */
-  .btn-primary{background:var(--accent);color:#fff;border:none;padding:8px 16px;border-radius:var(--radius);font-family:var(--font-display);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;transition:opacity 0.15s}
-  .btn-primary:hover{opacity:0.85}
-  .btn-secondary{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:var(--radius);font-family:var(--font-mono);font-size:12px;cursor:pointer;white-space:nowrap;transition:background 0.15s}
-  .btn-secondary:hover{background:var(--surface3)}
-  .btn-danger{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#EF4444;padding:8px 14px;border-radius:var(--radius);font-family:var(--font-mono);font-size:12px;cursor:pointer;white-space:nowrap}
-
-  /* Table */
-  .table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;overflow-x:auto}
-  .data-table{width:100%;border-collapse:collapse;font-size:13px}
-  .data-table th{padding:10px 14px;text-align:left;font-size:10px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--border);background:var(--surface2);white-space:nowrap}
-  .data-table td{padding:12px 14px;border-bottom:1px solid var(--border2);vertical-align:middle}
-  .data-table tr:last-child td{border-bottom:none}
-  .data-table tbody tr:hover{background:var(--surface2)}
-  .row-inactive{opacity:0.5}
-  .user-name{font-size:13px;font-weight:500}
-  .user-email{font-size:11px;color:var(--text-muted);margin-top:1px}
-  .cell-num{font-size:12px;font-family:var(--font-mono)}
-  .cell-muted{font-size:12px;color:var(--text-muted)}
-  .tbl-btn{background:var(--surface3);border:1px solid var(--border);color:var(--text-muted);font-family:var(--font-mono);font-size:11px;padding:4px 10px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap}
-  .tbl-btn:hover{color:var(--text);border-color:var(--text-muted)}
-  .tbl-btn.danger:hover{color:#EF4444;border-color:#EF444466}
-
-  /* Segments */
-  .seg-ctrl{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
-  .seg-btn{background:transparent;border:none;color:var(--text-muted);font-family:var(--font-mono);font-size:12px;padding:7px 14px;cursor:pointer;transition:all 0.15s}
-  .seg-btn.active{background:var(--surface3);color:var(--text)}
-
-  /* Pills */
-  .pill{background:transparent;border:1px solid var(--border);color:var(--text-muted);font-family:var(--font-mono);font-size:11px;padding:4px 10px;border-radius:20px;cursor:pointer;transition:all 0.15s;white-space:nowrap}
-  .pill:hover{border-color:var(--text-muted);color:var(--text)}
-  .pill-active{border-color:var(--accent);color:var(--accent)}
-
-  /* Content cards */
-  .content-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
-  .content-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;transition:border-color 0.15s}
-  .content-card.shared{border-color:#10B98122}
-  .content-card-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px}
-  .content-color-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px}
-  .content-card-info{flex:1;min-width:0}
-  .content-card-name{font-size:14px;font-weight:600;font-family:var(--font-display)}
-  .content-card-meta{font-size:11px;color:var(--text-muted);margin-top:3px}
-  .content-card-footer{display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid var(--border2)}
-  .share-dot{width:6px;height:6px;border-radius:50%;background:var(--text-muted)}
-  .share-dot.shared{background:#10B981}
-  .share-toggle{background:transparent;border:none;font-family:var(--font-mono);font-size:11px;cursor:pointer;padding:0;transition:color 0.15s}
-  .share-toggle.share{color:var(--accent)}
-  .share-toggle.share:hover{color:#fff}
-  .share-toggle.unshare{color:var(--text-muted)}
-  .share-toggle.unshare:hover{color:#EF4444}
-
-  /* Reports heatmap */
-  .heatmap{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
-  .heat-cell{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 10px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;transition:border-color 0.15s}
-  .heat-cell:hover{background:var(--surface2)}
-  .heat-name{font-size:12px;font-weight:600;font-family:var(--font-display)}
-  .heat-pct{font-size:18px;font-weight:800;font-family:var(--font-display);line-height:1}
-
-  /* Security */
-  .section-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:12px}
-  .section-block-title{font-family:var(--font-display);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);border-bottom:1px solid var(--border);padding-bottom:10px;margin-bottom:4px}
-  .policy-row{display:flex;align-items:flex-start;gap:12px;padding:8px 0;border-bottom:1px solid var(--border2)}
-  .policy-row:last-child{border-bottom:none}
-  .policy-check{color:#10B981;font-size:14px;margin-top:1px;flex-shrink:0}
-  .code-block{background:#080808;border:1px solid var(--border);border-radius:var(--radius);padding:14px;font-size:11px;color:#888;line-height:1.7;white-space:pre;overflow-x:auto;font-family:var(--font-mono)}
-  .security-note{background:rgba(249,115,22,0.06);border:1px solid rgba(249,115,22,0.15);border-radius:var(--radius);padding:10px 14px;font-size:12px;color:#B0875A}
-
-  /* Modal */
-  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
-  .modal-box{background:#111;border:1px solid var(--border2);border-radius:12px;padding:22px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto}
-  .modal-hdr{display:flex;justify-content:space-between;align-items:center;font-family:var(--font-display);font-size:17px;font-weight:700;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border)}
-  .icon-btn{background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer;padding:0 2px;line-height:1;transition:color 0.15s}
-  .icon-btn:hover{color:var(--text)}
-
-  /* Forms */
-  .form-row{display:flex;flex-direction:column;gap:6px}
-  .form-label-sm{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px}
-  .form-inp{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 12px;border-radius:var(--radius);outline:none;width:100%}
-  .form-inp:focus{border-color:var(--accent)}
-  .form-sel{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 12px;border-radius:var(--radius);outline:none;width:100%}
-
-  .bottom-nav{display:none}
-
-  @media (max-width: 768px) {
-    .sidebar{display:none}
-    .stat-row{grid-template-columns:1fr 1fr}
-    .tab-content{padding:16px}
-    .admin-header{padding:14px 16px}
-    .admin-main{padding-bottom:64px}
-    .bottom-nav{
-      display:flex;position:fixed;bottom:0;left:0;right:0;
-      background:var(--surface);border-top:1px solid var(--border);
-      z-index:50;height:60px;
-    }
-    .bottom-nav-item{
-      flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-      gap:2px;border:none;background:transparent;color:var(--text-muted);
-      font-family:var(--font-mono);font-size:10px;cursor:pointer;padding:6px 2px;
-      transition:color 0.15s;
-    }
-    .bottom-nav-item.active{color:var(--accent)}
-    .bottom-nav-icon{font-size:18px;line-height:1}
-    .bottom-nav-label{font-size:9px;letter-spacing:0.3px;text-transform:uppercase}
-  }
-`;
