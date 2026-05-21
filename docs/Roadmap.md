@@ -10,19 +10,19 @@
 | #53 | Local dev environment for running E2E tests locally |
 | #49 | Clean prod DB schema (2-file, no migration history) |
 | #44 | Reservations (lunch/dinner sub-entities) |
-| #38 | Admin push notification sender |
 | #35 | Scale prep quantities by reservation count |
 | #32 | Add MFA support (TOTP) |
 | #26 | Fix seed migration (reassign profiles from existing restaurant) |
 | #25 | Import recipes from PDF/photo (OCR) |
 | #24 | iOS/Android native app |
 | #23 | Separate Supabase project for staging |
-| #22 | Test push notifications end-to-end |
 
 ## Done
 
 | # | Title |
 |---|---|
+| #38 | Admin push notification sender |
+| #22 | Push notifications end-to-end |
 | #56 | End of shift report flow |
 | #55 | App health monitoring (Telegram + Email alerts) |
 | #52 | Load recipes from Supabase |

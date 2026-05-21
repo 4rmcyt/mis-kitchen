@@ -51,6 +51,32 @@ Daily prep tasks.
 | is_shared | boolean | true = visible to all cooks |
 | restaurant_id | uuid | |
 
+### daily_reports
+End-of-shift reports saved by cooks.
+
+| Column | Type | Notes |
+|---|---|---|
+| user_id | uuid | FK → auth.users |
+| restaurant_id | uuid | |
+| date | date | unique per user+date |
+| sections | jsonb | [{name, items:[{text,done}], done, total}] |
+| next_shift | jsonb | [string] — incomplete task texts |
+| completed_pct | int | |
+| completed_count | int | |
+| total_count | int | |
+
+### push_subscriptions
+Web Push subscriptions per device.
+
+| Column | Type | Notes |
+|---|---|---|
+| user_id | uuid | FK → auth.users |
+| restaurant_id | uuid | |
+| endpoint | text | push service URL |
+| p256dh | text | encryption key |
+| auth | text | auth secret |
+| unique | | (user_id, endpoint) |
+
 ### day_templates + templates
 Named task sets. `day_templates` is the parent, `templates` contains individual entries.
 

@@ -36,6 +36,7 @@ supabase/
     send-invite/   — send invite email via Resend
     accept-invite/ — process /join/:token form submission
     send-report/   — daily report emails
+    send-push/     — Web Push notifications (admin → staff)
     push-sync/     — push notification sync
     push-webhook/  — push delivery webhooks
 
