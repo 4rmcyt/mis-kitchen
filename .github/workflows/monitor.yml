@@ -25,10 +25,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check app (prod)
+      - name: Check app (staging)
         id: check-prod
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://mis.labhome.work)
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://staging.mis-kitchen-prod.pages.dev)
           echo "status=$STATUS" >> $GITHUB_OUTPUT
           echo "App status: $STATUS"
           [ "$STATUS" = "200" ] || exit 1
@@ -37,14 +37,14 @@ jobs:
       - name: Check manifest.json
         id: check-manifest
         run: |
-          curl -sf --max-time 10 https://mis.labhome.work/manifest.json > /dev/null
+          curl -sf --max-time 10 https://staging.mis-kitchen-prod.pages.dev/manifest.json > /dev/null
           echo "Manifest: OK"
         continue-on-error: true
 
       - name: Check service worker
         id: check-sw
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://mis.labhome.work/sw.js)
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://staging.mis-kitchen-prod.pages.dev/sw.js)
           [ "$STATUS" = "200" ] || exit 1
           echo "SW: OK"
         continue-on-error: true
@@ -55,7 +55,7 @@ jobs:
           steps.check-manifest.outcome == 'failure' ||
           steps.check-sw.outcome == 'failure'
         run: |
-          TEXT="🚨 *Mis Kitchen — Health Check Failed*%0A%0A• App: ${{ steps.check-prod.outcome }}%0A• manifest.json: ${{ steps.check-manifest.outcome }}%0A• sw.js: ${{ steps.check-sw.outcome }}%0A%0A[View logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+          TEXT="🚨 *Mis Kitchen Staging — Health Check Failed*%0A%0A• App: ${{ steps.check-prod.outcome }}%0A• manifest.json: ${{ steps.check-manifest.outcome }}%0A• sw.js: ${{ steps.check-sw.outcome }}%0A%0A[View logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -d "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
             -d "text=${TEXT}" \
@@ -75,7 +75,7 @@ jobs:
             -d '{
               "from": "monitor@mis.kitchen",
               "to": "${{ secrets.ALERT_EMAIL }}",
-              "subject": "🚨 Mis Kitchen — Health Check Failed",
+              "subject": "🚨 Mis Kitchen Staging — Health Check Failed",
               "html": "<p><b>Health check failed</b></p><ul><li>App: ${{ steps.check-prod.outcome }}</li><li>manifest.json: ${{ steps.check-manifest.outcome }}</li><li>sw.js: ${{ steps.check-sw.outcome }}</li></ul><p><a href=\"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\">View logs</a></p>"
             }'
         continue-on-error: true
