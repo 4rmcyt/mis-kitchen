@@ -8,7 +8,6 @@
 |---|---|
 | #54 | Self-hosted Supabase on k3s for production |
 | #53 | Local dev environment for running E2E tests locally |
-| #52 | ~~Load recipes from Supabase~~ ✓ done |
 | #49 | Clean prod DB schema (2-file, no migration history) |
 | #44 | Reservations (lunch/dinner sub-entities) |
 | #38 | Admin push notification sender |
