@@ -48,6 +48,7 @@ e2e/
   deploy.yml       — lint → build → Cloudflare deploy → trigger E2E
   e2e.yml          — E2E Sanity (runs after deploy)
   e2e-invite.yml   — Invite flow E2E
+  monitor.yml      — health check every 5min, alerts via Telegram + Resend email
 ```
 
 ## CI/CD Flow

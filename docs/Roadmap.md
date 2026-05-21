@@ -24,6 +24,8 @@
 
 | # | Title |
 |---|---|
+| #55 | App health monitoring (Telegram + Email alerts) |
+| #52 | Load recipes from Supabase |
 | #50 | Fix Node.js 20 deprecation warnings in CI |
 | #51 | Fix Supabase security advisor warnings |
 | #42 | E2E Sanity tests |
