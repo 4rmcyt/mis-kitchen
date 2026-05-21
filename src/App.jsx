@@ -133,10 +133,7 @@ function ReportModal({ sections, nextShift, pct, done, total, date, onClose }) {
                 <div className="report-next-label">→ Incomplete — carried to next shift</div>
                 {nextShift.map((t, i) => (
                   <div key={i} className="report-next-item">
-                    <span style={{ flex:1 }}>{t.text}</span>
-                    {t.station && t.station !== 'Common' && (
-                      <span style={{ fontSize:10, color:'var(--text-muted)' }}>{t.station}</span>
-                    )}
+                    <span style={{ flex:1 }}>{t}</span>
                   </div>
                 ))}
               </div>
@@ -352,7 +349,7 @@ function TodayScreen({ userStation = 'Common', userRole }) {
             done: bySection[sec].filter(t => t.done).length,
             total: bySection[sec].length,
           }))}
-          nextShift={filtered.filter(t => !t.done).map(t => ({ text: t.text, station: t.station }))}
+          nextShift={filtered.filter(t => !t.done).map(t => t.text)}
           pct={pct}
           done={totalDone}
           total={totalAll}
