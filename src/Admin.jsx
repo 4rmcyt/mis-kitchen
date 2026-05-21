@@ -945,7 +945,7 @@ function ReportsTab() {
               <div style={{ background:'rgba(99,102,241,0.06)', border:'1px solid rgba(99,102,241,0.2)', borderRadius:8, padding:12 }}>
                 <div style={{ fontSize:11, color:'#6366F1', textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:8 }}>→ Deferred to next shift</div>
                 {selected.next_shift.map((t,i) => (
-                  <div key={i} style={{ fontSize:13, color:'var(--text)', padding:'4px 0', borderBottom:'1px solid rgba(255,255,255,0.04)' }}>• {t}</div>
+                  <div key={i} style={{ fontSize:13, color:'var(--text)', padding:'4px 0', borderBottom:'1px solid rgba(255,255,255,0.04)' }}>• {typeof t === 'string' ? t : t.text}</div>
                 ))}
               </div>
             )}
