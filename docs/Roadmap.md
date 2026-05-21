@@ -23,6 +23,7 @@
 
 | # | Title |
 |---|---|
+| #56 | End of shift report flow |
 | #55 | App health monitoring (Telegram + Email alerts) |
 | #52 | Load recipes from Supabase |
 | #50 | Fix Node.js 20 deprecation warnings in CI |
