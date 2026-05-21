@@ -28,24 +28,22 @@ jobs:
       - name: Check app (staging)
         id: check-prod
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://staging.mis-kitchen-prod.pages.dev/this-does-not-exist-404)
-          echo "status=$STATUS" >> $GITHUB_OUTPUT
-          echo "App status: $STATUS"
-          [ "$STATUS" = "200" ] || exit 1
+          BODY=$(curl -s --max-time 10 https://staging.mis-kitchen-prod.pages.dev/health)
+          echo "body=$BODY"
+          echo "$BODY" | grep -q '"status":"ok"' || exit 1
         continue-on-error: true
 
       - name: Check manifest.json
         id: check-manifest
         run: |
-          curl -sf --max-time 10 https://staging.mis-kitchen-prod.pages.dev/this-does-not-exist-404/manifest.json > /dev/null
+          curl -sf --max-time 10 https://staging.mis-kitchen-prod.pages.dev/manifest.json > /dev/null
           echo "Manifest: OK"
         continue-on-error: true
 
       - name: Check service worker
         id: check-sw
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://staging.mis-kitchen-prod.pages.dev/this-does-not-exist-404/sw.js)
-          [ "$STATUS" = "200" ] || exit 1
+          curl -sf --max-time 10 https://staging.mis-kitchen-prod.pages.dev/sw.js > /dev/null
           echo "SW: OK"
         continue-on-error: true
 
