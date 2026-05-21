@@ -71,7 +71,7 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.RESEND_API_KEY }}" \
             -H "Content-Type: application/json" \
             -d '{
-              "from": "monitor@mis.kitchen",
+              "from": "monitor@mail.labhome.work",
               "to": "${{ secrets.ALERT_EMAIL }}",
               "subject": "🚨 Mis Kitchen Staging — Health Check Failed",
               "html": "<p><b>Health check failed</b></p><ul><li>App: ${{ steps.check-prod.outcome }}</li><li>manifest.json: ${{ steps.check-manifest.outcome }}</li><li>sw.js: ${{ steps.check-sw.outcome }}</li></ul><p><a href=\"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\">View logs</a></p>"
