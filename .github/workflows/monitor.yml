@@ -1,18 +1,20 @@
 # .github/workflows/monitor.yml
 #
-# Runs every 5 minutes — checks app health and Supabase functions.
-# Sends alert to Slack/email on failure.
+# Runs every 5 minutes — checks app health.
+# Sends alert via Telegram and email (Resend) on failure.
 #
 # Required secrets:
-#   SLACK_WEBHOOK_URL   — Slack Incoming Webhook (optional)
-#   ALERT_EMAIL         — email for failure notifications
+#   TELEGRAM_BOT_TOKEN  — from @BotFather
+#   TELEGRAM_CHAT_ID    — your personal chat ID (get from @userinfobot)
+#   RESEND_API_KEY      — same key used by send-invite edge function
+#   ALERT_EMAIL         — destination email for failure alerts
 
 name: Monitor
 
 on:
   schedule:
-    - cron: "*/5 * * * *"   # every 5 minutes
-  workflow_dispatch:          # manual trigger
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -47,27 +49,33 @@ jobs:
           echo "SW: OK"
         continue-on-error: true
 
-      - name: Alert on failure
+      - name: Alert via Telegram
         if: |
           steps.check-prod.outcome == 'failure' ||
           steps.check-manifest.outcome == 'failure' ||
           steps.check-sw.outcome == 'failure'
-        uses: slackapi/slack-github-action@v1
-        with:
-          payload: |
-            {
-              "text": "🚨 *Mis App Health Check Failed*",
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "🚨 *Mis App Health Check Failed*\n\n*Checks:*\n• App: ${{ steps.check-prod.outcome }}\n• manifest.json: ${{ steps.check-manifest.outcome }}\n• sw.js: ${{ steps.check-sw.outcome }}\n\n*Time:* ${{ github.event.head_commit.timestamp || 'scheduled' }}\n*Run:* <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View logs>"
-                  }
-                }
-              ]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+        run: |
+          TEXT="🚨 *Mis Kitchen — Health Check Failed*%0A%0A• App: ${{ steps.check-prod.outcome }}%0A• manifest.json: ${{ steps.check-manifest.outcome }}%0A• sw.js: ${{ steps.check-sw.outcome }}%0A%0A[View logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
+            -d "text=${TEXT}" \
+            -d "parse_mode=Markdown" \
+            -d "disable_web_page_preview=true"
+        continue-on-error: true
+
+      - name: Alert via Email (Resend)
+        if: |
+          steps.check-prod.outcome == 'failure' ||
+          steps.check-manifest.outcome == 'failure' ||
+          steps.check-sw.outcome == 'failure'
+        run: |
+          curl -s -X POST https://api.resend.com/emails \
+            -H "Authorization: Bearer ${{ secrets.RESEND_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "from": "monitor@mis.kitchen",
+              "to": "${{ secrets.ALERT_EMAIL }}",
+              "subject": "🚨 Mis Kitchen — Health Check Failed",
+              "html": "<p><b>Health check failed</b></p><ul><li>App: ${{ steps.check-prod.outcome }}</li><li>manifest.json: ${{ steps.check-manifest.outcome }}</li><li>sw.js: ${{ steps.check-sw.outcome }}</li></ul><p><a href=\"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\">View logs</a></p>"
+            }'
         continue-on-error: true
