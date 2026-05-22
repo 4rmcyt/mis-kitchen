@@ -6,6 +6,10 @@
 
 | # | Title |
 |---|---|
+| #65 | Research: SaaS go-to-market strategy |
+| #64 | Landing page for mis.kitchen |
+| #63 | Billing: Stripe subscription for SaaS |
+| #62 | Self-serve onboarding: restaurant creation by owner |
 | #54 | Self-hosted Supabase on k3s for production |
 | #53 | Local dev environment for running E2E tests locally |
 | #49 | Clean prod DB schema (2-file, no migration history) |
