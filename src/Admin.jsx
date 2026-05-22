@@ -90,11 +90,11 @@ export default function Admin() {
         {tab === 'push'     && <PushTab/>}
       </main>
 
-      <nav className="bottom-nav">
+      <nav className="admin-bottom-nav">
         {TABS.map(t => (
-          <button key={t.id} className={`bottom-nav-item ${tab===t.id?'active':''}`} onClick={() => setTab(t.id)}>
-            <span className="bottom-nav-icon">{t.icon}</span>
-            <span className="bottom-nav-label">{t.label}</span>
+          <button key={t.id} className={`admin-bottom-nav-item ${tab===t.id?'active':''}`} onClick={() => setTab(t.id)}>
+            <span className="admin-bottom-nav-icon">{t.icon}</span>
+            <span className="admin-bottom-nav-label">{t.label}</span>
           </button>
         ))}
       </nav>
