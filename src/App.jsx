@@ -46,12 +46,18 @@ export default function App({ userRole, userStation = 'Common' }) {
           {tab==='recipes' && <RecipesScreen/>}
         </main>
         <nav className="bottom-nav">
-          {[{id:'today',label:'Today',icon:'✓'},{id:'lineup',label:'Lineup',icon:'◈'},{id:'recipes',label:'Recipes',icon:'⚗'}].map(t => (
-            <button key={t.id} className={`nav-btn ${tab===t.id?'active':''}`} onClick={() => setTab(t.id)}>
-              <span className="nav-icon">{t.icon}</span>
-              <span className="nav-label">{t.label}</span>
-            </button>
-          ))}
+          <button className={`nav-btn ${tab==='today'?'active':''}`} onClick={() => setTab('today')}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span className="nav-label">Today</span>
+          </button>
+          <button className={`nav-btn ${tab==='lineup'?'active':''}`} onClick={() => setTab('lineup')}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0-3-3.85"/></svg>
+            <span className="nav-label">Lineup</span>
+          </button>
+          <button className={`nav-btn ${tab==='recipes'?'active':''}`} onClick={() => setTab('recipes')}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 2v10l4.5 4.5"/><path d="M19 3v6h-6"/></svg>
+            <span className="nav-label">Recipes</span>
+          </button>
         </nav>
       </div>
     </div>
