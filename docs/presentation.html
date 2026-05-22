@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mis.kitchen — Restaurant Operations Platform</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0e0e0e;
+      --surface: #161616;
+      --surface2: #1e1e1e;
+      --border: #2a2a2a;
+      --text: #f0f0e8;
+      --muted: #666;
+      --accent: #f97316;
+      --green: #10b981;
+      --blue: #22d3ee;
+      --purple: #a78bfa;
+    }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      line-height: 1.6;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 60px 24px;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(249,115,22,0.08) 0%, transparent 70%);
+    }
+
+    .logo {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(64px, 12vw, 120px);
+      font-weight: 800;
+      letter-spacing: -4px;
+      line-height: 1;
+      margin-bottom: 24px;
+    }
+
+    .logo-dot { color: var(--accent); }
+
+    .hero-tagline {
+      font-size: clamp(18px, 3vw, 26px);
+      color: var(--muted);
+      max-width: 560px;
+      margin-bottom: 48px;
+      line-height: 1.4;
+    }
+
+    .hero-tagline strong { color: var(--text); }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 60px;
+    }
+
+    .badge {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .badge.accent { border-color: var(--accent); color: var(--accent); }
+
+    .scroll-hint {
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      animation: bounce 2s ease-in-out infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(6px); }
+    }
+
+    /* ── Sections ── */
+    section {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 80px 24px;
+      border-top: 1px solid var(--border);
+    }
+
+    .section-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--accent);
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(28px, 5vw, 48px);
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 20px;
+    }
+
+    .section-sub {
+      font-size: 15px;
+      color: var(--muted);
+      max-width: 600px;
+      margin-bottom: 48px;
+      line-height: 1.7;
+    }
+
+    /* ── Feature grid ── */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      transition: border-color 0.2s;
+    }
+
+    .feature-card:hover { border-color: #444; }
+
+    .feature-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+      font-size: 20px;
+    }
+
+    .feature-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .feature-desc {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* ── Role split ── */
+    .role-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 600px) {
+      .role-grid { grid-template-columns: 1fr; }
+    }
+
+    .role-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+    }
+
+    .role-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .role-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+    }
+
+    .role-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .role-list li {
+      font-size: 13px;
+      color: var(--muted);
+      padding-left: 18px;
+      position: relative;
+      line-height: 1.5;
+    }
+
+    .role-list li::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-size: 12px;
+    }
+
+    /* ── Roadmap ── */
+    .roadmap-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 12px;
+    }
+
+    .roadmap-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 18px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .roadmap-num {
+      font-size: 11px;
+      color: var(--muted);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .roadmap-text {
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      text-align: center;
+      padding: 40px 24px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    footer .footer-logo {
+      font-family: 'Syne', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Hero ── -->
+<div class="hero">
+  <div class="logo">mis<span class="logo-dot">.</span>kitchen</div>
+  <p class="hero-tagline">
+    A <strong>kitchen operations platform</strong> built for the pace of real restaurant work.
+    Every shift, every station, every cook — in sync.
+  </p>
+  <div class="badge-row">
+    <span class="badge accent">PWA — works on any phone</span>
+    <span class="badge">No training required</span>
+    <span class="badge">Real-time</span>
+    <span class="badge">Works offline</span>
+  </div>
+  <div class="scroll-hint">↓ scroll</div>
+</div>
+
+<!-- ── What it does ── -->
+<section>
+  <div class="section-label">Platform Overview</div>
+  <h2 class="section-title">Everything a kitchen needs.<br>Nothing it doesn't.</h2>
+  <p class="section-sub">
+    mis.kitchen replaces printed checklists, group chats, and paper logs with a single app
+    your whole team uses — from the chef setting up the day to the cook closing the station.
+  </p>
+
+  <div class="feature-grid">
+
+    <div class="feature-card">
+      <div class="feature-icon" style="background: rgba(249,115,22,0.12);">✓</div>
+      <div class="feature-name">Daily Task Lists</div>
+      <div class="feature-desc">
+        Every shift starts with a clear checklist. Opening prep, closing duties, station-specific tasks —
+        all assigned, all visible. Cooks check off tasks in real time, admins see progress live.
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon" style="background: rgba(34,211,238,0.12);">📖</div>
+      <div class="feature-name">Recipe Library</div>
+      <div class="feature-desc">
+        Every recipe in one place, always up to date. Scale ingredients by portion count with a single tap.
+        Step-by-step instructions visible on any phone. No more binders, no more "which version is this?"
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon" style="background: rgba(167,139,250,0.12);">👥</div>
+      <div class="feature-name">Crew Lineup</div>
+      <div class="feature-desc">
+        See who's working today, grouped by station. Know at a glance who's on Grill,
+        who's on Tandoor, who's covering Common — without asking anyone.
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon" style="background: rgba(16,185,129,0.12);">📋</div>
+      <div class="feature-name">End-of-Shift Report</div>
+      <div class="feature-desc">
+        One tap sends a structured report to management: what got done, what didn't, notes for
+        the next shift. Sent automatically by email. No more WhatsApp voice notes.
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon" style="background: rgba(249,115,22,0.12);">🌡️</div>
+      <div class="feature-name">Temperature Logs</div>
+      <div class="feature-desc">
+        Cooks log fridge and station temperatures three times a day directly in the app.
+        Full history available for every station — no more paper logs on clipboards.
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon" style="background: rgba(34,211,238,0.12);">⏱</div>
+      <div class="feature-name">Kitchen Timers</div>
+      <div class="feature-desc">
+        Multiple named timers running simultaneously. Set a timer for the lamb, another for the sauce —
+        each with a label, countdown, and audio alert when done.
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon" style="background: rgba(249,115,22,0.12);">🔔</div>
+      <div class="feature-name">Push Notifications</div>
+      <div class="feature-desc">
+        Admins can push instant messages to the whole team or specific stations —
+        even when the app is in the background. Critical updates land on every cook's phone immediately.
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon" style="background: rgba(167,139,250,0.12);">📅</div>
+      <div class="feature-name">Day Templates</div>
+      <div class="feature-desc">
+        Build reusable task templates for different service types — lunch, dinner, deep clean.
+        Apply a template to any day in seconds and start the shift already set up.
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── Admin vs Cook ── -->
+<section>
+  <div class="section-label">Two Roles</div>
+  <h2 class="section-title">Built for both sides<br>of the pass.</h2>
+  <p class="section-sub">
+    Chefs and managers get full control. Cooks get a clean, fast interface
+    with only what they need for their shift.
+  </p>
+
+  <div class="role-grid">
+    <div class="role-card">
+      <div class="role-title">
+        <div class="role-dot" style="background: #f97316;"></div>
+        Chef / Manager
+      </div>
+      <ul class="role-list">
+        <li>Build and manage task templates for any service type</li>
+        <li>Assign tasks to specific stations or the whole team</li>
+        <li>Manage recipes — add, edit, delete, organize by station</li>
+        <li>Manage the team: invite cooks, set stations and roles</li>
+        <li>Send push notifications to everyone or by station</li>
+        <li>View end-of-shift reports from every cook</li>
+        <li>See full temperature log history for any station</li>
+      </ul>
+    </div>
+
+    <div class="role-card">
+      <div class="role-title">
+        <div class="role-dot" style="background: #22d3ee;"></div>
+        Cook
+      </div>
+      <ul class="role-list">
+        <li>Open the app and see today's tasks — nothing else to figure out</li>
+        <li>Check off tasks as they're done, leave comments if needed</li>
+        <li>Look up any recipe, scale portions on the spot</li>
+        <li>See who's working today and on which station</li>
+        <li>Log fridge temperatures without hunting for a clipboard</li>
+        <li>Run multiple timers while working the line</li>
+        <li>Send end-of-shift report in one tap</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ── Coming soon ── -->
+<section>
+  <div class="section-label">Roadmap</div>
+  <h2 class="section-title">What's coming next.</h2>
+  <p class="section-sub">
+    mis.kitchen is actively developed. Here's what's already on the board.
+  </p>
+
+  <div class="roadmap-grid">
+
+    <div class="roadmap-item">
+      <span class="roadmap-num">01</span>
+      <span class="roadmap-text">Reservation-aware prep — scale quantities automatically based on lunch and dinner covers</span>
+    </div>
+
+    <div class="roadmap-item">
+      <span class="roadmap-num">02</span>
+      <span class="roadmap-text">Recipe import from photos or PDF — photograph a handwritten recipe and it's in the system</span>
+    </div>
+
+    <div class="roadmap-item">
+      <span class="roadmap-num">03</span>
+      <span class="roadmap-text">Admin recipe editor — create and edit recipes directly inside the app</span>
+    </div>
+
+    <div class="roadmap-item">
+      <span class="roadmap-num">04</span>
+      <span class="roadmap-text">Native iOS and Android apps — full offline support, native push notifications</span>
+    </div>
+
+    <div class="roadmap-item">
+      <span class="roadmap-num">05</span>
+      <span class="roadmap-text">Self-serve onboarding — any restaurant owner can sign up and set up their team without contacting us</span>
+    </div>
+
+    <div class="roadmap-item">
+      <span class="roadmap-num">06</span>
+      <span class="roadmap-text">MFA / TOTP — two-factor authentication for admin accounts</span>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer>
+  <div class="footer-logo">mis<span style="color: #f97316;">.</span>kitchen</div>
+  <p>Restaurant operations, simplified.</p>
+</footer>
+
+</body>
+</html>
