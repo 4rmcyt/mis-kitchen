@@ -18,8 +18,12 @@
 ## Fizzy
 
 - Account slug for this project: `/6196871` (account "Fizzy pizzy")
-- **Never close a ticket** until: deploy succeeded + E2E tests passed on staging
 - Staging URL: `staging.mis-kitchen-prod.pages.dev`
+
+### Every change requires:
+1. **Fizzy ticket** — create before starting work
+2. **Documentation** — update Architecture.md / Roadmap.md / relevant docs/
+3. **Ticket → Done** — only after deploy succeeded + E2E tests passed on staging
 
 ## Supabase Migrations
 
