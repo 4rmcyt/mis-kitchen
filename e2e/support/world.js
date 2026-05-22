@@ -47,7 +47,10 @@ class KitchenWorld {
       slowMo: headless ? 0 : 100,
       ...(executablePath ? { executablePath } : {}),
     });
-    this.context = await this.browser.newContext();
+    const viewport = process.env.E2E_VIEWPORT === 'mobile'
+      ? { width: 390, height: 844 }
+      : { width: 1280, height: 720 };
+    this.context = await this.browser.newContext({ viewport });
     this.page = await this.context.newPage();
     this.page.on('dialog', d => d.accept());
   }

@@ -64,13 +64,13 @@ supabase/
     push-webhook/  — push delivery webhooks
 
 e2e/
-  features/        — Cucumber .feature files
+  features/        — Cucumber .feature files (incl. layout.feature for mobile)
   steps/           — Playwright step definitions
-  support/         — world.js, login.js, supabase_admin.js, mailtrap.js
+  support/         — world.js (viewport via E2E_VIEWPORT=mobile), login.js, supabase_admin.js, mailtrap.js
 
 .github/workflows/
   deploy.yml       — lint → build → Cloudflare deploy → trigger E2E
-  e2e.yml          — E2E Sanity (runs after deploy)
+  e2e.yml          — E2E Sanity + mobile layout tests (runs after deploy)
   e2e-invite.yml   — Invite flow E2E
   monitor.yml      — health check every 5min, alerts via Telegram + Resend email
 ```

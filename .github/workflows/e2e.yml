@@ -59,10 +59,13 @@ jobs:
       - name: Run E2E tests
         run: pnpm test:e2e --format progress
 
-      - name: Upload HTML report
+      - name: Run mobile layout tests
+        run: pnpm test:mobile --format progress
+
+      - name: Upload HTML reports
         if: always()
         uses: actions/upload-artifact@v7.0.1
         with:
           name: e2e-report-${{ github.run_number }}
-          path: e2e/reports/report.html
+          path: e2e/reports/
           retention-days: 14

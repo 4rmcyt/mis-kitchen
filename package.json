@@ -11,6 +11,8 @@
     "typecheck": "echo 'No TS — skipping typecheck'",
     "test:e2e": "cucumber-js",
     "test:e2e:ui": "E2E_HEADLESS=false cucumber-js",
+    "test:mobile": "E2E_VIEWPORT=mobile cucumber-js --profile mobile",
+    "test:mobile:ui": "E2E_HEADLESS=false E2E_VIEWPORT=mobile cucumber-js --profile mobile",
     "test:invite": "cucumber-js --profile invite",
     "test:invite:ui": "E2E_HEADLESS=false cucumber-js --profile invite"
   },

@@ -13,6 +13,13 @@
     "import": ["e2e/support/world.js", "e2e/steps/**/*.js"],
     "format": ["html:e2e/reports/report.html"]
   },
+  "mobile": {
+    "paths": [
+      "e2e/features/layout.feature"
+    ],
+    "import": ["e2e/support/world.js", "e2e/steps/**/*.js"],
+    "format": ["html:e2e/reports/mobile-report.html"]
+  },
   "invite": {
     "paths": ["e2e/features/invite_onboarding.feature"],
     "import": ["e2e/support/world.js", "e2e/steps/**/*.js"],

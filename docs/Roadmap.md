@@ -23,6 +23,7 @@
 
 | # | Title |
 |---|---|
+| #58 | Mobile layout E2E tests (viewport 390×844, layout assertions) |
 | #46 | Refactor: split App.jsx, Admin.jsx, supabase.js into modules |
 | #38 | Admin push notification sender |
 | #22 | Push notifications end-to-end |

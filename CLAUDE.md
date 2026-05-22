@@ -65,6 +65,30 @@ e2e/
   support/              — world.js, helpers
 ```
 
+## E2E Testing
+
+Profiles defined in `cucumber.json`:
+
+| Command | Profile | Viewport | Features |
+|---|---|---|---|
+| `pnpm test:e2e` | default | 1280×720 | All app features (auth, tasks, recipes, etc.) |
+| `pnpm test:mobile` | mobile | 390×844 | Mobile layout assertions (`layout.feature`) |
+| `pnpm test:invite` | invite | 1280×720 | Invite onboarding flow |
+
+Append `:ui` to any command to run headed (e.g. `pnpm test:mobile:ui`).
+
+Mobile layout tests (`e2e/features/layout.feature`) verify:
+- Bottom nav is fully visible (not clipped at viewport edges)
+- Station filter renders ≥6 pills without horizontal cutoff
+- Header logout button is visible
+
+Both `test:e2e` and `test:mobile` run in CI (`e2e.yml`) after every deploy.
+
+### What breaks mobile layout
+
+- `left:50%; transform:translateX(-50%)` on fixed elements → use `left:0; right:0` instead
+- Unicode symbols (`⏻`, `✓`, `◈`, `⚗`) don't render on Android → use SVG icons
+
 ## Stack
 
 - React 18 + Vite → Cloudflare Pages
