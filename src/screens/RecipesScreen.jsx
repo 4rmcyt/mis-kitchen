@@ -26,7 +26,7 @@ export function RecipesScreen() {
         <h2 className="recipe-title">{active.name}</h2>
         <div className="multiplier-row">
           <span className="mult-label">Portions</span>
-          {[1,2,5,10].map(m => <button key={m} className={`mult-btn ${multiplier===m?'active':''}`} onClick={() => setMultiplier(m)}>{m}×</button>)}
+          {[1,2,3,4,5,6,10].map(m => <button key={m} className={`mult-btn ${multiplier===m?'active':''}`} onClick={() => setMultiplier(m)}>{m}×</button>)}
         </div>
         <div className="ingredients-list">
           {active.ingredients.map(ing => (
