@@ -25,10 +25,33 @@
 
 ```
 src/
-  App.jsx          — user app (Today, Recipes, Lineup)
-  Admin.jsx        — admin panel (People, Tasks, Recipes, Reports)
-  Join.jsx         — invite onboarding /join/:token
-  lib/supabase.js  — all Supabase client calls
+  main.jsx             — root: auth via useAuth(), routing
+  App.jsx              — user app tab routing + push subscribe
+  Admin.jsx            — admin layout + tab routing
+  hooks/
+    useAuth.js         — session, onboarding, password reset logic
+  screens/
+    TodayScreen.jsx    — tasks, progress ring, date switcher
+    RecipesScreen.jsx  — recipe list + detail view
+    LineupScreen.jsx   — crew grouped by station
+  components/
+    AddTaskModal.jsx   — add task modal
+    ReportModal.jsx    — end-of-shift report modal
+  admin/
+    tabs/              — PeopleTab, TasksTab, RecipesTab, ReportsTab, PushTab
+    components/        — Toast, Confirm, Avatar, Badge, PctBar, Modal
+  lib/
+    supabase.js        — re-export barrel (backwards compat)
+    client.js          — Supabase client instance
+    auth.js            — signIn, signOut, getSession, onAuthChange
+    tasks.js           — task CRUD + deferred tasks
+    recipes.js         — recipe CRUD
+    templates.js       — day template CRUD
+    reports.js         — saveReport, sendReportEmail, getRestaurantReports
+    push.js            — subscribePush, sendPushNotification
+    invites.js         — createInvite, getInvites
+    profiles.js        — getProfile, updateProfile, getRestaurantProfiles
+    constants.js       — STATIONS, SECTIONS, colors, role labels
 
 supabase/
   migrations/      — SQL migrations (stubs always committed after MCP apply)

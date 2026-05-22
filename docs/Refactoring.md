@@ -75,14 +75,18 @@ src/lib/
 
 ## Phases
 
-### Phase 1 — supabase.js split
-Split into domain modules. Add re-exports in `supabase.js` for backwards compat. Low risk.
+### Phase 1 — supabase.js split ✅
+Split into domain modules. Re-exports in `supabase.js` for backwards compat.
 
-### Phase 2 — Admin.jsx split
-Extract shared components first (Modal, Badge, Avatar, PctBar, ToastContainer), then tabs one by one. Extract CSS.
+### Phase 2 — Admin.jsx split ✅
+Shared components in `admin/components/`, tabs in `admin/tabs/`, CSS extracted. Admin.jsx = 65 lines.
 
-### Phase 3 — App.jsx split
-Extract screens and components. Extract CSS.
+### Phase 3 — App.jsx split ✅
+Screens in `screens/`, components in `components/`, CSS extracted. App.jsx = 45 lines.
+
+### Additional ✅
+- `src/hooks/useAuth.js` — session/onboarding logic extracted from main.jsx
+- `src/lib/constants.js` — STATIONS, SECTIONS, colors, role labels
 
 ## Related
 

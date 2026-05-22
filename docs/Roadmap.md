@@ -15,12 +15,15 @@
 | #26 | Fix seed migration (reassign profiles from existing restaurant) |
 | #25 | Import recipes from PDF/photo (OCR) |
 | #24 | iOS/Android native app |
+| #48 | Admin Recipes: create/edit/delete |
+| #47 | Timer tab in user screen |
 | #23 | Separate Supabase project for staging |
 
 ## Done
 
 | # | Title |
 |---|---|
+| #46 | Refactor: split App.jsx, Admin.jsx, supabase.js into modules |
 | #38 | Admin push notification sender |
 | #22 | Push notifications end-to-end |
 | #56 | End of shift report flow |
