@@ -35,6 +35,10 @@ Critical workflow — always in this order:
 
 Never create the local file after applying — MCP generates its own timestamp.
 
+## Quality Bar
+
+**No half-working state.** If something is broken, misconfigured, or throwing errors — fix it before moving on. Console errors, missing env vars, silent failures — all count. "It works but..." is not done.
+
 ## Domain Rules
 
 - **Tasks**: cooks do not delete tasks — never code for that case
