@@ -93,5 +93,6 @@ git push staging
 ## Related
 
 - [[Database]]
+- [[Infrastructure]]
 - [[Invite Flow]]
 - [[E2E Testing]]
