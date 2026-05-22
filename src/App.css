@@ -160,3 +160,28 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .lineup-info{flex:1}
 .lineup-name{font-size:14px;font-weight:500}
 .lineup-role{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.3px;margin-top:2px}
+/* Temp log */
+.temp-form{margin-bottom:8px}
+.temp-input-row{display:flex;align-items:center;gap:8px}
+.temp-station-badge{font-size:11px;font-weight:700;font-family:var(--font-display);padding:4px 10px;border-radius:6px;color:#000;flex-shrink:0;white-space:nowrap}
+.temp-input{width:80px;flex-shrink:0;text-align:center}
+.temp-log-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.temp-log-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.temp-log-station{font-size:13px;flex:1}
+.temp-log-val{font-size:15px;font-weight:600;color:var(--accent);width:52px;text-align:right}
+.temp-log-time{font-size:11px;color:var(--text-muted);width:44px;text-align:right}
+.temp-log-who{font-size:11px;color:var(--text-muted);width:60px;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Timer screen */
+.timer-cards{display:flex;flex-direction:column;gap:12px}
+.timer-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.timer-card.timer-done{border-color:#10B981}
+.timer-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.timer-card-label{font-family:var(--font-display);font-size:15px;font-weight:700}
+.timer-display{font-family:var(--font-mono);font-size:42px;font-weight:500;letter-spacing:2px;color:var(--text);line-height:1;margin-bottom:12px}
+.timer-done-display{display:flex;align-items:center;gap:12px;font-family:var(--font-display);font-size:28px;font-weight:700;color:#10B981}
+.timer-set-row{display:flex;align-items:center;gap:6px}
+.timer-ctrl-row{display:flex;gap:8px}
+.timer-ctrl-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);font-family:var(--font-mono);font-size:12px;padding:6px 14px;border-radius:6px;cursor:pointer;transition:all 0.15s}
+.timer-ctrl-btn:hover{border-color:var(--accent);color:var(--accent)}
+.timer-ctrl-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.timer-ctrl-btn.primary:hover{opacity:0.9}
