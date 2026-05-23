@@ -27,6 +27,9 @@
 
 | # | Title |
 |---|---|
+| #68 | Fix: full-width desktop layout + default station filter All |
+| #66 | Temperature log tab |
+| #47 | Timer tab |
 | #58 | Mobile layout E2E tests (viewport 390×844, layout assertions) |
 | #46 | Refactor: split App.jsx, Admin.jsx, supabase.js into modules |
 | #38 | Admin push notification sender |
