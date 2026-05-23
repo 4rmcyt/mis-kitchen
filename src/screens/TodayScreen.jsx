@@ -28,7 +28,7 @@ export function TodayScreen({ userStation = 'Common', userRole }) {
   const [dateOffset, setDateOffset] = useState(0);
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [stationFilter, setStationFilter] = useState(userStation);
+  const [stationFilter, setStationFilter] = useState('All');
   const [showAddTask, setShowAddTask] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [commentingId, setCommentingId] = useState(null);
@@ -36,7 +36,6 @@ export function TodayScreen({ userStation = 'Common', userRole }) {
 
   const selectedDate = dateStr(dateOffset);
 
-  useEffect(() => { setStationFilter(userStation); }, [userStation]);
 
   useEffect(() => {
     setLoading(true);
