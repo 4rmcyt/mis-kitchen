@@ -64,10 +64,6 @@ function RecipeForm({ initial, onSave, onCancel, saving }) {
     });
   };
 
-  const moveBtn = (onClick) => (
-    <button onClick={onClick} style={{ background:'none', border:'none', color:'var(--text-muted)', cursor:'pointer', padding:'0 2px', fontSize:14, lineHeight:1 }}>⇅</button>
-  );
-
   return (
     <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
       <div style={{ display:'flex', gap:10 }}>
