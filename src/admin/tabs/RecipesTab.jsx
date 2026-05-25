@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import { supabase, getRecipes, createRecipe, updateRecipe, deleteRecipe } from "../../lib/supabase.js";
+import { getRecipes, createRecipe, updateRecipe, deleteRecipe } from "../../lib/supabase.js";
 import { useToast } from "../components/Toast.jsx";
 import { useConfirm } from "../components/Confirm.jsx";
 
 const UNITS = ['g', 'kg', 'ml', 'L', 'pcs', 'tsp', 'tbsp', 'cup', 'portion'];
 
 function emptyRecipe() {
-  return { name: '', portions: 1, is_shared: false, ingredients: [], steps: [] };
+  return { name: '', portions: 1, is_shared: true, ingredients: [], steps: [] };
 }
 
 function RecipeForm({ initial, onSave, onCancel, saving }) {
@@ -134,12 +134,7 @@ function RecipeForm({ initial, onSave, onCancel, saving }) {
         </div>
       </div>
 
-      <div style={{ display:'flex', gap:8, alignItems:'center', paddingTop:4 }}>
-        <label style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, color:'var(--text-muted)', cursor:'pointer' }}>
-          <input type="checkbox" checked={form.is_shared} onChange={e => set('is_shared', e.target.checked)}/>
-          Share with team
-        </label>
-        <div style={{ flex:1 }}/>
+      <div style={{ display:'flex', gap:8, alignItems:'center', paddingTop:4, justifyContent:'flex-end' }}>
         <button className="btn-secondary" onClick={onCancel}>Cancel</button>
         <button className="btn-primary" onClick={handleSave} disabled={saving || !form.name.trim()}>
           {saving ? 'Saving…' : 'Save'}
@@ -194,14 +189,6 @@ export function RecipesTab() {
     } catch (e) { toast(e.message, 'error'); }
   };
 
-  const toggleShare = async (id) => {
-    const item = recipes.find(r => r.id === id);
-    try {
-      await supabase.from('recipes').update({ is_shared: !item.is_shared }).eq('id', id);
-      setRecipes(rs => rs.map(r => r.id === id ? { ...r, is_shared: !r.is_shared } : r));
-      if (selected?.id === id) setSelected(s => ({ ...s, is_shared: !s.is_shared }));
-    } catch (e) { toast(e.message, 'error'); }
-  };
 
   if (selected && editing) {
     return (
@@ -229,13 +216,6 @@ export function RecipesTab() {
         </div>
         <div style={{ display:'flex', gap:8, alignItems:'center' }}>
           <span style={{ fontSize:12, color:'var(--text-muted)' }}>{selected.portions} portion{selected.portions!==1?'s':''}</span>
-          <span style={{ fontSize:12, color: selected.is_shared ? '#10B981' : 'var(--text-muted)' }}>
-            {selected.is_shared ? '● Shared' : '○ Personal'}
-          </span>
-          <button style={{ background:'none', border:'none', fontSize:12, cursor:'pointer', color:'var(--accent)', fontFamily:'var(--font-mono)', padding:0 }}
-            onClick={() => toggleShare(selected.id)}>
-            {selected.is_shared ? 'Unpublish' : 'Publish'}
-          </button>
         </div>
 
         {ings.length > 0 && (
