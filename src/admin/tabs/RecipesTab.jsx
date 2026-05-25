@@ -10,7 +10,11 @@ function emptyRecipe() {
 }
 
 function RecipeForm({ initial, onSave, onCancel, saving }) {
-  const [form, setForm] = useState(initial);
+  const [form, setForm] = useState(() => ({
+    ...initial,
+    ingredients: (initial.ingredients || []).map((ing, i) => ({ ...ing, _key: ing.id ?? `ing-${i}-${Date.now()}` })),
+    steps: (initial.steps || []).map((s, i) => ({ text: typeof s === 'string' ? s : s, _key: `step-${i}-${Date.now()}` })),
+  }));
   const [ingText, setIngText] = useState('');
   const [ingAmt, setIngAmt] = useState('');
   const [ingUnit, setIngUnit] = useState('g');
@@ -18,19 +22,51 @@ function RecipeForm({ initial, onSave, onCancel, saving }) {
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
+  // Ingredients
   const addIng = () => {
     if (!ingText.trim()) return;
-    set('ingredients', [...form.ingredients, { name: ingText.trim(), amount: ingAmt, unit: ingUnit }]);
+    set('ingredients', [...form.ingredients, { name: ingText.trim(), amount: ingAmt, unit: ingUnit, _key: `ing-new-${Date.now()}` }]);
     setIngText(''); setIngAmt('');
   };
-  const removeIng = (i) => set('ingredients', form.ingredients.filter((_, idx) => idx !== i));
+  const removeIng = (key) => set('ingredients', form.ingredients.filter(x => x._key !== key));
+  const updateIng = (key, field, val) => set('ingredients', form.ingredients.map(x => x._key === key ? { ...x, [field]: val } : x));
+  const moveIng = (key, dir) => {
+    const ings = [...form.ingredients];
+    const i = ings.findIndex(x => x._key === key);
+    const j = i + dir;
+    if (j < 0 || j >= ings.length) return;
+    [ings[i], ings[j]] = [ings[j], ings[i]];
+    set('ingredients', ings);
+  };
 
+  // Steps
   const addStep = () => {
     if (!stepText.trim()) return;
-    set('steps', [...form.steps, stepText.trim()]);
+    set('steps', [...form.steps, { text: stepText.trim(), _key: `step-new-${Date.now()}` }]);
     setStepText('');
   };
-  const removeStep = (i) => set('steps', form.steps.filter((_, idx) => idx !== i));
+  const removeStep = (key) => set('steps', form.steps.filter(x => x._key !== key));
+  const updateStep = (key, val) => set('steps', form.steps.map(x => x._key === key ? { ...x, text: val } : x));
+  const moveStep = (key, dir) => {
+    const steps = [...form.steps];
+    const i = steps.findIndex(x => x._key === key);
+    const j = i + dir;
+    if (j < 0 || j >= steps.length) return;
+    [steps[i], steps[j]] = [steps[j], steps[i]];
+    set('steps', steps);
+  };
+
+  const handleSave = () => {
+    onSave({
+      ...form,
+      ingredients: form.ingredients.map(({ _key, ...rest }) => rest),
+      steps: form.steps.map(({ _key, text }) => text),
+    });
+  };
+
+  const moveBtn = (onClick) => (
+    <button onClick={onClick} style={{ background:'none', border:'none', color:'var(--text-muted)', cursor:'pointer', padding:'0 2px', fontSize:14, lineHeight:1 }}>⇅</button>
+  );
 
   return (
     <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
@@ -49,10 +85,20 @@ function RecipeForm({ initial, onSave, onCancel, saving }) {
         <label className="form-label-sm" style={{ marginBottom:6, display:'block' }}>Ingredients</label>
         <div style={{ display:'flex', flexDirection:'column', gap:2, marginBottom:6 }}>
           {form.ingredients.map((ing, i) => (
-            <div key={i} style={{ display:'flex', alignItems:'center', gap:8, padding:'6px 10px', background:'var(--surface2)', borderRadius:6 }}>
-              <span style={{ flex:1, fontSize:13 }}>{ing.name}</span>
-              <span style={{ fontSize:12, color:'var(--accent)', fontFamily:'var(--font-mono)' }}>{ing.amount} {ing.unit}</span>
-              <button className="icon-btn" onClick={() => removeIng(i)} style={{ color:'#EF4444' }}>×</button>
+            <div key={ing._key} style={{ display:'flex', alignItems:'center', gap:4, padding:'4px 6px', background:'var(--surface2)', borderRadius:6 }}>
+              <div style={{ display:'flex', flexDirection:'column', gap:0 }}>
+                <button onClick={() => moveIng(ing._key, -1)} disabled={i === 0} style={{ background:'none', border:'none', color: i===0 ? 'var(--border)' : 'var(--text-muted)', cursor: i===0 ? 'default' : 'pointer', padding:'1px 3px', fontSize:10, lineHeight:1 }}>▲</button>
+                <button onClick={() => moveIng(ing._key, 1)} disabled={i === form.ingredients.length-1} style={{ background:'none', border:'none', color: i===form.ingredients.length-1 ? 'var(--border)' : 'var(--text-muted)', cursor: i===form.ingredients.length-1 ? 'default' : 'pointer', padding:'1px 3px', fontSize:10, lineHeight:1 }}>▼</button>
+              </div>
+              <input value={ing.name} onChange={e => updateIng(ing._key, 'name', e.target.value)}
+                style={{ flex:1, background:'transparent', border:'none', color:'var(--text)', fontFamily:'var(--font-mono)', fontSize:13, outline:'none', minWidth:0 }}/>
+              <input value={ing.amount} onChange={e => updateIng(ing._key, 'amount', e.target.value)}
+                style={{ width:60, background:'transparent', border:'none', color:'var(--accent)', fontFamily:'var(--font-mono)', fontSize:13, outline:'none', textAlign:'right' }}/>
+              <select value={ing.unit} onChange={e => updateIng(ing._key, 'unit', e.target.value)}
+                style={{ background:'var(--surface)', border:'1px solid var(--border)', color:'var(--text-muted)', fontFamily:'var(--font-mono)', fontSize:11, borderRadius:4, padding:'2px 4px' }}>
+                {UNITS.map(u => <option key={u}>{u}</option>)}
+              </select>
+              <button onClick={() => removeIng(ing._key)} style={{ background:'none', border:'none', color:'#EF4444', cursor:'pointer', padding:'0 4px', fontSize:16, lineHeight:1 }}>×</button>
             </div>
           ))}
         </div>
@@ -72,10 +118,16 @@ function RecipeForm({ initial, onSave, onCancel, saving }) {
         <label className="form-label-sm" style={{ marginBottom:6, display:'block' }}>Steps</label>
         <div style={{ display:'flex', flexDirection:'column', gap:2, marginBottom:6 }}>
           {form.steps.map((step, i) => (
-            <div key={i} style={{ display:'flex', alignItems:'flex-start', gap:8, padding:'6px 10px', background:'var(--surface2)', borderRadius:6 }}>
-              <span style={{ color:'var(--text-muted)', fontSize:11, minWidth:18, textAlign:'right', marginTop:2 }}>{i+1}.</span>
-              <span style={{ flex:1, fontSize:13 }}>{step}</span>
-              <button className="icon-btn" onClick={() => removeStep(i)} style={{ color:'#EF4444' }}>×</button>
+            <div key={step._key} style={{ display:'flex', alignItems:'flex-start', gap:4, padding:'4px 6px', background:'var(--surface2)', borderRadius:6 }}>
+              <div style={{ display:'flex', flexDirection:'column', gap:0, paddingTop:2 }}>
+                <button onClick={() => moveStep(step._key, -1)} disabled={i === 0} style={{ background:'none', border:'none', color: i===0 ? 'var(--border)' : 'var(--text-muted)', cursor: i===0 ? 'default' : 'pointer', padding:'1px 3px', fontSize:10, lineHeight:1 }}>▲</button>
+                <button onClick={() => moveStep(step._key, 1)} disabled={i === form.steps.length-1} style={{ background:'none', border:'none', color: i===form.steps.length-1 ? 'var(--border)' : 'var(--text-muted)', cursor: i===form.steps.length-1 ? 'default' : 'pointer', padding:'1px 3px', fontSize:10, lineHeight:1 }}>▼</button>
+              </div>
+              <span style={{ color:'var(--text-muted)', fontSize:11, minWidth:18, textAlign:'right', marginTop:4, flexShrink:0 }}>{i+1}.</span>
+              <textarea value={step.text} onChange={e => updateStep(step._key, e.target.value)}
+                rows={1}
+                style={{ flex:1, background:'transparent', border:'none', color:'var(--text)', fontFamily:'var(--font-mono)', fontSize:13, outline:'none', resize:'vertical', lineHeight:1.5, padding:'2px 0' }}/>
+              <button onClick={() => removeStep(step._key)} style={{ background:'none', border:'none', color:'#EF4444', cursor:'pointer', padding:'0 4px', fontSize:16, lineHeight:1, marginTop:2 }}>×</button>
             </div>
           ))}
         </div>
@@ -93,7 +145,7 @@ function RecipeForm({ initial, onSave, onCancel, saving }) {
         </label>
         <div style={{ flex:1 }}/>
         <button className="btn-secondary" onClick={onCancel}>Cancel</button>
-        <button className="btn-primary" onClick={() => onSave(form)} disabled={saving || !form.name.trim()}>
+        <button className="btn-primary" onClick={handleSave} disabled={saving || !form.name.trim()}>
           {saving ? 'Saving…' : 'Save'}
         </button>
       </div>
