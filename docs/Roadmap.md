@@ -2,7 +2,9 @@
 
 ## In Progress
 
-_Nothing in progress_
+| # | Title |
+|---|---|
+| #76 | Fix: Web Push notifications not delivered (FCM legacy + missing RFC 8291 encryption) |
 
 ## Backlog
 
