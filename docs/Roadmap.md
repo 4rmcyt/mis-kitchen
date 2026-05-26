@@ -2,10 +2,15 @@
 
 ## In Progress
 
+| # | Title |
+|---|---|
+| #71 | Shift experiment: admin posts daily hypothesis, staff see it, report outcome |
+
 ## Backlog
 
 | # | Title |
 |---|---|
+| #70 | Research: Agile/Scrum restaurant patterns → mis-kitchen features (see [AgileResearch.md](AgileResearch.md)) |
 | #65 | Research: SaaS go-to-market strategy |
 | #64 | Landing page for mis.kitchen |
 | #63 | Billing: Stripe subscription for SaaS |
