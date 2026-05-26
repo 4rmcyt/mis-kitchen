@@ -17,5 +17,5 @@ export {
   completeTask, uncompleteTask, commentTask,
   getDeferredTasks, deferTask, markTaskCarried, deleteDeferred,
 } from './tasks.js';
-export { saveReport, getMyReports, getRestaurantReports, sendReportEmail, getShiftExperiment, setShiftExperiment } from './reports.js';
+export { saveReport, getMyReports, getRestaurantReports, sendReportEmail, getShiftExperiment, setShiftExperiment, getStationVelocity } from './reports.js';
 export { subscribePush, sendPushNotification } from './push.js';
