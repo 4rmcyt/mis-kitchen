@@ -4,7 +4,7 @@
 # Plan on PR, Apply on merge to main/staging
 #
 # Required GitHub Secrets:
-#   TF_VAR_cloudflare_api_token  REDACTED
+#   TF_VAR_cloudflare_api_token
 #   TF_VAR_supabase_access_token
 #   TF_VAR_cloudflare_account_id
 #   TF_VAR_cloudflare_zone_id

@@ -3,7 +3,7 @@
 // Deploy:  supabase functions deploy send-invite
 // Env var: supabase secrets set RESEND_API_KEY=re_xxxx FROM_EMAIL=noreply@yourdomain.com
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const RESEND_API_KEY       = Deno.env.get("RESEND_API_KEY")!;
@@ -13,7 +13,7 @@ const FROM_EMAIL           = Deno.env.get("FROM_EMAIL") ?? "noreply@mis.labhome.
 const APP_URL              = Deno.env.get("APP_URL") ?? "https://mis.labhome.work";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin":  "*",
+  "Access-Control-Allow-Origin": Deno.env.get("APP_ORIGIN") ?? "https://staging.mis-kitchen-prod.pages.dev",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 

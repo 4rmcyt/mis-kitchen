@@ -8,7 +8,7 @@
 //     body: { date: '2026-05-13' }   // optional, defaults to today
 //   })
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")!;
@@ -18,7 +18,7 @@ const FROM_EMAIL     = Deno.env.get("FROM_EMAIL") ?? "reports@yourdomain.com";
 
 // ── CORS headers ─────────────────────────────────────────────
 const corsHeaders = {
-  "Access-Control-Allow-Origin":  "*",
+  "Access-Control-Allow-Origin": Deno.env.get("APP_ORIGIN") ?? "https://staging.mis-kitchen-prod.pages.dev",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 

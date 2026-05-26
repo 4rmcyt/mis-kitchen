@@ -11,9 +11,9 @@
 // Secret for webhook signature verification:
 //   supabase secrets set PUSH_WEBHOOK_SECRET=your_webhook_secret
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { crypto } from "https://deno.land/std@0.168.0/crypto/mod.ts";
+import { crypto } from "https://deno.land/std@0.224.0/crypto/mod.ts";
 
 const PUSH_WEBHOOK_SECRET  = Deno.env.get("PUSH_WEBHOOK_SECRET") ?? "";
 const SUPABASE_URL          = Deno.env.get("SUPABASE_URL")!;
