@@ -1,5 +1,13 @@
+import * as Sentry from '@sentry/react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+
+Sentry.init({
+  dsn: import.meta.env.VITE_SENTRY_DSN,
+  environment: import.meta.env.MODE,
+  tracesSampleRate: 0.2,
+  replaysOnErrorSampleRate: 0,
+})
 import { getSession } from './lib/supabase.js'
 import { useAuth } from './hooks/useAuth.js'
 import App from './App.jsx'
