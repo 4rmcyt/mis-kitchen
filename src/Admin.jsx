@@ -40,7 +40,7 @@ export default function Admin() {
     { id:'reports',  label:'Reports',  icon:'📊' },
     { id:'velocity',     label:'Velocity',  icon:'📈' },
     { id:'improvements', label:'Wins',      icon:'✓'  },
-    { id:'rota',     label:'Rota',     icon:'📅' },
+    { id:'rota',     label:'Schedule',  icon:'📅' },
     { id:'push',     label:'Notify',   icon:'🔔' },
   ];
 
