@@ -12,6 +12,7 @@ import { ReportsTab } from "./admin/tabs/ReportsTab.jsx";
 import { PushTab } from "./admin/tabs/PushTab.jsx";
 import { VelocityTab } from "./admin/tabs/VelocityTab.jsx";
 import { ImprovementsTab } from "./admin/tabs/ImprovementsTab.jsx";
+import { RotaTab } from "./admin/tabs/RotaTab.jsx";
 
 export default function Admin() {
   const [tab, setTab] = useState('people');
@@ -39,6 +40,7 @@ export default function Admin() {
     { id:'reports',  label:'Reports',  icon:'📊' },
     { id:'velocity',     label:'Velocity',  icon:'📈' },
     { id:'improvements', label:'Wins',      icon:'✓'  },
+    { id:'rota',     label:'Rota',     icon:'📅' },
     { id:'push',     label:'Notify',   icon:'🔔' },
   ];
 
@@ -93,6 +95,7 @@ export default function Admin() {
         {tab === 'reports'  && <ReportsTab/>}
         {tab === 'velocity'     && <VelocityTab/>}
         {tab === 'improvements' && <ImprovementsTab/>}
+        {tab === 'rota'     && <RotaTab/>}
         {tab === 'push'     && <PushTab/>}
       </main>
 

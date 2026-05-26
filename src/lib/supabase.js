@@ -20,3 +20,4 @@ export {
 export { saveReport, getMyReports, getRestaurantReports, sendReportEmail, getShiftExperiment, setShiftExperiment, getStationVelocity } from './reports.js';
 export { subscribePush, sendPushNotification } from './push.js';
 export { getImprovementLogs, addImprovementLog, deleteImprovementLog } from './improvements.js';
+export { getShifts, createShift, deleteShift, getTodayShifts } from './shifts.js';
