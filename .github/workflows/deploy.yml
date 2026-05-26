@@ -110,7 +110,7 @@ jobs:
 
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v2
-        with: { version: latest }
+        with: { version: 2.101.0 }
 
       - name: Run migrations (staging)
         if: github.ref == 'refs/heads/staging'
@@ -140,7 +140,7 @@ jobs:
 
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v2
-        with: { version: latest }
+        with: { version: 2.101.0 }
 
       - name: Deploy functions (staging)
         if: github.ref == 'refs/heads/staging'
