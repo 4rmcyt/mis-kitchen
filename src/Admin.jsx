@@ -11,6 +11,7 @@ import { RecipesTab } from "./admin/tabs/RecipesTab.jsx";
 import { ReportsTab } from "./admin/tabs/ReportsTab.jsx";
 import { PushTab } from "./admin/tabs/PushTab.jsx";
 import { VelocityTab } from "./admin/tabs/VelocityTab.jsx";
+import { ImprovementsTab } from "./admin/tabs/ImprovementsTab.jsx";
 
 export default function Admin() {
   const [tab, setTab] = useState('people');
@@ -36,7 +37,8 @@ export default function Admin() {
     { id:'tasks',    label:'Tasks',    icon:'✓'  },
     { id:'recipes',  label:'Recipes',  icon:'⚗'  },
     { id:'reports',  label:'Reports',  icon:'📊' },
-    { id:'velocity',  label:'Velocity',  icon:'📈' },
+    { id:'velocity',     label:'Velocity',  icon:'📈' },
+    { id:'improvements', label:'Wins',      icon:'✓'  },
     { id:'push',     label:'Notify',   icon:'🔔' },
   ];
 
@@ -89,7 +91,8 @@ export default function Admin() {
         {tab === 'tasks'    && <TasksTab/>}
         {tab === 'recipes'  && <RecipesTab/>}
         {tab === 'reports'  && <ReportsTab/>}
-        {tab === 'velocity' && <VelocityTab/>}
+        {tab === 'velocity'     && <VelocityTab/>}
+        {tab === 'improvements' && <ImprovementsTab/>}
         {tab === 'push'     && <PushTab/>}
       </main>
 

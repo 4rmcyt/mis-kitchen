@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getTasks, createTask, createTasksBatch, completeTask, uncompleteTask, commentTask, deleteTask, getDefaultDayTemplate, getShiftExperiment } from "../lib/supabase.js";
+import { getTasks, createTask, createTasksBatch, completeTask, uncompleteTask, commentTask, deleteTask, getDefaultDayTemplate, getShiftExperiment, getImprovementLogs } from "../lib/supabase.js";
 import { STATIONS, STATION_COLORS, SECTIONS, SECTION_COLORS } from "../lib/constants.js";
 import { AddTaskModal } from "../components/AddTaskModal.jsx";
 import { ReportModal } from "../components/ReportModal.jsx";
@@ -34,11 +34,13 @@ export function TodayScreen({ userStation = 'Common', userRole }) {
   const [commentingId, setCommentingId] = useState(null);
   const [commentText, setCommentText] = useState('');
   const [experiment, setExperiment] = useState(null);
+  const [improvements, setImprovements] = useState([]);
 
   const selectedDate = dateStr(dateOffset);
 
   useEffect(() => {
     getShiftExperiment().then(setExperiment).catch(() => {});
+    getImprovementLogs(3).then(setImprovements).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -154,6 +156,17 @@ export function TodayScreen({ userStation = 'Common', userRole }) {
             <div style={{ fontSize:11, color:'#F97316', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:3 }}>Today&apos;s experiment</div>
             <div style={{ fontSize:13, color:'var(--text)', lineHeight:1.4 }}>{experiment}</div>
           </div>
+        </div>
+      )}
+
+      {improvements.length > 0 && (
+        <div style={{ margin:'0 0 12px', padding:'10px 14px', background:'rgba(16,185,129,0.07)', border:'1px solid rgba(16,185,129,0.2)', borderRadius:'var(--radius)' }}>
+          <div style={{ fontSize:11, color:'#10B981', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:6 }}>✓ Recent wins</div>
+          {improvements.map((log, i) => (
+            <div key={log.id} style={{ fontSize:13, color:'var(--text)', lineHeight:1.4, padding:'3px 0', borderTop: i > 0 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
+              {log.text}
+            </div>
+          ))}
         </div>
       )}
 

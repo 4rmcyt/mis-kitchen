@@ -19,3 +19,4 @@ export {
 } from './tasks.js';
 export { saveReport, getMyReports, getRestaurantReports, sendReportEmail, getShiftExperiment, setShiftExperiment, getStationVelocity } from './reports.js';
 export { subscribePush, sendPushNotification } from './push.js';
+export { getImprovementLogs, addImprovementLog, deleteImprovementLog } from './improvements.js';
