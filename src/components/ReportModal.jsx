@@ -1,15 +1,23 @@
 import { useState } from "react";
 import { saveReport, sendReportEmail } from "../lib/supabase.js";
 
-export function ReportModal({ sections, nextShift, pct, done, total, date, onClose }) {
+export function ReportModal({ sections, nextShift, pct, done, total, date, experiment, onClose }) {
   const [state, setState] = useState('idle');
   const [errMsg, setErrMsg] = useState('');
+  const [experimentOutcome, setExperimentOutcome] = useState(null);
+  const [experimentNote, setExperimentNote] = useState('');
   const pctColor = pct >= 90 ? '#10B981' : pct >= 70 ? '#F97316' : '#EF4444';
 
   const handleSend = async () => {
     setState('saving');
     try {
-      await saveReport({ sections, nextShift });
+      await saveReport({
+        sections,
+        nextShift,
+        experimentText: experiment || null,
+        experimentOutcome: experimentOutcome || null,
+        experimentNote: experimentNote.trim() || null,
+      });
       await sendReportEmail(date);
       setState('sent');
     } catch (e) {
@@ -55,6 +63,29 @@ export function ReportModal({ sections, nextShift, pct, done, total, date, onClo
                     <span style={{ flex:1 }}>{t}</span>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {experiment && (
+              <div style={{ marginTop:16, padding:'12px 14px', background:'rgba(249,115,22,0.08)', border:'1px solid rgba(249,115,22,0.25)', borderRadius:'var(--radius)' }}>
+                <div style={{ fontSize:11, color:'#F97316', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:6 }}>🧪 Today's experiment</div>
+                <div style={{ fontSize:13, color:'var(--text)', marginBottom:12, lineHeight:1.4 }}>{experiment}</div>
+                <div style={{ fontSize:12, color:'var(--text-muted)', marginBottom:8 }}>Did it work?</div>
+                <div style={{ display:'flex', gap:8, marginBottom:10 }}>
+                  {[['yes','✓ Yes','#10B981'],['no','✗ No','#EF4444'],['not_tried','— Not tried','#6B7280']].map(([val, label, color]) => (
+                    <button key={val} onClick={() => setExperimentOutcome(v => v === val ? null : val)}
+                      style={{ flex:1, padding:'6px 4px', borderRadius:6, fontSize:12, fontWeight:600, cursor:'pointer', border:`1px solid ${experimentOutcome===val ? color : 'var(--border)'}`, background: experimentOutcome===val ? color+'22' : 'transparent', color: experimentOutcome===val ? color : 'var(--text-muted)', transition:'all 0.15s' }}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <input
+                  className="add-input"
+                  placeholder="Optional note…"
+                  value={experimentNote}
+                  onChange={e => setExperimentNote(e.target.value)}
+                  style={{ width:'100%', boxSizing:'border-box', fontSize:12 }}
+                />
               </div>
             )}
 

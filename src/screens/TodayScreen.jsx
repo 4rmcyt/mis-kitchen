@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getTasks, createTask, createTasksBatch, completeTask, uncompleteTask, commentTask, deleteTask, getDefaultDayTemplate } from "../lib/supabase.js";
+import { getTasks, createTask, createTasksBatch, completeTask, uncompleteTask, commentTask, deleteTask, getDefaultDayTemplate, getShiftExperiment } from "../lib/supabase.js";
 import { STATIONS, STATION_COLORS, SECTIONS, SECTION_COLORS } from "../lib/constants.js";
 import { AddTaskModal } from "../components/AddTaskModal.jsx";
 import { ReportModal } from "../components/ReportModal.jsx";
@@ -33,9 +33,13 @@ export function TodayScreen({ userStation = 'Common', userRole }) {
   const [showReport, setShowReport] = useState(false);
   const [commentingId, setCommentingId] = useState(null);
   const [commentText, setCommentText] = useState('');
+  const [experiment, setExperiment] = useState(null);
 
   const selectedDate = dateStr(dateOffset);
 
+  useEffect(() => {
+    getShiftExperiment().then(setExperiment).catch(() => {});
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -143,6 +147,16 @@ export function TodayScreen({ userStation = 'Common', userRole }) {
         ))}
       </div>
 
+      {experiment && (
+        <div style={{ margin:'0 0 12px', padding:'10px 14px', background:'rgba(249,115,22,0.08)', border:'1px solid rgba(249,115,22,0.25)', borderRadius:'var(--radius)', display:'flex', gap:10, alignItems:'flex-start' }}>
+          <span style={{ fontSize:15, flexShrink:0 }}>🧪</span>
+          <div>
+            <div style={{ fontSize:11, color:'#F97316', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:3 }}>Today's experiment</div>
+            <div style={{ fontSize:13, color:'var(--text)', lineHeight:1.4 }}>{experiment}</div>
+          </div>
+        </div>
+      )}
+
       {loading && <div style={{ textAlign:'center', padding:40, color:'var(--text-muted)', fontSize:13 }}>Loading…</div>}
 
       {!loading && totalAll === 0 && (
@@ -219,6 +233,7 @@ export function TodayScreen({ userStation = 'Common', userRole }) {
           done={totalDone}
           total={totalAll}
           date={dateStr(dateOffset)}
+          experiment={experiment}
           onClose={() => setShowReport(false)}
         />
       )}

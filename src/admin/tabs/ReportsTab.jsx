@@ -27,6 +27,9 @@ export function ReportsTab() {
         total: r.total_count,
         next_shift: r.next_shift || [],
         sections: r.sections || [],
+        experiment_text: r.experiment_text || null,
+        experiment_outcome: r.experiment_outcome || null,
+        experiment_note: r.experiment_note || null,
       }))))
       .catch(e => toast(e.message, 'error'));
   }, [dateFilter]);
@@ -125,6 +128,25 @@ export function ReportsTab() {
                 </div>
               ))}
             </div>
+            {selected.experiment_text && (
+              <div style={{ background:'rgba(249,115,22,0.06)', border:'1px solid rgba(249,115,22,0.2)', borderRadius:8, padding:12 }}>
+                <div style={{ fontSize:11, color:'#F97316', textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:6 }}>🧪 Experiment</div>
+                <div style={{ fontSize:13, color:'var(--text)', marginBottom:8, lineHeight:1.4 }}>{selected.experiment_text}</div>
+                {selected.experiment_outcome && (
+                  <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                    <span style={{
+                      fontSize:12, fontWeight:700, padding:'2px 10px', borderRadius:4,
+                      background: selected.experiment_outcome==='yes' ? '#10B98122' : selected.experiment_outcome==='no' ? '#EF444422' : '#6B728022',
+                      color: selected.experiment_outcome==='yes' ? '#10B981' : selected.experiment_outcome==='no' ? '#EF4444' : '#9CA3AF',
+                    }}>
+                      {selected.experiment_outcome==='yes' ? '✓ Worked' : selected.experiment_outcome==='no' ? '✗ Didn\'t work' : '— Not tried'}
+                    </span>
+                    {selected.experiment_note && <span style={{ fontSize:12, color:'var(--text-muted)', fontStyle:'italic' }}>{selected.experiment_note}</span>}
+                  </div>
+                )}
+              </div>
+            )}
+
             {selected.next_shift.length > 0 && (
               <div style={{ background:'rgba(99,102,241,0.06)', border:'1px solid rgba(99,102,241,0.2)', borderRadius:8, padding:12 }}>
                 <div style={{ fontSize:11, color:'#6366F1', textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:8 }}>→ Deferred to next shift</div>

@@ -1,6 +1,6 @@
 import { supabase, q, getCurrentProfile } from './client.js';
 
-export async function saveReport({ sections, nextShift }) {
+export async function saveReport({ sections, nextShift, experimentText, experimentOutcome, experimentNote }) {
   try {
     const profile = await getCurrentProfile();
     const allItems = sections.flatMap(s => s.items);
@@ -11,14 +11,17 @@ export async function saveReport({ sections, nextShift }) {
 
     return q(() =>
       supabase.from("daily_reports").upsert({
-        user_id:       profile.id,
-        restaurant_id: profile.restaurant_id,
-        date:          new Date().toISOString().split("T")[0],
+        user_id:            profile.id,
+        restaurant_id:      profile.restaurant_id,
+        date:               new Date().toISOString().split("T")[0],
         sections,
-        next_shift:    nextShift,
+        next_shift:         nextShift,
         completed_pct,
         completed_count,
         total_count,
+        experiment_text:    experimentText || null,
+        experiment_outcome: experimentOutcome || null,
+        experiment_note:    experimentNote || null,
       }, { onConflict: "user_id,date" }).select().single()
     );
   } catch (err) {
@@ -42,6 +45,25 @@ export async function getRestaurantReports(date) {
       .select("*, profiles(name, station)")
       .eq("date", date)
       .order("completed_pct", { ascending: false })
+  );
+}
+
+export async function getShiftExperiment() {
+  const profile = await getCurrentProfile();
+  return q(() =>
+    supabase.from("restaurants")
+      .select("shift_experiment")
+      .eq("id", profile.restaurant_id)
+      .single()
+  ).then(r => r?.shift_experiment ?? null);
+}
+
+export async function setShiftExperiment(text) {
+  const profile = await getCurrentProfile();
+  return q(() =>
+    supabase.from("restaurants")
+      .update({ shift_experiment: text || null })
+      .eq("id", profile.restaurant_id)
   );
 }
 

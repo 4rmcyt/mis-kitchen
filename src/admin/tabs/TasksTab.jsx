@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getDayTemplates, createDayTemplate, updateDayTemplate, deleteDayTemplate, createTasksBatch } from "../../lib/supabase.js";
+import { getDayTemplates, createDayTemplate, updateDayTemplate, deleteDayTemplate, createTasksBatch, getShiftExperiment, setShiftExperiment } from "../../lib/supabase.js";
 import { STATIONS, STATION_COLORS, SECTIONS, SECTION_COLORS } from "../../lib/constants.js";
 import { useToast } from "../components/Toast.jsx";
 import { useConfirm } from "../components/Confirm.jsx";
@@ -16,10 +16,37 @@ export function TasksTab() {
   const [newText, setNewText] = useState('');
   const [newStation, setNewStation] = useState('Common');
   const [newSection, setNewSection] = useState('Opening');
+  const [experiment, setExperiment] = useState('');
+  const [experimentSaved, setExperimentSaved] = useState('');
+  const [experimentSaving, setExperimentSaving] = useState(false);
   const { show: toast } = useToast();
   const { confirm, dialog: confirmDialog } = useConfirm();
 
-  useEffect(() => { getDayTemplates().then(setDayTemplates).catch(e => toast(e.message, 'error')); }, []);
+  useEffect(() => {
+    getDayTemplates().then(setDayTemplates).catch(e => toast(e.message, 'error'));
+    getShiftExperiment().then(v => { setExperiment(v || ''); setExperimentSaved(v || ''); }).catch(() => {});
+  }, []);
+
+  const saveExperiment = async () => {
+    setExperimentSaving(true);
+    try {
+      await setShiftExperiment(experiment.trim());
+      setExperimentSaved(experiment.trim());
+      toast('Experiment saved', 'success');
+    } catch (e) { toast(e.message, 'error'); }
+    setExperimentSaving(false);
+  };
+
+  const clearExperiment = async () => {
+    setExperimentSaving(true);
+    try {
+      await setShiftExperiment('');
+      setExperiment('');
+      setExperimentSaved('');
+      toast('Experiment cleared', 'success');
+    } catch (e) { toast(e.message, 'error'); }
+    setExperimentSaving(false);
+  };
 
   const createTemplate = async () => {
     if (!newName.trim()) return;
@@ -122,6 +149,27 @@ export function TasksTab() {
 
   return (
     <div className="tab-content">
+      <div style={{ padding:'14px 16px', background:'rgba(249,115,22,0.06)', border:'1px solid rgba(249,115,22,0.2)', borderRadius:'var(--radius)', marginBottom:16 }}>
+        <div style={{ fontSize:12, color:'#F97316', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:8 }}>🧪 Today's experiment</div>
+        <div style={{ fontSize:12, color:'var(--text-muted)', marginBottom:8 }}>Staff will see this as a banner on their Today screen.</div>
+        <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+          <input
+            className="search-inp"
+            style={{ flex:1, maxWidth:'none' }}
+            placeholder="e.g. Greet every table within 60 seconds of seating…"
+            value={experiment}
+            onChange={e => setExperiment(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && saveExperiment()}
+          />
+          <button className="btn-primary" style={{ flexShrink:0 }} onClick={saveExperiment} disabled={experimentSaving || experiment.trim() === experimentSaved}>
+            {experimentSaving ? 'Saving…' : 'Save'}
+          </button>
+          {experimentSaved && (
+            <button className="btn-secondary" style={{ flexShrink:0 }} onClick={clearExperiment} disabled={experimentSaving}>Clear</button>
+          )}
+        </div>
+      </div>
+
       <div className="stat-row">
         <div className="stat-card"><div className="stat-val">{dayTemplates.length}</div><div className="stat-lbl">Templates</div></div>
         <div className="stat-card"><div className="stat-val">{dayTemplates.reduce((a,d) => a+(d.entries?.length||0), 0)}</div><div className="stat-lbl">Total Tasks</div></div>
