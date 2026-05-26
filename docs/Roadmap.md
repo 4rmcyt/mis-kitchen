@@ -2,15 +2,12 @@
 
 ## In Progress
 
-| # | Title |
-|---|---|
-| #71 | Shift experiment: admin posts daily hypothesis, staff see it, report outcome |
+_Nothing in progress_
 
 ## Backlog
 
 | # | Title |
 |---|---|
-| #70 | Research: Agile/Scrum restaurant patterns → mis-kitchen features (see [AgileResearch.md](AgileResearch.md)) |
 | #65 | Research: SaaS go-to-market strategy |
 | #64 | Landing page for mis.kitchen |
 | #63 | Billing: Stripe subscription for SaaS |
@@ -32,6 +29,13 @@
 
 | # | Title |
 |---|---|
+| #75 | ROTA schedule builder — weekly shift grid |
+| #74 | T-shaped skills tracker — coverage matrix + secondary stations |
+| #73 | Improvement log — admin posts wins, staff see recent wins |
+| #72 | Task velocity / station burndown — heatmap by station × day |
+| #71 | Shift experiment: admin posts daily hypothesis, staff see it, report outcome |
+| #70 | Research: Agile/Scrum restaurant patterns → mis-kitchen features |
+| #69 | Recipe editor: inline edit ingredients/steps + reorder |
 | #68 | Fix: full-width desktop layout + default station filter All |
 | #66 | Temperature log tab |
 | #47 | Timer tab |
