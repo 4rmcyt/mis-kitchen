@@ -21,9 +21,10 @@ export async function getRestaurantProfiles() {
 
 export async function adminUpdateProfile(userId, updates) {
   const allowed = {
-    ...(updates.role   !== undefined && { role:   updates.role }),
-    ...(updates.station !== undefined && { station: updates.station }),
-    ...(updates.active !== undefined && { active:  updates.active }),
+    ...(updates.role                !== undefined && { role:                updates.role }),
+    ...(updates.station             !== undefined && { station:             updates.station }),
+    ...(updates.active              !== undefined && { active:              updates.active }),
+    ...(updates.secondary_stations  !== undefined && { secondary_stations:  updates.secondary_stations }),
   };
   return q(() =>
     supabase.from("profiles").update(allowed).eq("id", userId).select().single()

@@ -170,6 +170,38 @@ export function PeopleTab() {
         </table>
       </div>
 
+      {/* Coverage matrix: which stations have backup */}
+      {users.length > 0 && (() => {
+        const workStations = STATIONS.filter(s => s !== 'Common');
+        return (
+          <div className="coverage-matrix" style={{ marginTop: 24, padding: '14px 16px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)' }}>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 }}>Station coverage</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {workStations.map(st => {
+                const primary = users.filter(u => u.active && u.station === st);
+                const backup  = users.filter(u => u.active && u.station !== st && (u.secondary_stations || []).includes(st));
+                const covered = primary.length > 0 || backup.length > 0;
+                return (
+                  <div key={st} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: covered ? '#10B981' : '#EF4444', flexShrink: 0 }}/>
+                    <span style={{ fontSize: 13, width: 72, flexShrink: 0 }}>{st}</span>
+                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', flex: 1 }}>
+                      {primary.map(u => (
+                        <span key={u.id} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 4, background: (STATION_COLORS[st]||'#888')+'22', color: STATION_COLORS[st]||'#888', fontWeight: 600 }}>{(u.name||'?').split(' ')[0]}</span>
+                      ))}
+                      {backup.map(u => (
+                        <span key={u.id} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 4, background: 'var(--surface2)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}>{(u.name||'?').split(' ')[0]} ✓</span>
+                      ))}
+                      {!covered && <span style={{ fontSize: 11, color: '#EF4444' }}>No coverage!</span>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
+
       {selected && (
         <Modal title="User Details" onClose={() => setSelected(null)}>
           <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
@@ -193,6 +225,32 @@ export function PeopleTab() {
               <select className="form-sel" value={selected.station} onChange={e => setSelected(s => ({...s, station: e.target.value}))}>
                 {STATIONS.map(st => <option key={st}>{st}</option>)}
               </select>
+            </div>
+            <div className="form-row">
+              <label className="form-label-sm">Also trained for</label>
+              <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginTop:4 }}>
+                {STATIONS.filter(st => st !== 'Common' && st !== selected.station).map(st => {
+                  const active = (selected.secondary_stations || []).includes(st);
+                  return (
+                    <button key={st} onClick={async () => {
+                      const current = selected.secondary_stations || [];
+                      const next = active ? current.filter(s => s !== st) : [...current, st];
+                      try {
+                        await adminUpdateProfile(selected.id, { secondary_stations: next });
+                        setUsers(us => us.map(u => u.id === selected.id ? { ...u, secondary_stations: next } : u));
+                        setSelected(s => ({ ...s, secondary_stations: next }));
+                      } catch (e) { toast(e.message, 'error'); }
+                    }} style={{
+                      padding:'4px 10px', borderRadius:6, fontSize:12, fontWeight:600, cursor:'pointer',
+                      border:`1px solid ${active ? STATION_COLORS[st]||'#888' : 'var(--border)'}`,
+                      background: active ? (STATION_COLORS[st]||'#888')+'22' : 'transparent',
+                      color: active ? STATION_COLORS[st]||'#888' : 'var(--text-muted)',
+                    }}>
+                      {st}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
             <div style={{ background:'var(--surface2)', borderRadius:8, padding:12, display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12 }}>
               <div style={{ textAlign:'center' }}><div style={{ fontSize:22, fontWeight:700, color: selected.active ? '#10B981' : '#555', fontFamily:'var(--font-display)' }}>{selected.active ? 'ON' : 'OFF'}</div><div style={{ fontSize:10, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.5px' }}>Status</div></div>
