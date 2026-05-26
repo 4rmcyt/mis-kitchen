@@ -150,7 +150,7 @@ export function TasksTab() {
   return (
     <div className="tab-content">
       <div style={{ padding:'14px 16px', background:'rgba(249,115,22,0.06)', border:'1px solid rgba(249,115,22,0.2)', borderRadius:'var(--radius)', marginBottom:16 }}>
-        <div style={{ fontSize:12, color:'#F97316', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:8 }}>🧪 Today's experiment</div>
+        <div style={{ fontSize:12, color:'#F97316', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:8 }}>🧪 Today&apos;s experiment</div>
         <div style={{ fontSize:12, color:'var(--text-muted)', marginBottom:8 }}>Staff will see this as a banner on their Today screen.</div>
         <div style={{ display:'flex', gap:8, alignItems:'center' }}>
           <input

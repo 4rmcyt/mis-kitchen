@@ -68,7 +68,7 @@ export function ReportModal({ sections, nextShift, pct, done, total, date, exper
 
             {experiment && (
               <div style={{ marginTop:16, padding:'12px 14px', background:'rgba(249,115,22,0.08)', border:'1px solid rgba(249,115,22,0.25)', borderRadius:'var(--radius)' }}>
-                <div style={{ fontSize:11, color:'#F97316', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:6 }}>🧪 Today's experiment</div>
+                <div style={{ fontSize:11, color:'#F97316', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:6 }}>🧪 Today&apos;s experiment</div>
                 <div style={{ fontSize:13, color:'var(--text)', marginBottom:12, lineHeight:1.4 }}>{experiment}</div>
                 <div style={{ fontSize:12, color:'var(--text-muted)', marginBottom:8 }}>Did it work?</div>
                 <div style={{ display:'flex', gap:8, marginBottom:10 }}>

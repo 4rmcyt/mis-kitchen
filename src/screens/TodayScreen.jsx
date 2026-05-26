@@ -151,7 +151,7 @@ export function TodayScreen({ userStation = 'Common', userRole }) {
         <div style={{ margin:'0 0 12px', padding:'10px 14px', background:'rgba(249,115,22,0.08)', border:'1px solid rgba(249,115,22,0.25)', borderRadius:'var(--radius)', display:'flex', gap:10, alignItems:'flex-start' }}>
           <span style={{ fontSize:15, flexShrink:0 }}>🧪</span>
           <div>
-            <div style={{ fontSize:11, color:'#F97316', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:3 }}>Today's experiment</div>
+            <div style={{ fontSize:11, color:'#F97316', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:3 }}>Today&apos;s experiment</div>
             <div style={{ fontSize:13, color:'var(--text)', lineHeight:1.4 }}>{experiment}</div>
           </div>
         </div>
