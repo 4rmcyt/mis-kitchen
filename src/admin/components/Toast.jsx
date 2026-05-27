@@ -4,8 +4,8 @@ export const ToastContext = createContext(null);
 
 export function useToast() {
   const ctx = useContext(ToastContext);
-  if (ctx) return { show: ctx.show };
   const [toasts, setToasts] = useState([]);
+  if (ctx) return { show: ctx.show };
   const show = (msg, type = "info") => {
     const id = Math.random().toString(36).slice(2);
     setToasts(t => [...t, { id, msg, type }]);

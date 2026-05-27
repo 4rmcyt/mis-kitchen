@@ -69,14 +69,14 @@ export function TodayScreen({ userStation = 'Common', userRole }) {
         ? await uncompleteTask(task.id)
         : await completeTask(task.id);
       setTasks(ts => ts.map(t => t.id === task.id ? { ...t, ...updated } : t));
-    } catch {}
+    } catch (_e) { /* noop */ }
   };
 
   const handleAddTask = async ({ text, station, section, date }) => {
     try {
       const task = await createTask({ text, station, section, date, source: 'manual' });
       if (date === selectedDate) setTasks(ts => [...ts, task]);
-    } catch {}
+    } catch (_e) { /* noop */ }
   };
 
   const saveComment = async (taskId) => {
@@ -85,14 +85,14 @@ export function TodayScreen({ userStation = 'Common', userRole }) {
       setTasks(ts => ts.map(t => t.id === taskId ? { ...t, ...updated } : t));
       setCommentingId(null);
       setCommentText('');
-    } catch {}
+    } catch (_e) { /* noop */ }
   };
 
   const handleDelete = async (taskId) => {
     try {
       await deleteTask(taskId);
       setTasks(ts => ts.filter(t => t.id !== taskId));
-    } catch {}
+    } catch (_e) { /* noop */ }
   };
 
   const isAdmin = userRole === 'admin' || userRole === 'superadmin';

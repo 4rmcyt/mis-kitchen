@@ -56,7 +56,7 @@ export function PeopleTab() {
       }
 
       const token = crypto.randomUUID();
-      const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+      const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(); // eslint-disable-line react-hooks/purity
       const { error: invErr } = await supabase.from('invites').insert({
         restaurant_id: myProfile.restaurant_id,
         invited_by: me.id,
@@ -259,7 +259,7 @@ export function PeopleTab() {
               <button className="btn-secondary" style={{ flex:1 }} onClick={async () => {
                 setLoading(true);
                 try {
-                  await new Promise(r => setTimeout(r, 600));
+                  await new Promise(r => { setTimeout(r, 600); });
                   toast(`Reset email sent to ${selected.email}`, 'success');
                 } catch {
                   toast('Failed to send reset email', 'error');

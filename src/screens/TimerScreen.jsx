@@ -90,7 +90,7 @@ function TimerCard({ timer }) {
           osc.start(ctx.currentTime + delay);
           osc.stop(ctx.currentTime + delay + 0.12);
         });
-      } catch {}
+      } catch (_e) { /* noop */ }
     }
     if (!timer.done) beepRef.current = false;
   }, [timer.done]);
