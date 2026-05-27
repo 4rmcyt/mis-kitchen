@@ -51,18 +51,13 @@ When('I add ingredient {string} with amount {string} and unit {string}', async f
 });
 
 When('I change ingredient {int} name to {string}', async function (index, name) {
-  const rows = this.page.locator('div').filter({ hasText: /^[▲▼]/ }).nth(index - 1)
-    .locator('..').locator('input').first();
-  // ingredient rows: find all inline name inputs (transparent bg, no placeholder)
-  const inputs = this.page.locator('input[style*="transparent"]');
-  const nameInput = inputs.nth((index - 1) * 2); // name is even index, amount is odd
+  const nameInput = this.page.locator('.recipe-ing-name-inp').nth(index - 1);
   await nameInput.click({ clickCount: 3 });
   await nameInput.fill(name);
 });
 
 When('I change ingredient {int} amount to {string}', async function (index, amount) {
-  const inputs = this.page.locator('input[style*="transparent"]');
-  const amountInput = inputs.nth((index - 1) * 2 + 1);
+  const amountInput = this.page.locator('.recipe-ing-amt-inp').nth(index - 1);
   await amountInput.click({ clickCount: 3 });
   await amountInput.fill(amount);
 });
@@ -74,20 +69,19 @@ When('I move ingredient {int} down', async function (index) {
 });
 
 Then('I should see ingredient {string} with amount {string}', async function (name, amount) {
-  const inputs = this.page.locator('input[style*="transparent"]');
-  const count = await inputs.count();
+  const nameInputs = this.page.locator('.recipe-ing-name-inp');
+  const count = await nameInputs.count();
   let found = false;
-  for (let i = 0; i < count; i += 2) {
-    const val = await inputs.nth(i).inputValue();
-    const amt = await inputs.nth(i + 1).inputValue();
+  for (let i = 0; i < count; i++) {
+    const val = await nameInputs.nth(i).inputValue();
+    const amt = await this.page.locator('.recipe-ing-amt-inp').nth(i).inputValue();
     if (val === name && amt === amount) { found = true; break; }
   }
   expect(found).toBe(true);
 });
 
 Then('ingredient {int} should be {string}', async function (index, name) {
-  const inputs = this.page.locator('input[style*="transparent"]');
-  const val = await inputs.nth((index - 1) * 2).inputValue();
+  const val = await this.page.locator('.recipe-ing-name-inp').nth(index - 1).inputValue();
   expect(val).toBe(name);
 });
 
