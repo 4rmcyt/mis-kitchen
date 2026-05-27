@@ -172,6 +172,10 @@ html,body,#root{height:100%;background:var(--bg);color:var(--text);font-family:v
 .push-card-title{font-family:var(--font-display);font-size:13px;font-weight:700}
 .push-card-sub{font-size:11px;color:var(--text-muted);margin-top:2px}
 .push-char-count{font-size:11px}
+.push-debug{margin-top:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.push-debug-row{display:flex;justify-content:space-between;font-size:12px}
+.text-success{color:#4ade80}
+.text-error{color:var(--accent)}
 .form-label-row{display:flex;justify-content:space-between;margin-bottom:6px}
 .mb-6{margin-bottom:6px}
 .mb-10{margin-bottom:10px}
