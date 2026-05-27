@@ -26,11 +26,12 @@ export default function Admin() {
   };
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      supabase.from('profiles').select('name,role').eq('id', user.id).single()
-        .then(({ data }) => { if (data) setMe(data); });
-    });
+      const { data } = await supabase.from('profiles').select('name,role').eq('id', user.id).single();
+      if (data) setMe(data);
+    })();
   }, []);
 
   const TABS = [

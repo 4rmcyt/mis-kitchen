@@ -20,11 +20,16 @@ export function VelocityTab() {
   const { show: toast } = useToast();
 
   useEffect(() => {
-    setLoading(true);
-    getStationVelocity(range)
-      .then(setRows)
-      .catch(e => toast(e.message, 'error'))
-      .finally(() => setLoading(false));
+    (async () => {
+      setLoading(true);
+      try {
+        setRows(await getStationVelocity(range));
+      } catch (e) {
+        toast(e.message, 'error');
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [range]);
 
   // Build matrix: station → day_of_week → avg pct

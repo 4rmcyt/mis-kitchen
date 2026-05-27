@@ -19,12 +19,12 @@ export default function Onboarding({ user, onDone }) {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    supabase.from('profiles').select('password_set').eq('id', user.id).single()
-      .then(({ data }) => {
-        const needsPassword = !data?.password_set
-        setShowPasswordStep(needsPassword)
-        setStep(needsPassword ? 'password' : 'welcome')
-      })
+    (async () => {
+      const { data } = await supabase.from('profiles').select('password_set').eq('id', user.id).single();
+      const needsPassword = !data?.password_set;
+      setShowPasswordStep(needsPassword);
+      setStep(needsPassword ? 'password' : 'welcome');
+    })();
   }, [user.id])
 
   const allSteps = showPasswordStep

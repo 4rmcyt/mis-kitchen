@@ -38,15 +38,18 @@ export function RotaTab() {
   const { show: toast } = useToast();
 
   useEffect(() => {
-    setLoading(true);
-    Promise.all([
-      getShifts(weekStart),
-      getRestaurantProfiles(),
-    ]).then(([s, u]) => {
-      setShifts(s || []);
-      setUsers((u || []).filter(u => u.active));
-    }).catch(e => toast(e.message, 'error'))
-      .finally(() => setLoading(false));
+    (async () => {
+      setLoading(true);
+      try {
+        const [s, u] = await Promise.all([getShifts(weekStart), getRestaurantProfiles()]);
+        setShifts(s || []);
+        setUsers((u || []).filter(u => u.active));
+      } catch (e) {
+        toast(e.message, 'error');
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [weekStart]);
 
   const weekDates = DAYS.map((_, i) => addDays(weekStart, i));

@@ -18,7 +18,7 @@ export function TempScreen() {
   const [flash, setFlash]       = useState(null);
 
   useEffect(() => {
-    getTempLogs(today()).then(data => setLogs(data || []));
+    getTempLogs(today()).then(data => setLogs(data || [])).catch(() => {});
   }, []);
 
   async function handleSave() {

@@ -17,21 +17,26 @@ export function ReportsTab() {
     const date = dateFilter === 'Today'
       ? new Date().toISOString().split('T')[0]
       : new Date(Date.now() - 86400000).toISOString().split('T')[0];
-    getRestaurantReports(date)
-      .then(data => setReports((data || []).map(r => ({
-        ...r,
-        name: r.profiles?.name || 'Unknown',
-        station: r.profiles?.station || '—',
-        pct: r.completed_pct,
-        done: r.completed_count,
-        total: r.total_count,
-        next_shift: r.next_shift || [],
-        sections: r.sections || [],
-        experiment_text: r.experiment_text || null,
-        experiment_outcome: r.experiment_outcome || null,
-        experiment_note: r.experiment_note || null,
-      }))))
-      .catch(e => toast(e.message, 'error'));
+    (async () => {
+      try {
+        const data = await getRestaurantReports(date);
+        setReports((data || []).map(r => ({
+          ...r,
+          name: r.profiles?.name || 'Unknown',
+          station: r.profiles?.station || '—',
+          pct: r.completed_pct,
+          done: r.completed_count,
+          total: r.total_count,
+          next_shift: r.next_shift || [],
+          sections: r.sections || [],
+          experiment_text: r.experiment_text || null,
+          experiment_outcome: r.experiment_outcome || null,
+          experiment_note: r.experiment_note || null,
+        })));
+      } catch (e) {
+        toast(e.message, 'error');
+      }
+    })();
   }, [dateFilter]);
 
   const filtered = reports;

@@ -9,7 +9,7 @@ export function RecipesScreen() {
   const [search, setSearch] = useState('');
 
   useEffect(() => {
-    getRecipes().then(data => setRecipes(data || []));
+    getRecipes().then(data => setRecipes(data || [])).catch(() => {});
   }, []);
 
   const filtered = recipes.filter(r =>

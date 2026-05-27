@@ -21,9 +21,7 @@ export function ImprovementsTab() {
   const { confirm, dialog: confirmDialog } = useConfirm();
 
   useEffect(() => {
-    getImprovementLogs(20)
-      .then(setLogs)
-      .catch(e => toast(e.message, 'error'));
+    getImprovementLogs(20).then(setLogs).catch(e => toast(e.message, 'error'));
   }, []);
 
   const submit = async () => {

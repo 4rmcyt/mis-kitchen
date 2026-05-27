@@ -37,13 +37,15 @@ function Root() {
   }
 
   if (needsPasswordReset) return (
-    <ResetPassword onDone={() => {
+    <ResetPassword onDone={async () => {
       setNeedsPasswordReset(false)
-      getSession().then(s => { setSession(s); if (s) checkOnboarding(s.user) })
+      const s = await getSession()
+      setSession(s)
+      if (s) checkOnboarding(s.user)
     }} />
   )
 
-  if (!session) return <Login onLogin={() => getSession().then(setSession)} />
+  if (!session) return <Login onLogin={async () => setSession(await getSession())} />
 
   if (needsOnboarding) return (
     <Onboarding

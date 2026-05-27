@@ -62,12 +62,13 @@ export async function getStationVelocity(days = 30) {
 
 export async function getShiftExperiment() {
   const profile = await getCurrentProfile();
-  return q(() =>
+  const r = await q(() =>
     supabase.from("restaurants")
       .select("shift_experiment")
       .eq("id", profile.restaurant_id)
       .single()
-  ).then(r => r?.shift_experiment ?? null);
+  );
+  return r?.shift_experiment ?? null;
 }
 
 export async function setShiftExperiment(text) {
