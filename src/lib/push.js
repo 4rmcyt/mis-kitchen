@@ -1,4 +1,4 @@
-import { supabase, q, getCurrentProfile } from './client.js';
+import { supabase, q } from './client.js';
 
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 
