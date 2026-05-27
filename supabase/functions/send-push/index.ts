@@ -138,14 +138,12 @@ async function sendOne(sub: { endpoint: string; p256dh: string; auth: string }, 
       body,
     });
 
-    if (res.status === 410 || res.status === 404) return false;
-    if (!res.ok) {
-      console.error(`push failed ${res.status}:`, await res.text());
-      return false;
-    }
+    const resText = await res.text();
+    if (res.status === 410 || res.status === 404) { console.error(`push stale ${res.status}:`, resText); return false; }
+    if (!res.ok) { console.error(`push failed ${res.status}:`, resText); return false; }
     return true;
   } catch (e) {
-    console.error("sendOne error:", e);
+    console.error("sendOne error:", (e as Error).message, (e as Error).stack);
     return false;
   }
 }
