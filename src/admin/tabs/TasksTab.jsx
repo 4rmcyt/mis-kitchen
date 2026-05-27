@@ -103,41 +103,41 @@ export function TasksTab() {
     return (
       <div className="tab-content">
         {confirmDialog}
-        <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:4 }}>
+        <div className="template-detail-hdr">
           <button className="btn-secondary" onClick={() => setSelected(null)}>← Back</button>
-          <span style={{ fontFamily:'var(--font-display)', fontSize:18, fontWeight:700, flex:1 }}>{selected.name}</span>
+          <span className="template-detail-name">{selected.name}</span>
           <button className="btn-danger" onClick={() => deleteTemplate(selected)}>Delete</button>
         </div>
-        <div style={{ color:'var(--text-muted)', fontSize:12 }}>{entries.length} tasks</div>
+        <div className="template-count">{entries.length} tasks</div>
 
-        <div style={{ display:'flex', flexDirection:'column', gap:2 }}>
+        <div className="template-entries">
           {entries.map((entry, idx) => (
-            <div key={idx} style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 12px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--radius)' }}>
-              <span style={{ flex:1, fontSize:13 }}>{entry.text}</span>
+            <div key={idx} className="template-entry">
+              <span className="template-entry-text">{entry.text}</span>
               <Badge color={STATION_COLORS[entry.station]||'#6B7280'} small>{entry.station}</Badge>
-              <span style={{ fontSize:11, color:SECTION_COLORS[entry.section], border:`1px solid ${SECTION_COLORS[entry.section]}44`, padding:'1px 7px', borderRadius:4, flexShrink:0 }}>{entry.section}</span>
-              <button className="icon-btn" onClick={() => removeTask(idx)} style={{ color:'#EF4444', fontSize:16, flexShrink:0 }}>×</button>
+              <span className="template-entry-section" style={{ color:SECTION_COLORS[entry.section], border:`1px solid ${SECTION_COLORS[entry.section]}44` }}>{entry.section}</span>
+              <button className="template-entry-del" onClick={() => removeTask(idx)}>×</button>
             </div>
           ))}
-          {entries.length === 0 && <div style={{ color:'var(--text-muted)', fontSize:13, padding:'8px 0' }}>No tasks yet.</div>}
+          {entries.length === 0 && <div className="template-empty">No tasks yet.</div>}
         </div>
 
-        <div style={{ display:'flex', gap:8, alignItems:'center', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--radius)', padding:'10px 12px' }}>
-          <input className="search-inp" style={{ flex:1, maxWidth:'none', background:'transparent', border:'none', padding:0 }}
+        <div className="template-add-row">
+          <input className="template-add-inp"
             placeholder="New task…" value={newText} onChange={e => setNewText(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && addTask()} autoFocus/>
-          <select className="form-sel" style={{ width:100, padding:'4px 8px' }} value={newStation} onChange={e => setNewStation(e.target.value)}>
+          <select className="form-sel template-sel-sm" value={newStation} onChange={e => setNewStation(e.target.value)}>
             {STATIONS.map(s => <option key={s}>{s}</option>)}
           </select>
-          <select className="form-sel" style={{ width:100, padding:'4px 8px' }} value={newSection} onChange={e => setNewSection(e.target.value)}>
+          <select className="form-sel template-sel-sm" value={newSection} onChange={e => setNewSection(e.target.value)}>
             {SECTIONS.map(s => <option key={s}>{s}</option>)}
           </select>
-          <button className="btn-primary" style={{ flexShrink:0 }} onClick={addTask}>Add</button>
+          <button className="btn-primary flex-shrink-0" onClick={addTask}>Add</button>
         </div>
 
-        <div style={{ paddingTop:16, borderTop:'1px solid var(--border)', display:'flex', gap:8, alignItems:'center' }}>
-          <span style={{ fontSize:12, color:'var(--text-muted)', flexShrink:0 }}>Apply to</span>
-          <input type="date" className="search-inp" value={assignDate} style={{ width:160 }}
+        <div className="template-apply-row">
+          <span className="template-apply-label">Apply to</span>
+          <input type="date" className="search-inp template-apply-date" value={assignDate}
             onChange={e => setAssignDate(e.target.value)}/>
           <button className="btn-primary" onClick={applyToDate} disabled={assigning}>
             {assigning ? 'Creating…' : `Apply (${entries.length} tasks)`}
@@ -149,23 +149,22 @@ export function TasksTab() {
 
   return (
     <div className="tab-content">
-      <div style={{ padding:'14px 16px', background:'rgba(249,115,22,0.06)', border:'1px solid rgba(249,115,22,0.2)', borderRadius:'var(--radius)', marginBottom:16 }}>
-        <div style={{ fontSize:12, color:'#F97316', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:8 }}>🧪 Today&apos;s experiment</div>
-        <div style={{ fontSize:12, color:'var(--text-muted)', marginBottom:8 }}>Staff will see this as a banner on their Today screen.</div>
-        <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+      <div className="experiment-block">
+        <div className="experiment-block-title">🧪 Today&apos;s experiment</div>
+        <div className="experiment-block-hint">Staff will see this as a banner on their Today screen.</div>
+        <div className="experiment-row">
           <input
-            className="search-inp"
-            style={{ flex:1, maxWidth:'none' }}
+            className="search-inp flex-1 inp-full"
             placeholder="e.g. Greet every table within 60 seconds of seating…"
             value={experiment}
             onChange={e => setExperiment(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && saveExperiment()}
           />
-          <button className="btn-primary" style={{ flexShrink:0 }} onClick={saveExperiment} disabled={experimentSaving || experiment.trim() === experimentSaved}>
+          <button className="btn-primary flex-shrink-0" onClick={saveExperiment} disabled={experimentSaving || experiment.trim() === experimentSaved}>
             {experimentSaving ? 'Saving…' : 'Save'}
           </button>
           {experimentSaved && (
-            <button className="btn-secondary" style={{ flexShrink:0 }} onClick={clearExperiment} disabled={experimentSaving}>Clear</button>
+            <button className="btn-secondary flex-shrink-0" onClick={clearExperiment} disabled={experimentSaving}>Clear</button>
           )}
         </div>
       </div>
@@ -175,27 +174,26 @@ export function TasksTab() {
         <div className="stat-card"><div className="stat-val">{dayTemplates.reduce((a,d) => a+(d.entries?.length||0), 0)}</div><div className="stat-lbl">Total Tasks</div></div>
       </div>
       <div className="toolbar">
-        <div style={{ flex:1 }}/>
+        <div className="flex-1"/>
         <button className="btn-primary" onClick={() => setShowNew(true)}>+ New Template</button>
       </div>
       {showNew && (
-        <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--radius)', padding:16, display:'flex', gap:8, alignItems:'center' }}>
-          <input className="search-inp" style={{ flex:1, maxWidth:'none' }} placeholder="Template name (e.g. Tuesday Setup)" value={newName}
+        <div className="template-new-row">
+          <input className="search-inp flex-1 inp-full" placeholder="Template name (e.g. Tuesday Setup)" value={newName}
             onChange={e => setNewName(e.target.value)} onKeyDown={e => e.key === 'Enter' && createTemplate()} autoFocus/>
           <button className="btn-primary" onClick={createTemplate} disabled={saving}>{saving ? 'Creating…' : 'Create'}</button>
           <button className="btn-secondary" onClick={() => { setShowNew(false); setNewName(''); }}>Cancel</button>
         </div>
       )}
-      <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+      <div className="template-list">
         {dayTemplates.map(dt => (
-          <div key={dt.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 16px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--radius)', cursor:'pointer', transition:'border-color 0.15s' }}
-            onClick={() => setSelected({ ...dt, entries: dt.entries||[] })}>
-            <span style={{ fontFamily:'var(--font-display)', fontSize:15, fontWeight:700, flex:1 }}>{dt.name}</span>
-            <span style={{ fontSize:12, color:'var(--text-muted)' }}>{dt.entries?.length||0} tasks</span>
-            <span style={{ fontSize:12, color:'var(--text-muted)' }}>→</span>
+          <div key={dt.id} className="template-list-item" onClick={() => setSelected({ ...dt, entries: dt.entries||[] })}>
+            <span className="template-list-name">{dt.name}</span>
+            <span className="template-list-meta">{dt.entries?.length||0} tasks</span>
+            <span className="template-list-meta">→</span>
           </div>
         ))}
-        {dayTemplates.length === 0 && <div style={{ color:'var(--text-muted)', fontSize:13, padding:'8px 0' }}>No templates yet.</div>}
+        {dayTemplates.length === 0 && <div className="template-empty">No templates yet.</div>}
       </div>
     </div>
   );
