@@ -24,7 +24,15 @@ export async function subscribePush() {
 }
 
 async function savePushSubscription(sub) {
-  const profile = await getCurrentProfile();
+  // getSession() is cheaper than getUser() and works right after session restore
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return;
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id, restaurant_id")
+    .eq("id", session.user.id)
+    .single();
+  if (!profile) return;
   const { endpoint, keys } = sub.toJSON();
   return q(() =>
     supabase.from("push_subscriptions").upsert({
