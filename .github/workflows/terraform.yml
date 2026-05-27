@@ -59,11 +59,11 @@ jobs:
         id: env
         run: |
           if [ "${{ github.ref }}" = "refs/heads/main" ]; then
-            echo "workspace=prod" >> $GITHUB_OUTPUT
-            echo "environment=prod" >> $GITHUB_OUTPUT
+            echo "workspace=prod" >> "$GITHUB_OUTPUT"
+            echo "environment=prod" >> "$GITHUB_OUTPUT"
           else
-            echo "workspace=staging" >> $GITHUB_OUTPUT
-            echo "environment=staging" >> $GITHUB_OUTPUT
+            echo "workspace=staging" >> "$GITHUB_OUTPUT"
+            echo "environment=staging" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Generate tfvars
