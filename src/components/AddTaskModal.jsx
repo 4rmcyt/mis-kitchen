@@ -25,11 +25,11 @@ export function AddTaskModal({ userStation, onSave, onClose }) {
 
   return (
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="modal" style={{ display:'flex', flexDirection:'column', gap:14 }}>
+      <div className="modal">
         <div className="modal-header"><span>Add Task</span><button className="action-btn del" onClick={onClose}>×</button></div>
         <input className="form-input" placeholder="Task description…" value={text} onChange={e => setText(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && save()} autoFocus/>
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+        <div className="recipe-grid">
           <div>
             <div className="form-label">Station</div>
             <select className="form-input" value={station} onChange={e => setStation(e.target.value)}>
