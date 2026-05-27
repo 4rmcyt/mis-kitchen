@@ -1,12 +1,7 @@
 name: E2E Sanity
 
 on:
-  workflow_run:
-    workflows: [Deploy]
-    branches: [staging]
-    types: [completed]
-  schedule:
-    - cron: '0 3 * * *'
+  workflow_call:
   workflow_dispatch:
     inputs:
       url:
@@ -22,7 +17,6 @@ jobs:
   e2e:
     name: Cucumber E2E
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - uses: actions/checkout@v6.0.2

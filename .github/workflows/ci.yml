@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+    branches: [staging, main]
+
+jobs:
+
+  deploy:
+    name: Deploy
+    uses: ./.github/workflows/deploy.yml
+    secrets: inherit
+
+  e2e:
+    name: E2E Sanity
+    needs: deploy
+    uses: ./.github/workflows/e2e.yml
+    secrets: inherit
+
+  e2e-invite:
+    name: E2E Invite & Onboarding
+    needs: e2e
+    uses: ./.github/workflows/e2e-invite.yml
+    secrets: inherit

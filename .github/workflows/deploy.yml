@@ -1,33 +1,15 @@
-
-# .github/workflows/deploy.yml
-#
-# Triggers:
-#   push to main    → deploy to production
-#   push to staging → deploy to staging
-#   pull request    → preview deploy + run checks
-#
-# Required GitHub Secrets (Settings → Secrets → Actions):
-#   CLOUDFLARE_API_TOKEN        — CF token with Pages:Edit permission
-#   CLOUDFLARE_ACCOUNT_ID       — your CF account ID
-#   SUPABASE_ACCESS_TOKEN       — supabase.com → Account → Access Tokens
-#   SUPABASE_PROJECT_REF_PROD   — production project ref (xxxxxxxxxxxx)
-#   SUPABASE_PROJECT_REF_STG    — staging project ref
-#   SUPABASE_DB_PASSWORD_PROD   — DB password production
-#   SUPABASE_DB_PASSWORD_STG    — DB password staging
-
 name: Deploy
 
 on:
-  push:
-    branches: [main, staging]
   pull_request:
     branches: [main, staging]
+  workflow_call:
+  workflow_dispatch:
 
 concurrency:
   group: deploy-${{ github.ref }}
   cancel-in-progress: true
 
-# ── Shared env ────────────────────────────────────────────────
 env:
   NODE_VERSION: "lts/*"
   PNPM_VERSION: "9"
@@ -41,6 +23,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6.0.2
+        with:
+          ref: ${{ github.ref }}
 
       - uses: pnpm/action-setup@v5
         with: { version: "${{ env.PNPM_VERSION }}" }
@@ -71,6 +55,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6.0.2
+        with:
+          ref: ${{ github.ref }}
 
       - uses: pnpm/action-setup@v5
         with: { version: "${{ env.PNPM_VERSION }}" }
@@ -104,10 +90,12 @@ jobs:
     name: DB Migration
     runs-on: ubuntu-latest
     needs: check
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' || github.event_name == 'workflow_call' || github.event_name == 'workflow_dispatch'
 
     steps:
       - uses: actions/checkout@v6.0.2
+        with:
+          ref: ${{ github.ref }}
 
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v2
@@ -134,10 +122,12 @@ jobs:
     name: Edge Functions
     runs-on: ubuntu-latest
     needs: migrate
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' || github.event_name == 'workflow_call' || github.event_name == 'workflow_dispatch'
 
     steps:
       - uses: actions/checkout@v6.0.2
+        with:
+          ref: ${{ github.ref }}
 
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v2
@@ -172,10 +162,12 @@ jobs:
     name: Frontend → Cloudflare
     runs-on: ubuntu-latest
     needs: [build, deploy-functions]
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' || github.event_name == 'workflow_call' || github.event_name == 'workflow_dispatch'
 
     steps:
       - uses: actions/checkout@v6.0.2
+        with:
+          ref: ${{ github.ref }}
 
       - uses: pnpm/action-setup@v5
         with: { version: "${{ env.PNPM_VERSION }}" }
@@ -260,13 +252,13 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: [
-                '## 🚀 Preview Deploy',
+                '## Preview Deploy',
                 '',
                 '| | |',
                 '|---|---|',
                 '| **URL** | ${{ steps.cf-deploy.outputs.deployment-url }} |',
                 '| **Branch** | `${{ github.head_ref }}` |',
-                '| **Commit** | `${{ github.sha }}`.slice(0,7) |',
+                '| **Commit** | `${{ github.sha }}` |',
                 '',
                 '_Preview uses staging Supabase project_',
               ].join('\n')
@@ -290,17 +282,17 @@ jobs:
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://${{ vars.APP_URL }})
           echo "HTTP status: $STATUS"
           if [ "$STATUS" != "200" ]; then
-            echo "❌ App returned $STATUS"
+            echo "App returned $STATUS"
             exit 1
           fi
-          echo "✅ App is up"
+          echo "App is up"
 
       - name: Check PWA manifest
         run: |
           curl -sf https://${{ vars.APP_URL }}/manifest.json | \
-            python3 -c "import sys,json; d=json.load(sys.stdin); assert d['name'], 'name missing'; print('✅ manifest.json OK')"
+            python3 -c "import sys,json; d=json.load(sys.stdin); assert d['name'], 'name missing'; print('manifest.json OK')"
 
       - name: Check service worker
         run: |
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://${{ vars.APP_URL }}/sw.js)
-          [ "$STATUS" = "200" ] && echo "✅ sw.js OK" || (echo "❌ sw.js $STATUS" && exit 1)
+          [ "$STATUS" = "200" ] && echo "sw.js OK" || (echo "sw.js $STATUS" && exit 1)

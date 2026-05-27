@@ -1,9 +1,7 @@
 name: E2E Invite & Onboarding
 
 on:
-  workflow_run:
-    workflows: [E2E Sanity]
-    types: [completed]
+  workflow_call:
   workflow_dispatch:
 
 env:
@@ -15,7 +13,6 @@ jobs:
   e2e-invite:
     name: Invite & Onboarding Flow
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - uses: actions/checkout@v6.0.2
