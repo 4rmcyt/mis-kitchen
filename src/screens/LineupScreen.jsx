@@ -58,13 +58,13 @@ export function LineupScreen() {
           {unassigned.length > 0 && (
             <div className="lineup-station">
               <div className="lineup-station-header">
-                <span className="lineup-station-dot" style={{ background: '#555' }}/>
+                <span className="lineup-station-dot lineup-station-dot--unassigned"/>
                 <span className="lineup-station-name">Unassigned</span>
                 <span className="lineup-station-count">{unassigned.length}</span>
               </div>
               {unassigned.map(p => (
                 <div key={p.id} className="lineup-cook">
-                  <div className="lineup-avatar" style={{ background: '#333' }}>{(p.name||'?')[0].toUpperCase()}</div>
+                  <div className="lineup-avatar lineup-avatar--unassigned">{(p.name||'?')[0].toUpperCase()}</div>
                   <div className="lineup-info">
                     <div className="lineup-name">{p.name || p.email}</div>
                     <div className="lineup-role">{p.role || 'Cook'}</div>
