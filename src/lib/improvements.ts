@@ -1,5 +1,4 @@
 import { supabase, q, getCurrentProfile } from './client.js';
-import type { ImprovementLog } from './types.js';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function getImprovementLogs(limit = 10): Promise<any[]> {
