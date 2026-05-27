@@ -134,7 +134,25 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .report-next-item{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.04)}
 .report-divider{height:1px;background:var(--border);margin:4px 0}
 .report-sent{color:#10B981;font-size:14px;text-align:center;padding:12px}
-.report-error{color:#EF4444;font-size:12px}
+.report-error{color:#EF4444;font-size:12px;margin-top:12px}
+
+/* ReportModal */
+.report-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:flex-end;justify-content:center;z-index:100}
+.report-modal-box{background:var(--surface);border:1px solid var(--border);border-radius:16px 16px 0 0;width:100%;max-width:480px;padding:24px;max-height:80vh;overflow-y:auto}
+.report-modal-title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.report-modal-title{font-family:var(--font-display);font-size:16px;font-weight:700}
+.report-modal-close{background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer;line-height:1}
+.report-sections-block{margin-top:16px}
+.report-next-block{margin-top:16px}
+.report-next-item-text{flex:1}
+.experiment-report-block{margin-top:16px;padding:12px 14px;background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.25);border-radius:var(--radius)}
+.experiment-report-title{font-size:11px;color:#F97316;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px}
+.experiment-report-text{font-size:13px;color:var(--text);margin-bottom:12px;line-height:1.4}
+.experiment-report-hint{font-size:12px;color:var(--text-muted);margin-bottom:8px}
+.experiment-outcome-row{display:flex;gap:8px;margin-bottom:10px}
+.experiment-outcome-btn{flex:1;padding:6px 4px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s}
+.experiment-note-inp{width:100%;box-sizing:border-box;font-size:12px}
+.btn-full{width:100%;margin-top:20px}
 .link-btn{background:none;border:none;color:var(--accent);font-family:var(--font-mono);font-size:11px;cursor:pointer;padding:0;text-decoration:underline}
 .link-btn.small{display:block;margin-top:-4px;margin-bottom:4px}
 .tpl-list{display:flex;flex-direction:column;gap:8px}
