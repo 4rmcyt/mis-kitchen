@@ -1,6 +1,6 @@
-# mis. — Line Cook Kitchen App
+# mis. — Kitchen App
 
-PWA + Supabase + Cloudflare Pages. For 30 users max.
+PWA + Supabase + Cloudflare Pages.
 
 ## Quick start
 
