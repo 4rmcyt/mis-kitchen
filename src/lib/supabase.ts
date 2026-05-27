@@ -1,4 +1,3 @@
-// src/lib/supabase.js
 // Re-exports from domain modules for backwards compatibility.
 // Import directly from domain modules in new code.
 
@@ -21,3 +20,4 @@ export { saveReport, getMyReports, getRestaurantReports, sendReportEmail, getShi
 export { subscribePush, sendPushNotification } from './push.js';
 export { getImprovementLogs, addImprovementLog, deleteImprovementLog } from './improvements.js';
 export { getShifts, createShift, deleteShift, getTodayShifts } from './shifts.js';
+export { getTempLogs, logTemperature } from './temp_logs.js';

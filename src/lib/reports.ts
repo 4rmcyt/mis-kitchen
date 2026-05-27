@@ -1,6 +1,13 @@
 import { supabase, q, getCurrentProfile } from './client.js';
+import type { ShiftReport, ExperimentOutcome } from './types.js';
 
-export async function saveReport({ sections, nextShift, experimentText, experimentOutcome, experimentNote }) {
+export async function saveReport({ sections, nextShift, experimentText, experimentOutcome, experimentNote }: {
+  sections: Array<{ name: string; items: Array<{ done: boolean }> }>;
+  nextShift: Array<string | { text: string }>;
+  experimentText: string;
+  experimentOutcome: ExperimentOutcome | null;
+  experimentNote: string;
+}): Promise<ShiftReport> {
   try {
     const profile = await getCurrentProfile();
     const allItems = sections.flatMap(s => s.items);
@@ -25,12 +32,12 @@ export async function saveReport({ sections, nextShift, experimentText, experime
       }, { onConflict: "user_id,date" }).select().single()
     );
   } catch (err) {
-    console.error("[reports] save:", err.message);
+    console.error("[reports] save:", (err as Error).message);
     throw err;
   }
 }
 
-export async function getMyReports(limit = 7) {
+export async function getMyReports(limit = 7): Promise<ShiftReport[]> {
   return q(() =>
     supabase.from("daily_reports")
       .select("*")
@@ -39,7 +46,7 @@ export async function getMyReports(limit = 7) {
   );
 }
 
-export async function getRestaurantReports(date) {
+export async function getRestaurantReports(date: string): Promise<ShiftReport[]> {
   return q(() =>
     supabase.from("daily_reports")
       .select("*, profiles(name, station)")
@@ -60,9 +67,9 @@ export async function getStationVelocity(days = 30) {
   );
 }
 
-export async function getShiftExperiment() {
+export async function getShiftExperiment(): Promise<string | null> {
   const profile = await getCurrentProfile();
-  const r = await q(() =>
+  const r = await q<{ shift_experiment: string | null }>(() =>
     supabase.from("restaurants")
       .select("shift_experiment")
       .eq("id", profile.restaurant_id)
@@ -71,7 +78,7 @@ export async function getShiftExperiment() {
   return r?.shift_experiment ?? null;
 }
 
-export async function setShiftExperiment(text) {
+export async function setShiftExperiment(text: string): Promise<null> {
   const profile = await getCurrentProfile();
   return q(() =>
     supabase.from("restaurants")
@@ -80,7 +87,7 @@ export async function setShiftExperiment(text) {
   );
 }
 
-export async function sendReportEmail(date) {
+export async function sendReportEmail(date: string) {
   try {
     const { data, error } = await supabase.functions.invoke("send-report", {
       body: { date }
@@ -88,7 +95,7 @@ export async function sendReportEmail(date) {
     if (error) throw new Error(error.message);
     return data;
   } catch (err) {
-    console.error("[reports] sendEmail:", err.message);
+    console.error("[reports] sendEmail:", (err as Error).message);
     throw err;
   }
 }

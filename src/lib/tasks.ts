@@ -1,12 +1,15 @@
 import { supabase, q, getCurrentProfile } from './client.js';
+import type { Task, DeferredTask, Station } from './types.js';
 
-export async function getTasks(date) {
+export async function getTasks(date: string): Promise<Task[]> {
   return q(() =>
     supabase.from("tasks").select("*, profiles!done_by(name)").eq("date", date).order("section").order("created_at")
   );
 }
 
-export async function createTask({ text, station, section, date, source = "manual", template_id = null }) {
+export async function createTask({ text, station, section, date, source = "manual", template_id = null }: {
+  text: string; station: Station; section: string; date: string; source?: string; template_id?: string | null;
+}): Promise<Task> {
   const profile = await getCurrentProfile();
   return q(() =>
     supabase.from("tasks").insert({
@@ -17,7 +20,7 @@ export async function createTask({ text, station, section, date, source = "manua
   );
 }
 
-export async function createTasksBatch(tasks) {
+export async function createTasksBatch(tasks: Array<{ text: string; station: Station; section: string; date: string; source?: string; template_id?: string | null }>): Promise<Task[]> {
   const profile = await getCurrentProfile();
   const rows = tasks.map(t => ({
     ...t,
@@ -27,42 +30,42 @@ export async function createTasksBatch(tasks) {
   return q(() => supabase.from("tasks").insert(rows).select());
 }
 
-export async function updateTask(id, updates) {
+export async function updateTask(id: string, updates: Partial<Task>): Promise<Task> {
   return q(() =>
     supabase.from("tasks").update(updates).eq("id", id).select().single()
   );
 }
 
-export async function deleteTask(id) {
+export async function deleteTask(id: string): Promise<null> {
   return q(() => supabase.from("tasks").delete().eq("id", id));
 }
 
-export async function completeTask(id) {
+export async function completeTask(id: string): Promise<Task> {
   const { data: { user } } = await supabase.auth.getUser();
   return q(() =>
-    supabase.from("tasks").update({ done: true, done_at: new Date().toISOString(), done_by: user.id }).eq("id", id).select().single()
+    supabase.from("tasks").update({ done: true, done_at: new Date().toISOString(), done_by: user!.id }).eq("id", id).select().single()
   );
 }
 
-export async function uncompleteTask(id) {
+export async function uncompleteTask(id: string): Promise<Task> {
   return q(() =>
     supabase.from("tasks").update({ done: false, done_at: null, done_by: null }).eq("id", id).select().single()
   );
 }
 
-export async function commentTask(id, comment) {
+export async function commentTask(id: string, comment: string): Promise<Task> {
   return q(() =>
     supabase.from("tasks").update({ comment }).eq("id", id).select().single()
   );
 }
 
-export async function getDeferredTasks() {
+export async function getDeferredTasks(): Promise<DeferredTask[]> {
   return q(() =>
     supabase.from("deferred_tasks").select("*").eq("carried", false).order("created_at")
   );
 }
 
-export async function deferTask({ text, station, deferred_from }) {
+export async function deferTask({ text, station, deferred_from }: { text: string; station: Station; deferred_from: string }): Promise<DeferredTask> {
   try {
     const profile = await getCurrentProfile();
     return q(() =>
@@ -73,17 +76,17 @@ export async function deferTask({ text, station, deferred_from }) {
       }).select().single()
     );
   } catch (err) {
-    console.error("[tasks] defer:", err.message);
+    console.error("[tasks] defer:", (err as Error).message);
     throw err;
   }
 }
 
-export async function markTaskCarried(id) {
+export async function markTaskCarried(id: string): Promise<null> {
   return q(() =>
     supabase.from("deferred_tasks").update({ carried: true }).eq("id", id)
   );
 }
 
-export async function deleteDeferred(id) {
+export async function deleteDeferred(id: string): Promise<null> {
   return q(() => supabase.from("deferred_tasks").delete().eq("id", id));
 }

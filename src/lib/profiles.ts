@@ -1,10 +1,11 @@
 import { supabase, q } from './client.js';
+import type { Profile } from './types.js';
 
-export async function getProfile(userId) {
+export async function getProfile(userId: string): Promise<Profile> {
   return q(() => supabase.from("profiles").select("*").eq("id", userId).single());
 }
 
-export async function updateProfile(userId, updates) {
+export async function updateProfile(userId: string, updates: Partial<Pick<Profile, 'name' | 'station' | 'password_set'>>): Promise<Profile> {
   const allowed = {
     ...(updates.name         !== undefined && { name:         updates.name }),
     ...(updates.station      !== undefined && { station:      updates.station }),
@@ -15,11 +16,11 @@ export async function updateProfile(userId, updates) {
   );
 }
 
-export async function getRestaurantProfiles() {
+export async function getRestaurantProfiles(): Promise<Profile[]> {
   return q(() => supabase.from("profiles").select("*").order("name"));
 }
 
-export async function adminUpdateProfile(userId, updates) {
+export async function adminUpdateProfile(userId: string, updates: Partial<Pick<Profile, 'role' | 'station' | 'active' | 'secondary_stations'>>): Promise<Profile> {
   const allowed = {
     ...(updates.role                !== undefined && { role:                updates.role }),
     ...(updates.station             !== undefined && { station:             updates.station }),

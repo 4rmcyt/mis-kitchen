@@ -1,6 +1,7 @@
 import { supabase, q, getCurrentProfile } from './client.js';
+import type { Shift, Station } from './types.js';
 
-export async function getShifts(weekStart) {
+export async function getShifts(weekStart: string): Promise<Shift[]> {
   const profile = await getCurrentProfile();
   const weekEnd = new Date(weekStart);
   weekEnd.setDate(weekEnd.getDate() + 6);
@@ -14,7 +15,9 @@ export async function getShifts(weekStart) {
   );
 }
 
-export async function createShift({ userId, date, station, startTime, endTime }) {
+export async function createShift({ userId, date, station, startTime, endTime }: {
+  userId: string; date: string; station: Station; startTime: string; endTime: string;
+}): Promise<Shift> {
   const profile = await getCurrentProfile();
   return q(() =>
     supabase.from('shifts').insert({
@@ -28,11 +31,11 @@ export async function createShift({ userId, date, station, startTime, endTime })
   );
 }
 
-export async function deleteShift(id) {
+export async function deleteShift(id: string): Promise<null> {
   return q(() => supabase.from('shifts').delete().eq('id', id));
 }
 
-export async function getTodayShifts() {
+export async function getTodayShifts(): Promise<Shift[]> {
   const profile = await getCurrentProfile();
   const today = new Date().toISOString().split('T')[0];
   return q(() =>

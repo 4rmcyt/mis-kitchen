@@ -1,9 +1,10 @@
 import { supabase, q, getCurrentProfile } from './client.js';
+import type { Invite, Role, Station } from './types.js';
 
-export async function createInvite({ email, role, station }) {
+export async function createInvite({ email, role, station }: { email: string; role: Role; station: Station }) {
   try {
     const profile = await getCurrentProfile();
-    const invite = await q(() =>
+    const invite = await q<Invite>(() =>
       supabase.from("invites").insert({
         email, role, station,
         restaurant_id: profile.restaurant_id,
@@ -16,12 +17,12 @@ export async function createInvite({ email, role, station }) {
     if (error) console.warn("[invites] email send failed:", error.message);
     return invite;
   } catch (err) {
-    console.error("[invites] createInvite:", err.message);
+    console.error("[invites] createInvite:", (err as Error).message);
     throw err;
   }
 }
 
-export async function getInvites() {
+export async function getInvites(): Promise<Invite[]> {
   return q(() =>
     supabase.from("invites").select("*").order("created_at", { ascending: false })
   );

@@ -1,6 +1,7 @@
 import { supabase, q, getCurrentProfile } from './client.js';
+import type { TempLog, Station } from './types.js';
 
-export async function getTempLogs(date) {
+export async function getTempLogs(date: string): Promise<TempLog[]> {
   const start = `${date}T00:00:00+00:00`;
   const end   = `${date}T23:59:59+00:00`;
   return q(() =>
@@ -12,7 +13,7 @@ export async function getTempLogs(date) {
   );
 }
 
-export async function logTemperature(station, temperature) {
+export async function logTemperature(station: Station, temperature: number): Promise<TempLog> {
   const profile = await getCurrentProfile();
   return q(() =>
     supabase.from('temp_logs').insert({

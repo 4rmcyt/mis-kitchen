@@ -1,6 +1,8 @@
 import { supabase, q, getCurrentProfile } from './client.js';
+import type { ImprovementLog } from './types.js';
 
-export async function getImprovementLogs(limit = 10) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function getImprovementLogs(limit = 10): Promise<any[]> {
   const profile = await getCurrentProfile();
   return q(() =>
     supabase.from('improvement_logs')
@@ -11,7 +13,8 @@ export async function getImprovementLogs(limit = 10) {
   );
 }
 
-export async function addImprovementLog(text) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function addImprovementLog(text: string): Promise<any> {
   const profile = await getCurrentProfile();
   return q(() =>
     supabase.from('improvement_logs').insert({
@@ -22,7 +25,7 @@ export async function addImprovementLog(text) {
   );
 }
 
-export async function deleteImprovementLog(id) {
+export async function deleteImprovementLog(id: string): Promise<null> {
   return q(() =>
     supabase.from('improvement_logs').delete().eq('id', id)
   );
