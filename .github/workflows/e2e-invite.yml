@@ -15,14 +15,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.2
         with:
           ref: staging
 
       - uses: pnpm/action-setup@v5
         with: { version: "${{ env.PNPM_VERSION }}" }
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6.4.0
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
@@ -53,7 +53,7 @@ jobs:
 
       - name: Upload HTML report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: invite-e2e-report-${{ github.run_number }}
           path: e2e/reports/invite-report.html
