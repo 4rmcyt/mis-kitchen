@@ -26,18 +26,20 @@ export async function subscribePush(): Promise<PushSubscription | null> {
 
 async function savePushSubscription(sub: PushSubscription) {
   const { data: { session } } = await supabase.auth.getSession();
-  if (!session) return;
-  const { data: profile } = await supabase
+  if (!session) { console.error("[push] no session"); return; }
+  const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("id, restaurant_id")
     .eq("id", session.user.id)
     .single();
-  if (!profile) return;
+  if (!profile) { console.error("[push] no profile", profileError); return; }
   const json = sub.toJSON();
+  console.log("[push] toJSON:", json);
   if (!json.endpoint || !json.keys?.p256dh || !json.keys?.auth) {
-    console.error("[push] savePushSubscription: missing endpoint or keys", json);
+    console.error("[push] missing endpoint or keys", json);
     return;
   }
+  console.log("[push] upserting for", profile.id, profile.restaurant_id);
   const { error } = await supabase.from("push_subscriptions").upsert({
     user_id:       profile.id,
     restaurant_id: profile.restaurant_id!,
@@ -46,6 +48,7 @@ async function savePushSubscription(sub: PushSubscription) {
     auth:          json.keys.auth,
   }, { onConflict: "user_id,endpoint" });
   if (error) console.error("[push] upsert failed:", error.message, error);
+  else console.log("[push] upsert ok");
 }
 
 export async function sendPushNotification({ title, body, station }: { title: string; body: string; station?: Station }) {
