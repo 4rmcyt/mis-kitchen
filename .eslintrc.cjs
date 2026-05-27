@@ -24,4 +24,19 @@ module.exports = {
     'react-hooks/set-state-in-effect': 'off',
     'react-hooks/purity': 'off',
   },
+  overrides: [
+    {
+      files: ['**/*.ts', '**/*.tsx'],
+      parser: '@typescript-eslint/parser',
+      plugins: ['@typescript-eslint'],
+      extends: [
+        'plugin:@typescript-eslint/recommended',
+      ],
+      rules: {
+        'no-unused-vars': 'off',
+        '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+        '@typescript-eslint/no-explicit-any': 'warn',
+      },
+    },
+  ],
 }
