@@ -1,14 +1,15 @@
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";
+import type { Database } from "./database.types.js";
 import type { Profile } from "./types.js";
 
-export const supabase: SupabaseClient = createClient(
+export const supabase = createClient<Database>(
   import.meta.env.VITE_SUPABASE_URL as string,
   import.meta.env.VITE_SUPABASE_ANON_KEY as string,
   { auth: { detectSessionInUrl: true, flowType: 'pkce' } }
 );
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function q<T>(fn: () => PromiseLike<{ data: T | null; error: any }>): Promise<T> {
+export async function q<T>(fn: () => PromiseLike<{ data: any; error: any }>): Promise<T> {
   const { data, error } = await fn();
   if (error) {
     console.error("[supabase]", error.message);

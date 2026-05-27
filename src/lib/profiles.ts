@@ -2,7 +2,7 @@ import { supabase, q } from './client.js';
 import type { Profile } from './types.js';
 
 export async function getProfile(userId: string): Promise<Profile> {
-  return q(() => supabase.from("profiles").select("*").eq("id", userId).single());
+  return q<Profile>(() => supabase.from("profiles").select("*").eq("id", userId).single());
 }
 
 export async function updateProfile(userId: string, updates: Partial<Pick<Profile, 'name' | 'station' | 'password_set'>>): Promise<Profile> {
@@ -11,13 +11,13 @@ export async function updateProfile(userId: string, updates: Partial<Pick<Profil
     ...(updates.station      !== undefined && { station:      updates.station }),
     ...(updates.password_set !== undefined && { password_set: updates.password_set }),
   };
-  return q(() =>
+  return q<Profile>(() =>
     supabase.from("profiles").update(allowed).eq("id", userId).select().single()
   );
 }
 
 export async function getRestaurantProfiles(): Promise<Profile[]> {
-  return q(() => supabase.from("profiles").select("*").order("name"));
+  return q<Profile[]>(() => supabase.from("profiles").select("*").order("name"));
 }
 
 export async function adminUpdateProfile(userId: string, updates: Partial<Pick<Profile, 'role' | 'station' | 'active' | 'secondary_stations'>>): Promise<Profile> {
@@ -27,7 +27,7 @@ export async function adminUpdateProfile(userId: string, updates: Partial<Pick<P
     ...(updates.active              !== undefined && { active:              updates.active }),
     ...(updates.secondary_stations  !== undefined && { secondary_stations:  updates.secondary_stations }),
   };
-  return q(() =>
+  return q<Profile>(() =>
     supabase.from("profiles").update(allowed).eq("id", userId).select().single()
   );
 }

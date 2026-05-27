@@ -32,7 +32,8 @@ export async function createTasksBatch(tasks: Array<{ text: string; station: Sta
 
 export async function updateTask(id: string, updates: Partial<Task>): Promise<Task> {
   return q(() =>
-    supabase.from("tasks").update(updates).eq("id", id).select().single()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    supabase.from("tasks").update(updates as any).eq("id", id).select().single()
   );
 }
 

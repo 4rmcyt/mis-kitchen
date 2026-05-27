@@ -9,7 +9,8 @@ export async function createInvite({ email, role, station }: { email: string; ro
         email, role, station,
         restaurant_id: profile.restaurant_id,
         invited_by:    profile.id,
-      }).select().single()
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any).select().single()
     );
     const { error } = await supabase.functions.invoke("send-invite", {
       body: { invite_id: invite.id }
@@ -23,7 +24,7 @@ export async function createInvite({ email, role, station }: { email: string; ro
 }
 
 export async function getInvites(): Promise<Invite[]> {
-  return q(() =>
+  return q<Invite[]>(() =>
     supabase.from("invites").select("*").order("created_at", { ascending: false })
   );
 }

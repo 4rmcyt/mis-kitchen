@@ -34,13 +34,14 @@ async function savePushSubscription(sub: PushSubscription) {
     .single();
   if (!profile) return;
   const json = sub.toJSON();
+  if (!json.endpoint || !json.keys?.p256dh || !json.keys?.auth) return;
   return q(() =>
     supabase.from("push_subscriptions").upsert({
       user_id:       profile.id,
-      restaurant_id: profile.restaurant_id,
-      endpoint:      json.endpoint,
-      p256dh:        json.keys?.p256dh,
-      auth:          json.keys?.auth,
+      restaurant_id: profile.restaurant_id!,
+      endpoint:      json.endpoint!,
+      p256dh:        json.keys!.p256dh!,
+      auth:          json.keys!.auth!,
     }, { onConflict: "user_id,endpoint" })
   );
 }
