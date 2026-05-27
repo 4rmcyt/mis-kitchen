@@ -51,7 +51,7 @@ export default function Admin() {
       <ToastContainer toasts={toasts} />
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <span style={{ cursor:'pointer' }} onClick={() => navigate('/')}>mis<span style={{ color:'#F97316' }}>.</span></span>
+          <span className="sidebar-logo-link" onClick={() => navigate('/')}>mis<span className="sidebar-logo-dot">.</span></span>
           <span className="sidebar-role">Admin</span>
         </div>
         <nav className="sidebar-nav">
@@ -64,11 +64,11 @@ export default function Admin() {
         </nav>
         <div className="sidebar-footer">
           <Avatar name={me?.name || '?'} size={32}/>
-          <div style={{ flex:1 }}>
-            <div style={{ fontSize:12, fontWeight:600 }}>{me?.name || '…'}</div>
-            <div style={{ fontSize:10, color: ROLE_COLORS[me?.role] || 'var(--text-muted)' }}>{ROLE_LABELS[me?.role] || ''}</div>
+          <div className="sidebar-footer-info">
+            <div className="sidebar-footer-name">{me?.name || '…'}</div>
+            <div className="sidebar-footer-role" style={{ color: ROLE_COLORS[me?.role] || 'var(--text-muted)' }}>{ROLE_LABELS[me?.role] || ''}</div>
           </div>
-          <button onClick={() => signOut()} title="Sign out" style={{ background:'none', border:'none', color:'var(--text-muted)', cursor:'pointer', padding:'4px 6px', borderRadius:6, display:'flex', alignItems:'center' }}>
+          <button onClick={() => signOut()} title="Sign out" className="sidebar-signout">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
               <polyline points="16 17 21 12 16 7"/>
@@ -83,10 +83,10 @@ export default function Admin() {
           <div>
             <h1 className="admin-title">{TABS.find(t=>t.id===tab)?.label}</h1>
           </div>
-          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+          <div className="admin-header-right">
             <div className="live-badge">● Live</div>
-            <div style={{ fontSize:11, color:'var(--text-muted)' }}>{new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}</div>
-            <button onClick={() => navigate('/')} style={{ background:'none', border:'1px solid var(--border)', color:'var(--text-muted)', fontSize:12, cursor:'pointer', padding:'4px 10px', borderRadius:6, fontFamily:'var(--font-mono)' }}>← App</button>
+            <div className="admin-header-date">{new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}</div>
+            <button onClick={() => navigate('/')} className="btn-app-link">← App</button>
           </div>
         </div>
 

@@ -126,6 +126,19 @@ html,body,#root{height:100%;background:var(--bg);color:var(--text);font-family:v
 
 .admin-bottom-nav{display:none}
 
+/* Sidebar footer */
+.sidebar-footer-info{flex:1}
+.sidebar-footer-name{font-size:12px;font-weight:600}
+.sidebar-footer-role{font-size:10px}
+.sidebar-signout{background:none;border:none;color:var(--text-muted);cursor:pointer;padding:4px 6px;border-radius:6px;display:flex;align-items:center}
+.sidebar-logo-dot{color:var(--accent)}
+.sidebar-logo-link{cursor:pointer}
+
+/* Admin header right */
+.admin-header-right{display:flex;align-items:center;gap:10}
+.admin-header-date{font-size:11px;color:var(--text-muted)}
+.btn-app-link{background:none;border:1px solid var(--border);color:var(--text-muted);font-size:12px;cursor:pointer;padding:4px 10px;border-radius:6px;font-family:var(--font-mono)}
+
 @media (max-width: 768px) {
 .sidebar{display:none}
 .stat-row{grid-template-columns:1fr 1fr}
