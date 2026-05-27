@@ -9,7 +9,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 const RESEND_API_KEY       = Deno.env.get("RESEND_API_KEY")!;
 const SUPABASE_URL         = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const FROM_EMAIL           = Deno.env.get("FROM_EMAIL") ?? "noreply@mis.labhome.work";
+const FROM_EMAIL           = Deno.env.get("FROM_EMAIL") ?? "noreply@mail.labhome.work";
 const APP_URL              = Deno.env.get("APP_URL") ?? "https://mis.labhome.work";
 
 const corsHeaders = {
@@ -86,10 +86,11 @@ serve(async (req) => {
       }),
     });
 
+    const resendBody = await res.json();
     if (!res.ok) {
-      const err = await res.text();
-      throw new Error(`Resend error: ${err}`);
+      throw new Error(`Resend error: ${JSON.stringify(resendBody)}`);
     }
+    console.log("[send-invite] Resend response:", JSON.stringify(resendBody));
 
     return new Response(JSON.stringify({ ok: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

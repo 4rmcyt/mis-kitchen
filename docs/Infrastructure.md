@@ -70,9 +70,12 @@ Set via Supabase CLI:
 
 ```bash
 supabase secrets set RESEND_API_KEY=... --project-ref nlvuqcvjlkgybvcpiqzn
+supabase secrets set FROM_EMAIL=noreply@mail.labhome.work --project-ref nlvuqcvjlkgybvcpiqzn
 supabase secrets set VAPID_PRIVATE_KEY=... --project-ref nlvuqcvjlkgybvcpiqzn
 supabase secrets set VAPID_PUBLIC_KEY=... --project-ref nlvuqcvjlkgybvcpiqzn
 ```
+
+**Resend verified domain:** `mail.labhome.work` — FROM address must use this domain (e.g. `noreply@mail.labhome.work`). Emails from any other domain will be silently dropped.
 
 ## Environments
 
