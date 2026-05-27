@@ -1,5 +1,12 @@
 import { useState, useEffect } from 'react';
-import { getSession, onAuthChange, supabase } from '../lib/supabase.js';
+import { getSession, onAuthChange, supabase, subscribePush } from '../lib/supabase.js';
+
+function trySubscribePush() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'granted') subscribePush();
+  else if (Notification.permission === 'default')
+    Notification.requestPermission().then(p => { if (p === 'granted') subscribePush(); });
+}
 
 export function useAuth() {
   const [session, setSession] = useState(undefined);
@@ -36,7 +43,7 @@ export function useAuth() {
     } else {
       getSession().then(s => {
         setSession(s);
-        if (s) checkOnboarding(s.user);
+        if (s) { checkOnboarding(s.user); trySubscribePush(); }
       });
     }
 

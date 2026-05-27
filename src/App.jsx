@@ -1,7 +1,6 @@
-import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { signOut, subscribePush } from "./lib/supabase.js";
+import { signOut } from "./lib/supabase.js";
 import "./App.css";
 import { TodayScreen } from "./screens/TodayScreen.jsx";
 import { RecipesScreen } from "./screens/RecipesScreen.jsx";
@@ -12,15 +11,6 @@ import { TimerScreen } from "./screens/TimerScreen.jsx";
 export default function App({ userRole, userStation = 'Common' }) {
   const [tab, setTab] = useState('today');
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!('Notification' in window)) return;
-    if (Notification.permission === 'granted') {
-      subscribePush();
-    } else if (Notification.permission === 'default') {
-      Notification.requestPermission().then(p => { if (p === 'granted') subscribePush(); });
-    }
-  }, []);
 
   const isAdmin = userRole === 'admin' || userRole === 'superadmin';
 

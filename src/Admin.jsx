@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase, signOut, subscribePush } from "./lib/supabase.js";
+import { supabase, signOut } from "./lib/supabase.js";
 import { ROLE_COLORS, ROLE_LABELS } from "./lib/constants.js";
 import "./Admin.css";
 import { ToastContext, ToastContainer } from "./admin/components/Toast.jsx";
@@ -31,11 +31,6 @@ export default function Admin() {
       supabase.from('profiles').select('name,role').eq('id', user.id).single()
         .then(({ data }) => { if (data) setMe(data); });
     });
-    if ('Notification' in window) {
-      if (Notification.permission === 'granted') subscribePush();
-      else if (Notification.permission === 'default')
-        Notification.requestPermission().then(p => { if (p === 'granted') subscribePush(); });
-    }
   }, []);
 
   const TABS = [
