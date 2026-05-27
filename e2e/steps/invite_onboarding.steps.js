@@ -70,11 +70,12 @@ When('I fill in join form with name {string}, email {string}, password {string}'
 
 When('I submit the join form', async function () {
   await this.page.getByRole('button', { name: 'Create account' }).click();
-  await this.page.waitForTimeout(3000);
+  // wait for redirect away from /join/ (magic link exchange takes a few seconds)
+  await this.page.waitForURL(url => !url.pathname.startsWith('/join/'), { timeout: 15_000 });
 });
 
 Then('I should be signed in as a cook', async function () {
-  await expect(this.page.locator('.app')).toBeVisible({ timeout: 10_000 });
+  await expect(this.page.locator('.app')).toBeVisible({ timeout: 15_000 });
 });
 
 // ── Reuse existing step ───────────────────────────────────────
