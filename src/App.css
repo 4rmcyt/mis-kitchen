@@ -179,6 +179,24 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .lineup-info{flex:1}
 .lineup-name{font-size:14px;font-weight:500}
 .lineup-role{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.3px;margin-top:2px}
+/* TodayScreen */
+.screen-hdr-actions{display:flex;align-items:center;gap:8px}
+.experiment-banner{margin:0 0 12px;padding:10px 14px;background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.25);border-radius:var(--radius);display:flex;gap:10px;align-items:flex-start}
+.experiment-banner-icon{font-size:15px;flex-shrink:0}
+.experiment-banner-title{font-size:11px;color:#F97316;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px}
+.experiment-banner-text{font-size:13px;color:var(--text);line-height:1.4}
+.wins-banner{margin:0 0 12px;padding:10px 14px;background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.2);border-radius:var(--radius)}
+.wins-banner-title{font-size:11px;color:#10B981;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px}
+.wins-banner-item{font-size:13px;color:var(--text);line-height:1.4;padding:3px 0}
+.wins-banner-item+.wins-banner-item{border-top:1px solid rgba(255,255,255,0.05)}
+.loading-msg{text-align:center;padding:40px;color:var(--text-muted);font-size:13px}
+.item-body-col{flex-direction:column;align-items:flex-start;gap:2px}
+.item-tags{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.task-station-tag{font-size:10px;color:#000;padding:1px 6px;border-radius:4px;font-family:var(--font-display);font-weight:600}
+.task-source-tag{font-size:10px;color:var(--text-muted);border:1px solid var(--border);padding:1px 6px;border-radius:4px}
+.task-comment-tag{font-size:11px;color:var(--text-muted);font-style:italic}
+.comment-row{width:100%}
+
 /* Temp log */
 .temp-form{margin-bottom:8px}
 .temp-input-row{display:flex;align-items:center;gap:8px}

@@ -117,7 +117,7 @@ export function TodayScreen({ userStation = 'Common', userRole }) {
           <div className="screen-title">Today</div>
           <div className="screen-sub">{formatDateLabel(selectedDate)}</div>
         </div>
-        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+        <div className="screen-hdr-actions">
           {totalAll > 0 && <button className="report-trigger" onClick={() => setShowReport(true)} title="Send report">📋</button>}
           <button className="report-trigger" onClick={() => setShowAddTask(true)} title="Add task">＋</button>
           {totalAll > 0 && (
@@ -150,27 +150,25 @@ export function TodayScreen({ userStation = 'Common', userRole }) {
       </div>
 
       {experiment && (
-        <div style={{ margin:'0 0 12px', padding:'10px 14px', background:'rgba(249,115,22,0.08)', border:'1px solid rgba(249,115,22,0.25)', borderRadius:'var(--radius)', display:'flex', gap:10, alignItems:'flex-start' }}>
-          <span style={{ fontSize:15, flexShrink:0 }}>🧪</span>
+        <div className="experiment-banner">
+          <span className="experiment-banner-icon">🧪</span>
           <div>
-            <div style={{ fontSize:11, color:'#F97316', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:3 }}>Today&apos;s experiment</div>
-            <div style={{ fontSize:13, color:'var(--text)', lineHeight:1.4 }}>{experiment}</div>
+            <div className="experiment-banner-title">Today&apos;s experiment</div>
+            <div className="experiment-banner-text">{experiment}</div>
           </div>
         </div>
       )}
 
       {improvements.length > 0 && (
-        <div style={{ margin:'0 0 12px', padding:'10px 14px', background:'rgba(16,185,129,0.07)', border:'1px solid rgba(16,185,129,0.2)', borderRadius:'var(--radius)' }}>
-          <div style={{ fontSize:11, color:'#10B981', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:6 }}>✓ Recent wins</div>
-          {improvements.map((log, i) => (
-            <div key={log.id} style={{ fontSize:13, color:'var(--text)', lineHeight:1.4, padding:'3px 0', borderTop: i > 0 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
-              {log.text}
-            </div>
+        <div className="wins-banner">
+          <div className="wins-banner-title">✓ Recent wins</div>
+          {improvements.map((log) => (
+            <div key={log.id} className="wins-banner-item">{log.text}</div>
           ))}
         </div>
       )}
 
-      {loading && <div style={{ textAlign:'center', padding:40, color:'var(--text-muted)', fontSize:13 }}>Loading…</div>}
+      {loading && <div className="loading-msg">Loading…</div>}
 
       {!loading && totalAll === 0 && (
         <div className="empty-state">
@@ -196,17 +194,17 @@ export function TodayScreen({ userStation = 'Common', userRole }) {
                 <button className="check-btn" onClick={() => toggle(task)}>
                   <span className="check-inner">{task.done && <CheckIcon/>}</span>
                 </button>
-                <div className="item-body" style={{ flexDirection:'column', alignItems:'flex-start', gap:2 }}>
+                <div className="item-body item-body-col">
                   <span className="item-text">{task.text}</span>
-                  <div style={{ display:'flex', gap:6, alignItems:'center', flexWrap:'wrap' }}>
+                  <div className="item-tags">
                     {task.station !== 'Common' && (
-                      <span style={{ fontSize:10, background: STATION_COLORS[task.station]||'#888', color:'#000', padding:'1px 6px', borderRadius:4, fontFamily:'var(--font-display)', fontWeight:600 }}>{task.station}</span>
+                      <span className="task-station-tag" style={{ background: STATION_COLORS[task.station]||'#888' }}>{task.station}</span>
                     )}
                     {task.source !== 'manual' && (
-                      <span style={{ fontSize:10, color:'var(--text-muted)', border:'1px solid var(--border)', padding:'1px 6px', borderRadius:4 }}>{task.source}</span>
+                      <span className="task-source-tag">{task.source}</span>
                     )}
                     {task.comment && (
-                      <span style={{ fontSize:11, color:'var(--text-muted)', fontStyle:'italic' }}>💬 {task.comment}</span>
+                      <span className="task-comment-tag">💬 {task.comment}</span>
                     )}
                   </div>
                 </div>
@@ -218,7 +216,7 @@ export function TodayScreen({ userStation = 'Common', userRole }) {
                   )}
                 </div>
                 {commentingId === task.id && (
-                  <div className="timer-row" style={{ width:'100%' }}>
+                  <div className="timer-row comment-row">
                     <input className="add-input" placeholder="Add comment…" value={commentText}
                       autoFocus onChange={e => setCommentText(e.target.value)}
                       onKeyDown={e => { if (e.key==='Enter') saveComment(task.id); if (e.key==='Escape') setCommentingId(null); }}/>
