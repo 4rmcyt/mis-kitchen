@@ -124,17 +124,15 @@ function TimerCard({ timer }) {
           {!isSet && (
             <div className="timer-set-row">
               <input
-                className="timer-input" type="number" inputMode="numeric"
+                className="timer-input timer-input-sm" type="number" inputMode="numeric"
                 placeholder="min" value={inputMin}
                 onChange={e => setInputMin(e.target.value)}
-                style={{ width: 52 }}
               />
               <span className="timer-unit">:</span>
               <input
-                className="timer-input" type="number" inputMode="numeric"
+                className="timer-input timer-input-sm" type="number" inputMode="numeric"
                 placeholder="sec" value={inputSec}
                 onChange={e => setInputSec(e.target.value)}
-                style={{ width: 52 }}
               />
               <button className="timer-go" onClick={applyInput}>Set</button>
             </div>
@@ -171,7 +169,7 @@ export function TimerScreen() {
         <div className="screen-title">Timers</div>
       </div>
 
-      <div className="add-row" style={{ marginBottom: 20 }}>
+      <div className="add-row add-row-mb">
         <input
           className="add-input"
           placeholder="Timer name..."

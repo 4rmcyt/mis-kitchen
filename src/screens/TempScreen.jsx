@@ -45,7 +45,7 @@ export function TempScreen() {
       </div>
 
       <div className="temp-form">
-        <div className="station-filter" style={{ marginBottom: 12 }}>
+        <div className="station-filter station-filter-mb">
           {STATIONS.map(s => (
             <button
               key={s}
@@ -71,8 +71,7 @@ export function TempScreen() {
             onKeyDown={e => e.key === 'Enter' && handleSave()}
           />
           <button
-            className="save-btn"
-            style={{ marginTop: 0, width: 'auto', padding: '0 20px' }}
+            className="save-btn save-btn-inline"
             onClick={handleSave}
             disabled={saving || temp === ''}
           >
@@ -81,8 +80,8 @@ export function TempScreen() {
         </div>
       </div>
 
-      <div style={{ marginTop: 24 }}>
-        <div className="section-header" style={{ marginBottom: 12 }}>
+      <div className="temp-logs-block">
+        <div className="section-header section-header-mb">
           <div className="section-name">Today</div>
           <div className="section-count">{logs.length} entries</div>
         </div>

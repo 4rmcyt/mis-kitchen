@@ -19,7 +19,7 @@ export default function App({ userRole, userStation = 'Common' }) {
       <div className="app-inner">
         <header className="app-header">
           <span className="app-logo">mis<span className="logo-dot">.</span></span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div className="screen-hdr-actions">
             {isAdmin && (
               <button className="admin-btn" onClick={() => navigate('/admin')} title="Admin panel">Admin</button>
             )}

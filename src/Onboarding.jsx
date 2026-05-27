@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { updateProfile, supabase } from './lib/supabase.js'
+import './Auth.css'
 
 const STATIONS = ['Common', 'Cold', 'Rolls', 'Hot', 'Grill', 'Tandoor']
 const STATION_COLORS = {
@@ -67,33 +68,18 @@ export default function Onboarding({ user, onDone }) {
   if (step === null) return null
 
   return (
-    <div style={s.root}>
-      <style>{CSS}</style>
-      <div style={s.card}>
-        <div style={s.logo}>mis<span style={{ color: '#F97316' }}>.</span></div>
+    <div className="auth-page">
+      <div className="auth-card auth-card--dark">
+        <div className="auth-logo auth-logo--lg">mis<span className="auth-logo-dot">.</span></div>
 
         {step === 'password' && (
           <>
-            <div style={s.title}>Create your password</div>
-            <div style={s.sub}>You will use this to log in next time.</div>
-            <input
-              style={s.input}
-              type="password"
-              placeholder="Password (min 8 characters)"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              autoFocus
-            />
-            <input
-              style={s.input}
-              type="password"
-              placeholder="Confirm password"
-              value={passwordConfirm}
-              onChange={e => setPasswordConfirm(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && setUserPassword()}
-            />
-            {error && <div style={s.error}>{error}</div>}
-            <button style={saving ? { ...s.btn, opacity: 0.5 } : s.btn} onClick={setUserPassword} disabled={saving}>
+            <div className="auth-title">Create your password</div>
+            <div className="auth-sub">You will use this to log in next time.</div>
+            <input className="auth-input--dark" type="password" placeholder="Password (min 8 characters)" value={password} onChange={e => setPassword(e.target.value)} autoFocus/>
+            <input className="auth-input--dark" type="password" placeholder="Confirm password" value={passwordConfirm} onChange={e => setPasswordConfirm(e.target.value)} onKeyDown={e => e.key === 'Enter' && setUserPassword()}/>
+            {error && <div className="auth-error">{error}</div>}
+            <button className="auth-btn auth-btn--lg" onClick={setUserPassword} disabled={saving}>
               {saving ? 'Saving…' : 'Set password →'}
             </button>
           </>
@@ -101,26 +87,19 @@ export default function Onboarding({ user, onDone }) {
 
         {step === 'welcome' && (
           <>
-            <div style={s.title}>Welcome to the kitchen</div>
-            <div style={s.sub}>{"Let's set up your profile — takes 30 seconds."}</div>
-            <button style={s.btn} onClick={() => setStep('name')}>Get started →</button>
+            <div className="auth-title">Welcome to the kitchen</div>
+            <div className="auth-sub">{"Let's set up your profile — takes 30 seconds."}</div>
+            <button className="auth-btn auth-btn--lg" onClick={() => setStep('name')}>Get started →</button>
           </>
         )}
 
         {step === 'name' && (
           <>
-            <div style={s.title}>{"What's your name?"}</div>
-            <div style={s.sub}>This is what the crew sees in the lineup.</div>
-            <input
-              style={s.input}
-              placeholder="Your name"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && name.trim() && setStep('station')}
-              autoFocus
-            />
-            {error && <div style={s.error}>{error}</div>}
-            <button style={s.btn} onClick={() => name.trim() ? setStep('station') : setError('Enter your name')}>
+            <div className="auth-title">{"What's your name?"}</div>
+            <div className="auth-sub">This is what the crew sees in the lineup.</div>
+            <input className="auth-input--dark" placeholder="Your name" value={name} onChange={e => setName(e.target.value)} onKeyDown={e => e.key === 'Enter' && name.trim() && setStep('station')} autoFocus/>
+            {error && <div className="auth-error">{error}</div>}
+            <button className="auth-btn auth-btn--lg" onClick={() => name.trim() ? setStep('station') : setError('Enter your name')}>
               Next →
             </button>
           </>
@@ -128,42 +107,31 @@ export default function Onboarding({ user, onDone }) {
 
         {step === 'station' && (
           <>
-            <div style={s.title}>Your station?</div>
-            <div style={s.sub}>Pick where you work — you can change this later.</div>
-            <div style={s.stationGrid}>
+            <div className="auth-title">Your station?</div>
+            <div className="auth-sub">Pick where you work — you can change this later.</div>
+            <div className="auth-station-grid">
               {STATIONS.filter(st => st !== 'Common').map(st => (
-                <button
-                  key={st}
-                  style={{
-                    ...s.stationBtn,
-                    ...(station === st ? { background: STATION_COLORS[st], color: '#000', borderColor: STATION_COLORS[st] } : {}),
-                  }}
-                  onClick={() => setStation(st)}
-                >
+                <button key={st} className="auth-station-btn" onClick={() => setStation(st)}
+                  style={station === st ? { background: STATION_COLORS[st], color: '#000', borderColor: STATION_COLORS[st] } : {}}>
                   {st}
                 </button>
               ))}
-              <button
-                style={{
-                  ...s.stationBtn,
-                  ...(station === 'Common' ? { background: '#6B7280', color: '#fff', borderColor: '#6B7280' } : {}),
-                }}
-                onClick={() => setStation('Common')}
-              >
+              <button className="auth-station-btn" onClick={() => setStation('Common')}
+                style={station === 'Common' ? { background: '#6B7280', color: '#fff', borderColor: '#6B7280' } : {}}>
                 Unassigned
               </button>
             </div>
-            {error && <div style={s.error}>{error}</div>}
-            <button style={saving ? { ...s.btn, opacity: 0.5 } : s.btn} onClick={finish} disabled={saving}>
+            {error && <div className="auth-error">{error}</div>}
+            <button className="auth-btn auth-btn--lg" onClick={finish} disabled={saving}>
               {saving ? 'Saving…' : 'Done →'}
             </button>
           </>
         )}
 
         {step !== 'welcome' && (
-          <div style={s.dots}>
+          <div className="auth-dots">
             {visibleDotSteps.map((st, i) => (
-              <div key={st} style={{ ...s.dot, ...(dotIndex >= i ? s.dotActive : {}) }} />
+              <div key={st} className={`auth-dot${dotIndex >= i ? ' auth-dot--active' : ''}`}/>
             ))}
           </div>
         )}
@@ -171,24 +139,3 @@ export default function Onboarding({ user, onDone }) {
     </div>
   )
 }
-
-const s = {
-  root: { minHeight: '100vh', background: '#111111', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, fontFamily: "'DM Mono', monospace" },
-  card: { width: '100%', maxWidth: 380, background: '#1A1A1A', border: '1px solid #333333', borderRadius: 16, padding: 32, display: 'flex', flexDirection: 'column', gap: 16 },
-  logo: { fontFamily: "'Syne', sans-serif", fontSize: 26, fontWeight: 800, letterSpacing: -1 },
-  title: { fontFamily: "'Syne', sans-serif", fontSize: 24, fontWeight: 700, lineHeight: 1.2, color: '#F0F0E8' },
-  sub: { fontSize: 13, color: '#888', lineHeight: 1.6 },
-  input: { background: '#222222', border: '1px solid #333333', borderRadius: 10, padding: '12px 14px', color: '#F0F0E8', fontFamily: "'DM Mono', monospace", fontSize: 14, outline: 'none', width: '100%' },
-  btn: { background: '#F97316', color: '#fff', border: 'none', borderRadius: 10, padding: '14px 20px', fontFamily: "'Syne', sans-serif", fontSize: 15, fontWeight: 700, cursor: 'pointer', marginTop: 4 },
-  stationGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 },
-  stationBtn: { background: 'transparent', border: '1px solid #333333', borderRadius: 10, padding: '12px 8px', color: '#999', fontFamily: "'DM Mono', monospace", fontSize: 13, cursor: 'pointer', transition: 'all 0.15s' },
-  dots: { display: 'flex', gap: 6, justifyContent: 'center', marginTop: 8 },
-  dot: { width: 6, height: 6, borderRadius: '50%', background: '#333333' },
-  dotActive: { background: '#F97316' },
-  error: { color: '#EF4444', fontSize: 12 },
-}
-
-const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&display=swap');
-  input:focus { border-color: #F97316 !important; }
-`
