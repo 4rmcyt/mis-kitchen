@@ -10,6 +10,14 @@
 
 | # | Title |
 |---|---|
+| #83 | Error boundary — wrap app in `<ErrorBoundary>` + Sentry reporting on crash |
+| #84 | Sentry: configure DSN + source maps in Vite (currently dep installed but unused) |
+| #85 | `useAsync` hook — unify loading/error pattern across all tabs |
+| #86 | Verify `supabase client.js` is a singleton (not re-created on each import) |
+| #87 | E2E: add Rota, Push, Velocity tab scenarios |
+| #88 | Audit `report_gate.feature` and `push.feature` — remove or fix stale tests |
+| #89 | Offline cache: cache `getTasks` in service worker so Today screen works on bad WiFi |
+| #90 | PWA: add `manifest.json` + install prompt for Home Screen install |
 | #65 | Research: SaaS go-to-market strategy |
 | #64 | Landing page for mis.kitchen |
 | #63 | Billing: Stripe subscription for SaaS |
