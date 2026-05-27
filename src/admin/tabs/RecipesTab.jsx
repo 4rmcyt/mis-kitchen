@@ -65,45 +65,42 @@ function RecipeForm({ initial, onSave, onCancel, saving }) {
   };
 
   return (
-    <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
-      <div style={{ display:'flex', gap:10 }}>
-        <div style={{ flex:1 }}>
+    <div className="recipe-form">
+      <div className="recipe-form-name-row">
+        <div className="recipe-form-name">
           <label className="form-label-sm">Name</label>
           <input className="form-inp" value={form.name} onChange={e => set('name', e.target.value)} placeholder="Recipe name" autoFocus/>
         </div>
-        <div style={{ width:90 }}>
+        <div className="recipe-form-portions">
           <label className="form-label-sm">Portions</label>
           <input className="form-inp" type="number" min="1" value={form.portions} onChange={e => set('portions', parseInt(e.target.value)||1)}/>
         </div>
       </div>
 
       <div>
-        <label className="form-label-sm" style={{ marginBottom:6, display:'block' }}>Ingredients</label>
-        <div style={{ display:'flex', flexDirection:'column', gap:2, marginBottom:6 }}>
+        <label className="form-label-sm recipe-form-label">Ingredients</label>
+        <div className="recipe-ing-edit-list">
           {form.ingredients.map((ing, i) => (
-            <div key={ing._key} style={{ display:'flex', alignItems:'center', gap:4, padding:'4px 6px', background:'var(--surface2)', borderRadius:6 }}>
-              <div style={{ display:'flex', flexDirection:'column', gap:0 }}>
-                <button onClick={() => moveIng(ing._key, -1)} disabled={i === 0} style={{ background:'none', border:'none', color: i===0 ? 'var(--border)' : 'var(--text-muted)', cursor: i===0 ? 'default' : 'pointer', padding:'1px 3px', fontSize:10, lineHeight:1 }}>▲</button>
-                <button onClick={() => moveIng(ing._key, 1)} disabled={i === form.ingredients.length-1} style={{ background:'none', border:'none', color: i===form.ingredients.length-1 ? 'var(--border)' : 'var(--text-muted)', cursor: i===form.ingredients.length-1 ? 'default' : 'pointer', padding:'1px 3px', fontSize:10, lineHeight:1 }}>▼</button>
+            <div key={ing._key} className="recipe-ing-edit-row">
+              <div className="recipe-reorder">
+                <button onClick={() => moveIng(ing._key, -1)} disabled={i === 0} className={`recipe-reorder-btn recipe-reorder-btn--${i===0?'disabled':'active'}`}>▲</button>
+                <button onClick={() => moveIng(ing._key, 1)} disabled={i === form.ingredients.length-1} className={`recipe-reorder-btn recipe-reorder-btn--${i===form.ingredients.length-1?'disabled':'active'}`}>▼</button>
               </div>
-              <input value={ing.name} onChange={e => updateIng(ing._key, 'name', e.target.value)}
-                style={{ flex:1, background:'transparent', border:'none', color:'var(--text)', fontFamily:'var(--font-mono)', fontSize:13, outline:'none', minWidth:0 }}/>
-              <input value={ing.amount} onChange={e => updateIng(ing._key, 'amount', e.target.value)}
-                style={{ width:60, background:'transparent', border:'none', color:'var(--accent)', fontFamily:'var(--font-mono)', fontSize:13, outline:'none', textAlign:'right' }}/>
-              <select value={ing.unit} onChange={e => updateIng(ing._key, 'unit', e.target.value)}
-                style={{ background:'var(--surface)', border:'1px solid var(--border)', color:'var(--text-muted)', fontFamily:'var(--font-mono)', fontSize:11, borderRadius:4, padding:'2px 4px' }}>
+              <input value={ing.name} onChange={e => updateIng(ing._key, 'name', e.target.value)} className="recipe-ing-name-inp"/>
+              <input value={ing.amount} onChange={e => updateIng(ing._key, 'amount', e.target.value)} className="recipe-ing-amt-inp"/>
+              <select value={ing.unit} onChange={e => updateIng(ing._key, 'unit', e.target.value)} className="recipe-ing-unit-sel">
                 {UNITS.map(u => <option key={u}>{u}</option>)}
               </select>
-              <button onClick={() => removeIng(ing._key)} style={{ background:'none', border:'none', color:'#EF4444', cursor:'pointer', padding:'0 4px', fontSize:16, lineHeight:1 }}>×</button>
+              <button onClick={() => removeIng(ing._key)} className="recipe-del-btn">×</button>
             </div>
           ))}
         </div>
-        <div style={{ display:'flex', gap:6 }}>
-          <input className="search-inp" style={{ flex:1, maxWidth:'none' }} placeholder="Ingredient" value={ingText}
+        <div className="recipe-ing-add-row">
+          <input className="search-inp recipe-ing-add-inp" placeholder="Ingredient" value={ingText}
             onChange={e => setIngText(e.target.value)} onKeyDown={e => e.key === 'Enter' && addIng()}/>
-          <input className="search-inp" style={{ width:70 }} placeholder="Amt" value={ingAmt}
+          <input className="search-inp recipe-ing-add-amt" placeholder="Amt" value={ingAmt}
             onChange={e => setIngAmt(e.target.value)} onKeyDown={e => e.key === 'Enter' && addIng()}/>
-          <select className="form-sel" style={{ width:80, padding:'6px 8px' }} value={ingUnit} onChange={e => setIngUnit(e.target.value)}>
+          <select className="form-sel recipe-ing-add-unit" value={ingUnit} onChange={e => setIngUnit(e.target.value)}>
             {UNITS.map(u => <option key={u}>{u}</option>)}
           </select>
           <button className="btn-secondary" onClick={addIng}>+</button>
@@ -111,30 +108,29 @@ function RecipeForm({ initial, onSave, onCancel, saving }) {
       </div>
 
       <div>
-        <label className="form-label-sm" style={{ marginBottom:6, display:'block' }}>Steps</label>
-        <div style={{ display:'flex', flexDirection:'column', gap:2, marginBottom:6 }}>
+        <label className="form-label-sm recipe-form-label">Steps</label>
+        <div className="recipe-step-edit-list">
           {form.steps.map((step, i) => (
-            <div key={step._key} style={{ display:'flex', alignItems:'flex-start', gap:4, padding:'4px 6px', background:'var(--surface2)', borderRadius:6 }}>
-              <div style={{ display:'flex', flexDirection:'column', gap:0, paddingTop:2 }}>
-                <button onClick={() => moveStep(step._key, -1)} disabled={i === 0} style={{ background:'none', border:'none', color: i===0 ? 'var(--border)' : 'var(--text-muted)', cursor: i===0 ? 'default' : 'pointer', padding:'1px 3px', fontSize:10, lineHeight:1 }}>▲</button>
-                <button onClick={() => moveStep(step._key, 1)} disabled={i === form.steps.length-1} style={{ background:'none', border:'none', color: i===form.steps.length-1 ? 'var(--border)' : 'var(--text-muted)', cursor: i===form.steps.length-1 ? 'default' : 'pointer', padding:'1px 3px', fontSize:10, lineHeight:1 }}>▼</button>
+            <div key={step._key} className="recipe-step-edit-row">
+              <div className="recipe-step-reorder">
+                <button onClick={() => moveStep(step._key, -1)} disabled={i === 0} className={`recipe-reorder-btn recipe-reorder-btn--${i===0?'disabled':'active'}`}>▲</button>
+                <button onClick={() => moveStep(step._key, 1)} disabled={i === form.steps.length-1} className={`recipe-reorder-btn recipe-reorder-btn--${i===form.steps.length-1?'disabled':'active'}`}>▼</button>
               </div>
-              <span style={{ color:'var(--text-muted)', fontSize:11, minWidth:18, textAlign:'right', marginTop:4, flexShrink:0 }}>{i+1}.</span>
+              <span className="recipe-step-num-lbl">{i+1}.</span>
               <textarea value={step.text} onChange={e => updateStep(step._key, e.target.value)}
-                rows={1}
-                style={{ flex:1, background:'transparent', border:'none', color:'var(--text)', fontFamily:'var(--font-mono)', fontSize:13, outline:'none', resize:'vertical', lineHeight:1.5, padding:'2px 0' }}/>
-              <button onClick={() => removeStep(step._key)} style={{ background:'none', border:'none', color:'#EF4444', cursor:'pointer', padding:'0 4px', fontSize:16, lineHeight:1, marginTop:2 }}>×</button>
+                rows={1} className="recipe-step-textarea"/>
+              <button onClick={() => removeStep(step._key)} className="recipe-step-del">×</button>
             </div>
           ))}
         </div>
-        <div style={{ display:'flex', gap:6 }}>
-          <input className="search-inp" style={{ flex:1, maxWidth:'none' }} placeholder="Step description" value={stepText}
+        <div className="recipe-step-add-row">
+          <input className="search-inp recipe-ing-add-inp" placeholder="Step description" value={stepText}
             onChange={e => setStepText(e.target.value)} onKeyDown={e => e.key === 'Enter' && addStep()}/>
           <button className="btn-secondary" onClick={addStep}>+</button>
         </div>
       </div>
 
-      <div style={{ display:'flex', gap:8, alignItems:'center', paddingTop:4, justifyContent:'flex-end' }}>
+      <div className="recipe-form-actions">
         <button className="btn-secondary" onClick={onCancel}>Cancel</button>
         <button className="btn-primary" onClick={handleSave} disabled={saving || !form.name.trim()}>
           {saving ? 'Saving…' : 'Save'}
@@ -193,9 +189,9 @@ export function RecipesTab() {
   if (selected && editing) {
     return (
       <div className="tab-content">
-        <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:4 }}>
+        <div className="recipe-detail-hdr">
           <button className="btn-secondary" onClick={() => setEditing(false)}>← Back</button>
-          <span style={{ fontFamily:'var(--font-display)', fontSize:18, fontWeight:700, flex:1 }}>Edit: {selected.name}</span>
+          <span className="recipe-edit-name">Edit: {selected.name}</span>
         </div>
         <RecipeForm initial={selected} onSave={handleUpdate} onCancel={() => setEditing(false)} saving={saving}/>
       </div>
@@ -208,24 +204,22 @@ export function RecipesTab() {
     return (
       <div className="tab-content">
         {confirmDialog}
-        <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:4 }}>
+        <div className="recipe-detail-hdr">
           <button className="btn-secondary" onClick={() => setSelected(null)}>← Back</button>
-          <span style={{ fontFamily:'var(--font-display)', fontSize:20, fontWeight:700, flex:1 }}>{selected.name}</span>
+          <span className="recipe-detail-name">{selected.name}</span>
           <button className="btn-secondary" onClick={() => setEditing(true)}>Edit</button>
           <button className="btn-danger" onClick={handleDelete}>Delete</button>
         </div>
-        <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-          <span style={{ fontSize:12, color:'var(--text-muted)' }}>{selected.portions} portion{selected.portions!==1?'s':''}</span>
-        </div>
+        <div className="recipe-meta">{selected.portions} portion{selected.portions!==1?'s':''}</div>
 
         {ings.length > 0 && (
-          <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--radius)', padding:'14px 16px' }}>
-            <div style={{ fontSize:11, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:10 }}>Ingredients ({selected.portions}p)</div>
-            <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
+          <div className="recipe-block">
+            <div className="recipe-block-title">Ingredients ({selected.portions}p)</div>
+            <div className="recipe-ing-list">
               {ings.map((ing, i) => (
-                <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'4px 0', borderBottom:'1px solid var(--border2)' }}>
-                  <span style={{ flex:1, fontSize:13 }}>{ing.name}</span>
-                  <span style={{ fontSize:13, color:'var(--accent)', fontFamily:'var(--font-mono)', fontWeight:500 }}>{ing.amount} {ing.unit}</span>
+                <div key={i} className="recipe-ing-row">
+                  <span className="recipe-ing-name">{ing.name}</span>
+                  <span className="recipe-ing-amt">{ing.amount} {ing.unit}</span>
                 </div>
               ))}
             </div>
@@ -233,13 +227,13 @@ export function RecipesTab() {
         )}
 
         {steps.length > 0 && (
-          <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--radius)', padding:'14px 16px' }}>
-            <div style={{ fontSize:11, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:10 }}>Steps</div>
-            <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+          <div className="recipe-block">
+            <div className="recipe-block-title">Steps</div>
+            <div className="recipe-steps-list">
               {steps.map((step, i) => (
-                <div key={i} style={{ display:'flex', gap:12, fontSize:13 }}>
-                  <span style={{ color:'var(--accent)', fontFamily:'var(--font-mono)', fontWeight:700, flexShrink:0 }}>{i+1}.</span>
-                  <span style={{ lineHeight:1.5 }}>{step}</span>
+                <div key={i} className="recipe-step-row">
+                  <span className="recipe-step-num">{i+1}.</span>
+                  <span className="recipe-step-text">{step}</span>
                 </div>
               ))}
             </div>
@@ -247,7 +241,7 @@ export function RecipesTab() {
         )}
 
         {ings.length === 0 && steps.length === 0 && (
-          <div style={{ color:'var(--text-muted)', fontSize:13 }}>No ingredients or steps yet. <button style={{ background:'none', border:'none', color:'var(--accent)', cursor:'pointer', fontFamily:'var(--font-mono)', fontSize:13, padding:0 }} onClick={() => setEditing(true)}>Add them →</button></div>
+          <div className="recipe-empty">No ingredients or steps yet. <button className="recipe-empty-link" onClick={() => setEditing(true)}>Add them →</button></div>
         )}
       </div>
     );
@@ -256,9 +250,9 @@ export function RecipesTab() {
   if (showNew) {
     return (
       <div className="tab-content">
-        <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:4 }}>
+        <div className="recipe-detail-hdr">
           <button className="btn-secondary" onClick={() => setShowNew(false)}>← Back</button>
-          <span style={{ fontFamily:'var(--font-display)', fontSize:18, fontWeight:700 }}>New Recipe</span>
+          <span className="recipe-edit-name">New Recipe</span>
         </div>
         <RecipeForm initial={emptyRecipe()} onSave={handleCreate} onCancel={() => setShowNew(false)} saving={saving}/>
       </div>
@@ -269,25 +263,24 @@ export function RecipesTab() {
     <div className="tab-content">
       <div className="stat-row">
         <div className="stat-card"><div className="stat-val">{recipes.length}</div><div className="stat-lbl">Recipes</div></div>
-        <div className="stat-card"><div className="stat-val" style={{ color:'#10B981' }}>{recipes.filter(r=>r.is_shared).length}</div><div className="stat-lbl">Shared</div></div>
+        <div className="stat-card"><div className="stat-val c-green">{recipes.filter(r=>r.is_shared).length}</div><div className="stat-lbl">Shared</div></div>
       </div>
       <div className="toolbar">
         <button className="btn-primary" onClick={() => setShowNew(true)}>+ New Recipe</button>
       </div>
-      <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
+      <div className="recipe-list">
         {recipes.map(r => (
-          <div key={r.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'11px 14px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--radius)', cursor:'pointer', transition:'border-color 0.15s' }}
-            onClick={() => setSelected(r)}>
-            <div style={{ flex:1 }}>
-              <div style={{ fontFamily:'var(--font-display)', fontSize:14, fontWeight:700 }}>{r.name}</div>
-              <div style={{ fontSize:11, color:'var(--text-muted)', marginTop:2 }}>
+          <div key={r.id} className="recipe-list-item" onClick={() => setSelected(r)}>
+            <div className="recipe-list-body">
+              <div className="recipe-list-name">{r.name}</div>
+              <div className="recipe-list-meta">
                 {r.ingredients?.length||0} ingredients · {r.steps?.length||0} steps · {r.portions}p
               </div>
             </div>
-            {r.is_shared && <span style={{ fontSize:11, color:'#10B981' }}>● Shared</span>}
+            {r.is_shared && <span className="recipe-list-shared">● Shared</span>}
           </div>
         ))}
-        {recipes.length === 0 && <div style={{ color:'var(--text-muted)', fontSize:13, padding:'8px 0' }}>No recipes yet.</div>}
+        {recipes.length === 0 && <div className="template-empty">No recipes yet.</div>}
       </div>
     </div>
   );
