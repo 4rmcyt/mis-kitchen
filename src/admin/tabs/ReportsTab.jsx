@@ -47,10 +47,10 @@ export function ReportsTab() {
   return (
     <div className="tab-content">
       <div className="stat-row">
-        <div className="stat-card"><div className="stat-val" style={{ color:'#F97316' }}>{avgPct}%</div><div className="stat-lbl">Avg completion</div></div>
+        <div className="stat-card"><div className="stat-val c-accent">{avgPct}%</div><div className="stat-lbl">Avg completion</div></div>
         <div className="stat-card"><div className="stat-val">{filtered.length}</div><div className="stat-lbl">Reports submitted</div></div>
-        <div className="stat-card"><div className="stat-val" style={{ color:'#10B981' }}>{perfect}</div><div className="stat-lbl">100% complete</div></div>
-        <div className="stat-card"><div className="stat-val" style={{ color:'#6366F1' }}>{withNext}</div><div className="stat-lbl">Tasks deferred</div></div>
+        <div className="stat-card"><div className="stat-val c-green">{perfect}</div><div className="stat-lbl">100% complete</div></div>
+        <div className="stat-card"><div className="stat-val c-indigo">{withNext}</div><div className="stat-lbl">Tasks deferred</div></div>
       </div>
 
       <div className="toolbar">
@@ -74,32 +74,32 @@ export function ReportsTab() {
           );
         })}
         {filtered.length === 0 && (
-          <div style={{ color:'var(--text-muted)', fontSize:13, padding:'32px 0' }}>No reports for {dateFilter}</div>
+          <div className="empty-inline" style={{ padding:'32px 0' }}>No reports for {dateFilter}</div>
         )}
       </div>
 
       {filtered.length > 0 && (
-        <div className="table-wrap" style={{ marginTop:0 }}>
+        <div className="table-wrap table-wrap-flush">
           <table className="data-table">
             <thead>
               <tr><th>Cook</th><th>Station</th><th>Completion</th><th>Done/Total</th><th>Deferred</th><th></th></tr>
             </thead>
             <tbody>
               {filtered.map(r => (
-                <tr key={r.id} style={{ cursor:'pointer' }} onClick={() => setSelected(r)}>
-                  <td><div style={{ display:'flex', alignItems:'center', gap:8 }}><Avatar name={r.name} size={28}/><span className="user-name">{r.name}</span></div></td>
+                <tr key={r.id} className="row-clickable" onClick={() => setSelected(r)}>
+                  <td><div className="flex-row gap-8"><Avatar name={r.name} size={28}/><span className="user-name">{r.name}</span></div></td>
                   <td><Badge color={STATION_COLORS[r.station]||'#6B7280'} small>{r.station}</Badge></td>
                   <td>
-                    <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                    <div className="flex-row gap-8">
                       <PctBar pct={r.pct}/>
-                      <span className="cell-num" style={{ width:36, textAlign:'right' }}>{r.pct}%</span>
+                      <span className="cell-num-fixed">{r.pct}%</span>
                     </div>
                   </td>
                   <td><span className="cell-num">{r.done}/{r.total}</span></td>
                   <td>
                     {r.next_shift.length > 0
                       ? <Badge color="#6366F1" small>{r.next_shift.length} tasks</Badge>
-                      : <span style={{ fontSize:11, color:'#10B981' }}>✓ none</span>}
+                      : <span className="c-green-sm">✓ none</span>}
                   </td>
                   <td><button className="tbl-btn" onClick={e => { e.stopPropagation(); setSelected(r); }}>Details</button></td>
                 </tr>
@@ -111,52 +111,50 @@ export function ReportsTab() {
 
       {selected && (
         <Modal title={`${selected.name} — ${selected.date}`} onClose={() => setSelected(null)}>
-          <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-            <div style={{ display:'flex', alignItems:'center', gap:14, paddingBottom:16, borderBottom:'1px solid var(--border)' }}>
+          <div className="report-modal-body">
+            <div className="report-modal-hdr">
               <Avatar name={selected.name} size={44}/>
               <div>
-                <div style={{ fontFamily:'var(--font-display)', fontSize:17, fontWeight:700 }}>{selected.name}</div>
-                <div style={{ fontSize:12, color:'var(--text-muted)', marginTop:2 }}>{selected.station} · {selected.date}</div>
+                <div className="report-modal-info">{selected.name}</div>
+                <div className="report-modal-sub">{selected.station} · {selected.date}</div>
               </div>
-              <div style={{ marginLeft:'auto', textAlign:'right' }}>
-                <div style={{ fontFamily:'var(--font-display)', fontSize:32, fontWeight:800, color: selected.pct>=90?'#10B981':selected.pct>=70?'#F97316':'#EF4444', lineHeight:1 }}>{selected.pct}%</div>
-                <div style={{ fontSize:11, color:'var(--text-muted)' }}>{selected.done}/{selected.total} tasks</div>
+              <div className="ml-auto text-right">
+                <div className="report-modal-pct" style={{ color: selected.pct>=90?'#10B981':selected.pct>=70?'#F97316':'#EF4444' }}>{selected.pct}%</div>
+                <div className="report-modal-tasks">{selected.done}/{selected.total} tasks</div>
               </div>
             </div>
             <div>
-              <div style={{ fontSize:11, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:10 }}>Sections</div>
+              <div className="section-label">Sections</div>
               {selected.sections.map((sec,i) => (
-                <div key={i} style={{ display:'flex', alignItems:'center', gap:10, marginBottom:8 }}>
-                  <span style={{ fontSize:13, flex:1 }}>{sec.name}</span>
+                <div key={i} className="report-section-row">
+                  <span className="report-section-name">{sec.name}</span>
                   <PctBar pct={sec.total ? (sec.done/sec.total)*100 : 0}/>
-                  <span style={{ fontSize:12, color:'var(--text-muted)', width:40, textAlign:'right' }}>{sec.done}/{sec.total}</span>
+                  <span className="report-section-num">{sec.done}/{sec.total}</span>
                 </div>
               ))}
             </div>
             {selected.experiment_text && (
-              <div style={{ background:'rgba(249,115,22,0.06)', border:'1px solid rgba(249,115,22,0.2)', borderRadius:8, padding:12 }}>
-                <div style={{ fontSize:11, color:'#F97316', textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:6 }}>🧪 Experiment</div>
+              <div className="block-accent">
+                <div className="block-accent-title">🧪 Experiment</div>
                 <div style={{ fontSize:13, color:'var(--text)', marginBottom:8, lineHeight:1.4 }}>{selected.experiment_text}</div>
                 {selected.experiment_outcome && (
-                  <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                    <span style={{
-                      fontSize:12, fontWeight:700, padding:'2px 10px', borderRadius:4,
+                  <div className="flex-row gap-8">
+                    <span className="experiment-outcome" style={{
                       background: selected.experiment_outcome==='yes' ? '#10B98122' : selected.experiment_outcome==='no' ? '#EF444422' : '#6B728022',
                       color: selected.experiment_outcome==='yes' ? '#10B981' : selected.experiment_outcome==='no' ? '#EF4444' : '#9CA3AF',
                     }}>
                       {selected.experiment_outcome==='yes' ? '✓ Worked' : selected.experiment_outcome==='no' ? '✗ Didn\'t work' : '— Not tried'}
                     </span>
-                    {selected.experiment_note && <span style={{ fontSize:12, color:'var(--text-muted)', fontStyle:'italic' }}>{selected.experiment_note}</span>}
+                    {selected.experiment_note && <span className="experiment-note">{selected.experiment_note}</span>}
                   </div>
                 )}
               </div>
             )}
-
             {selected.next_shift.length > 0 && (
-              <div style={{ background:'rgba(99,102,241,0.06)', border:'1px solid rgba(99,102,241,0.2)', borderRadius:8, padding:12 }}>
-                <div style={{ fontSize:11, color:'#6366F1', textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:8 }}>→ Deferred to next shift</div>
+              <div className="block-indigo">
+                <div className="block-indigo-title">→ Deferred to next shift</div>
                 {selected.next_shift.map((t,i) => (
-                  <div key={i} style={{ fontSize:13, color:'var(--text)', padding:'4px 0', borderBottom:'1px solid rgba(255,255,255,0.04)' }}>• {typeof t === 'string' ? t : t.text}</div>
+                  <div key={i} className="deferred-item">• {typeof t === 'string' ? t : t.text}</div>
                 ))}
               </div>
             )}

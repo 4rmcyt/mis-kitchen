@@ -48,46 +48,37 @@ export function ImprovementsTab() {
     <div className="tab-content">
       {confirmDialog}
 
-      <div style={{ marginBottom: 20, padding: '14px 16px', background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 'var(--radius)' }}>
-        <div style={{ fontSize: 12, color: '#10B981', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>✓ Log an improvement</div>
+      <div className="block-success" style={{ marginBottom: 20 }}>
+        <div className="block-success-title">✓ Log an improvement</div>
         <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 10 }}>
           What did the team improve this week? Staff will see this on their Today screen.
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div className="flex-row gap-8">
           <input
-            className="search-inp"
-            style={{ flex: 1, maxWidth: 'none' }}
+            className="search-inp flex-1"
             placeholder="e.g. Reduced opening time by 10 min by pre-staging mise en place…"
             value={text}
             onChange={e => setText(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && submit()}
           />
-          <button className="btn-primary" style={{ flexShrink: 0 }} onClick={submit} disabled={saving || !text.trim()}>
+          <button className="btn-primary flex-shrink-0" onClick={submit} disabled={saving || !text.trim()}>
             {saving ? 'Saving…' : 'Post'}
           </button>
         </div>
       </div>
 
-      <div className="improvement-log-list" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div className="log-list">
         {logs.length === 0 && (
-          <div style={{ color: 'var(--text-muted)', fontSize: 13, padding: '24px 0', textAlign: 'center' }}>
-            No improvements logged yet. Be the first!
-          </div>
+          <div className="empty-inline">No improvements logged yet. Be the first!</div>
         )}
         {logs.map(log => (
-          <div key={log.id} style={{ display: 'flex', gap: 12, padding: '12px 14px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', alignItems: 'flex-start' }}>
-            <Avatar name={log.profiles?.name || '?'} size={32} style={{ flexShrink: 0 }}/>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.5 }}>{log.text}</div>
-              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
-                {log.profiles?.name || 'Admin'} · {timeAgo(log.created_at)}
-              </div>
+          <div key={log.id} className="log-item">
+            <Avatar name={log.profiles?.name || '?'} size={32}/>
+            <div className="log-body">
+              <div className="log-text">{log.text}</div>
+              <div className="log-meta">{log.profiles?.name || 'Admin'} · {timeAgo(log.created_at)}</div>
             </div>
-            <button
-              onClick={() => remove(log)}
-              style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 16, padding: '0 4px', lineHeight: 1, flexShrink: 0 }}
-              title="Delete"
-            >×</button>
+            <button className="log-del" onClick={() => remove(log)} title="Delete">×</button>
           </div>
         ))}
       </div>
