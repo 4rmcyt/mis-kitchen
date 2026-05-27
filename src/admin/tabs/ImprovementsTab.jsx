@@ -48,7 +48,7 @@ export function ImprovementsTab() {
     <div className="tab-content">
       {confirmDialog}
 
-      <div className="block-success" style={{ marginBottom: 20 }}>
+      <div className="block-success mb-20">
         <div className="block-success-title">✓ Log an improvement</div>
         <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 10 }}>
           What did the team improve this week? Staff will see this on their Today screen.

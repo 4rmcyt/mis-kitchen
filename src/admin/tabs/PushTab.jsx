@@ -38,7 +38,7 @@ export function PushTab() {
 
         <div className="push-recipients">
           <div className="form-label mb-10">Recipients</div>
-          <div className="flex-row gap-8" style={{ flexWrap: 'wrap' }}>
+          <div className="flex-row gap-8 flex-wrap">
             {[{ value: '', label: 'All staff' }, ...STATIONS.filter(s => s !== 'Common').map(s => ({ value: s, label: s }))].map(opt => (
               <button
                 key={opt.value}

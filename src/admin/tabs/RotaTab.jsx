@@ -103,7 +103,7 @@ export function RotaTab() {
         <button className="btn-secondary" onClick={() => setWeekStart(getMonday())}>Today</button>
       </div>
 
-      {loading && <div className="empty-inline" style={{ padding: 40 }}>Loading…</div>}
+      {loading && <div className="empty-inline p-40">Loading…</div>}
 
       {!loading && (
         <div className="rota-grid">

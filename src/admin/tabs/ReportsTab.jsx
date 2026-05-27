@@ -74,7 +74,7 @@ export function ReportsTab() {
           );
         })}
         {filtered.length === 0 && (
-          <div className="empty-inline" style={{ padding:'32px 0' }}>No reports for {dateFilter}</div>
+          <div className="empty-inline py-32">No reports for {dateFilter}</div>
         )}
       </div>
 

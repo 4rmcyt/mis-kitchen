@@ -95,15 +95,15 @@ export function VelocityTab() {
         </div>
       </div>
 
-      {loading && <div className="empty-inline" style={{ padding: 40 }}>Loading…</div>}
+      {loading && <div className="empty-inline p-40">Loading…</div>}
 
       {!loading && !hasData && (
-        <div className="empty-inline" style={{ padding: 40 }}>No data yet — complete some tasks to see velocity stats.</div>
+        <div className="empty-inline p-40">No data yet — complete some tasks to see velocity stats.</div>
       )}
 
       {!loading && hasData && (
         <>
-          <div className="stat-row" style={{ marginBottom: 20 }}>
+          <div className="stat-row mb-20">
             <div className="stat-card">
               <div className="stat-val">{rows.length}</div>
               <div className="stat-lbl">Shifts tracked</div>
