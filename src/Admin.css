@@ -237,6 +237,56 @@ html,body,#root{height:100%;background:var(--bg);color:var(--text);font-family:v
 .c-green{color:#10B981}
 .c-indigo{color:#6366F1}
 .c-green-sm{font-size:11px;color:#10B981}
+
+/* Utility gaps */
+.gap-4{gap:4px}
+.gap-6{gap:6px}
+.flex-wrap{flex-wrap:wrap}
+
+/* User status badge */
+.user-status{font-size:11px;font-weight:600}
+.user-status--active{color:#10B981}
+.user-status--inactive{color:#555}
+
+/* Coverage matrix */
+.coverage-matrix{margin-top:24px;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
+.coverage-matrix-title{font-size:12px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px}
+.coverage-rows{display:flex;flex-direction:column;gap:8px}
+.coverage-row{display:flex;align-items:center;gap:12px}
+.coverage-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.coverage-dot--ok{background:#10B981}
+.coverage-dot--missing{background:#EF4444}
+.coverage-station{font-size:13px;width:72px;flex-shrink:0}
+.coverage-chips{display:flex;gap:4px;flex-wrap:wrap;flex:1}
+.coverage-chip-primary{font-size:11px;padding:2px 8px;border-radius:4px;font-weight:600}
+.coverage-chip-backup{font-size:11px;padding:2px 8px;border-radius:4px;background:var(--surface2);color:var(--text-muted);border:1px solid var(--border)}
+.coverage-missing{font-size:11px;color:#EF4444}
+
+/* People modal */
+.modal-user-hdr{display:flex;align-items:center;gap:14px;padding:4px 0 16px;border-bottom:1px solid var(--border)}
+.modal-user-name{font-family:var(--font-display);font-size:18px;font-weight:700}
+.modal-user-email{font-size:12px;color:var(--text-muted);margin-top:2px}
+.modal-user-joined{font-size:11px;color:var(--text-muted);margin-top:2px}
+.modal-user-stats{background:var(--surface2);border-radius:8px;padding:12px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.modal-user-stat{text-align:center}
+.modal-user-stat-val{font-size:22px;font-weight:700;font-family:var(--font-display)}
+.modal-user-stat-val--active{color:#10B981}
+.modal-user-stat-val--inactive{color:#555}
+.modal-user-stat-lbl{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px}
+.modal-user-actions{display:flex;gap:8px}
+
+/* Secondary station toggles */
+.secondary-stations{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.station-toggle{padding:4px 10px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer}
+
+/* Invite modal */
+.invite-form{display:flex;flex-direction:column;gap:12px}
+.invite-mode-row{display:flex;gap:8px;margin-bottom:4px}
+.invite-mode-btn{flex:1;padding:8px 0;border-radius:8px;border:1px solid;cursor:pointer;font-size:12px;font-family:var(--font-mono)}
+.invite-link-box{display:flex;flex-direction:column;gap:16px}
+.invite-link-hint{font-size:13px;color:var(--text-muted)}
+.invite-link-code{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--text);word-break:break-all;font-family:var(--font-mono)}
+.invite-link-meta{font-size:11px;color:var(--text-muted);text-align:center}
 .cell-num-fixed{font-size:12px;font-family:var(--font-mono);width:36px;text-align:right}
 .table-wrap-flush{margin-top:0}
 .row-clickable{cursor:pointer}

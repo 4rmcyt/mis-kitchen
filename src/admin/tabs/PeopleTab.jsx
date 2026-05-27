@@ -115,8 +115,8 @@ export function PeopleTab() {
     <div className="tab-content">
       <div className="stat-row">
         <div className="stat-card"><div className="stat-val">{users.length}</div><div className="stat-lbl">Total Users</div></div>
-        <div className="stat-card"><div className="stat-val" style={{ color:'#10B981' }}>{activeCount}</div><div className="stat-lbl">Active</div></div>
-        <div className="stat-card"><div className="stat-val" style={{ color:'#6366F1' }}>{adminCount}</div><div className="stat-lbl">Admins</div></div>
+        <div className="stat-card"><div className="stat-val c-green">{activeCount}</div><div className="stat-lbl">Active</div></div>
+        <div className="stat-card"><div className="stat-val c-indigo">{adminCount}</div><div className="stat-lbl">Admins</div></div>
       </div>
 
       <div className="toolbar">
@@ -138,9 +138,9 @@ export function PeopleTab() {
           </thead>
           <tbody>
             {filtered.map(u => (
-              <tr key={u.id} className={!u.active ? 'row-inactive' : ''} onClick={() => setSelected(u)} style={{ cursor:'pointer' }}>
+              <tr key={u.id} className={`row-clickable${!u.active ? ' row-inactive' : ''}`} onClick={() => setSelected(u)}>
                 <td>
-                  <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                  <div className="flex-row gap-10">
                     <Avatar name={u.name}/>
                     <div>
                       <div className="user-name">{u.name}</div>
@@ -152,12 +152,12 @@ export function PeopleTab() {
                 <td><Badge color={STATION_COLORS[u.station] || '#6B7280'} small>{u.station}</Badge></td>
                 <td><span className="cell-muted">{u.last_seen ? new Date(u.last_seen).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}</span></td>
                 <td>
-                  <span style={{ fontSize:11, color: u.active ? '#10B981' : '#555', fontWeight:600 }}>
+                  <span className={`user-status user-status--${u.active ? 'active' : 'inactive'}`}>
                     {u.active ? '● Active' : '○ Inactive'}
                   </span>
                 </td>
                 <td onClick={e => e.stopPropagation()}>
-                  <div style={{ display:'flex', gap:4 }}>
+                  <div className="flex-row gap-4">
                     <button className="tbl-btn" onClick={() => setSelected(u)}>Edit</button>
                     <button className="tbl-btn danger" onClick={() => toggleActive(u.id)}>
                       {u.active ? 'Deactivate' : 'Activate'}
@@ -174,25 +174,25 @@ export function PeopleTab() {
       {users.length > 0 && (() => {
         const workStations = STATIONS.filter(s => s !== 'Common');
         return (
-          <div className="coverage-matrix" style={{ marginTop: 24, padding: '14px 16px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)' }}>
-            <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 }}>Station coverage</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div className="coverage-matrix">
+            <div className="coverage-matrix-title">Station coverage</div>
+            <div className="coverage-rows">
               {workStations.map(st => {
                 const primary = users.filter(u => u.active && u.station === st);
                 const backup  = users.filter(u => u.active && u.station !== st && (u.secondary_stations || []).includes(st));
                 const covered = primary.length > 0 || backup.length > 0;
                 return (
-                  <div key={st} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: covered ? '#10B981' : '#EF4444', flexShrink: 0 }}/>
-                    <span style={{ fontSize: 13, width: 72, flexShrink: 0 }}>{st}</span>
-                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', flex: 1 }}>
+                  <div key={st} className="coverage-row">
+                    <div className={`coverage-dot coverage-dot--${covered ? 'ok' : 'missing'}`}/>
+                    <span className="coverage-station">{st}</span>
+                    <div className="coverage-chips">
                       {primary.map(u => (
-                        <span key={u.id} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 4, background: (STATION_COLORS[st]||'#888')+'22', color: STATION_COLORS[st]||'#888', fontWeight: 600 }}>{(u.name||'?').split(' ')[0]}</span>
+                        <span key={u.id} className="coverage-chip-primary" style={{ background: (STATION_COLORS[st]||'#888')+'22', color: STATION_COLORS[st]||'#888' }}>{(u.name||'?').split(' ')[0]}</span>
                       ))}
                       {backup.map(u => (
-                        <span key={u.id} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 4, background: 'var(--surface2)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}>{(u.name||'?').split(' ')[0]} ✓</span>
+                        <span key={u.id} className="coverage-chip-backup">{(u.name||'?').split(' ')[0]} ✓</span>
                       ))}
-                      {!covered && <span style={{ fontSize: 11, color: '#EF4444' }}>No coverage!</span>}
+                      {!covered && <span className="coverage-missing">No coverage!</span>}
                     </div>
                   </div>
                 );
@@ -204,13 +204,13 @@ export function PeopleTab() {
 
       {selected && (
         <Modal title="User Details" onClose={() => setSelected(null)}>
-          <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-            <div style={{ display:'flex', alignItems:'center', gap:14, padding:'4px 0 16px', borderBottom:'1px solid var(--border)' }}>
+          <div className="flex-col gap-16">
+            <div className="modal-user-hdr">
               <Avatar name={selected.name} size={52}/>
               <div>
-                <div style={{ fontFamily:'var(--font-display)', fontSize:18, fontWeight:700 }}>{selected.name}</div>
-                <div style={{ fontSize:12, color:'var(--text-muted)', marginTop:2 }}>{selected.email}</div>
-                <div style={{ fontSize:11, color:'var(--text-muted)', marginTop:2 }}>Joined {selected.joined}</div>
+                <div className="modal-user-name">{selected.name}</div>
+                <div className="modal-user-email">{selected.email}</div>
+                <div className="modal-user-joined">Joined {selected.joined}</div>
               </div>
             </div>
             <div className="form-row">
@@ -228,11 +228,11 @@ export function PeopleTab() {
             </div>
             <div className="form-row">
               <label className="form-label-sm">Also trained for</label>
-              <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginTop:4 }}>
+              <div className="secondary-stations">
                 {STATIONS.filter(st => st !== 'Common' && st !== selected.station).map(st => {
                   const active = (selected.secondary_stations || []).includes(st);
                   return (
-                    <button key={st} onClick={async () => {
+                    <button key={st} className="station-toggle" onClick={async () => {
                       const current = selected.secondary_stations || [];
                       const next = active ? current.filter(s => s !== st) : [...current, st];
                       try {
@@ -241,7 +241,6 @@ export function PeopleTab() {
                         setSelected(s => ({ ...s, secondary_stations: next }));
                       } catch (e) { toast(e.message, 'error'); }
                     }} style={{
-                      padding:'4px 10px', borderRadius:6, fontSize:12, fontWeight:600, cursor:'pointer',
                       border:`1px solid ${active ? STATION_COLORS[st]||'#888' : 'var(--border)'}`,
                       background: active ? (STATION_COLORS[st]||'#888')+'22' : 'transparent',
                       color: active ? STATION_COLORS[st]||'#888' : 'var(--text-muted)',
@@ -252,11 +251,14 @@ export function PeopleTab() {
                 })}
               </div>
             </div>
-            <div style={{ background:'var(--surface2)', borderRadius:8, padding:12, display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12 }}>
-              <div style={{ textAlign:'center' }}><div style={{ fontSize:22, fontWeight:700, color: selected.active ? '#10B981' : '#555', fontFamily:'var(--font-display)' }}>{selected.active ? 'ON' : 'OFF'}</div><div style={{ fontSize:10, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.5px' }}>Status</div></div>
+            <div className="modal-user-stats">
+              <div className="modal-user-stat">
+                <div className={`modal-user-stat-val modal-user-stat-val--${selected.active ? 'active' : 'inactive'}`}>{selected.active ? 'ON' : 'OFF'}</div>
+                <div className="modal-user-stat-lbl">Status</div>
+              </div>
             </div>
-            <div style={{ display:'flex', gap:8 }}>
-              <button className="btn-secondary" style={{ flex:1 }} onClick={async () => {
+            <div className="modal-user-actions">
+              <button className="btn-secondary flex-1" onClick={async () => {
                 setLoading(true);
                 try {
                   await new Promise(r => { setTimeout(r, 600); });
@@ -265,7 +267,7 @@ export function PeopleTab() {
                   toast('Failed to send reset email', 'error');
                 } finally { setLoading(false); }
               }}>Reset Password</button>
-              <button className={`btn-${selected.active ? 'danger' : 'primary'}`} style={{ flex:1 }} onClick={() => { toggleActive(selected.id); setSelected(s => ({...s, active: !s.active})); }}>
+              <button className={`btn-${selected.active ? 'danger' : 'primary'} flex-1`} onClick={() => { toggleActive(selected.id); setSelected(s => ({...s, active: !s.active})); }}>
                 {selected.active ? 'Deactivate User' : 'Activate User'}
               </button>
             </div>
@@ -276,41 +278,33 @@ export function PeopleTab() {
       {showInvite && (
         <Modal title="Invite Person" onClose={closeInvite}>
           {inviteLink ? (
-            <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-              <div style={{ fontSize:13, color:'var(--text-muted)' }}>
+            <div className="invite-link-box">
+              <div className="invite-link-hint">
                 {inviteMode === 'email'
                   ? `Share this link with ${inviteEmail}. It expires in 48 hours.`
                   : 'Share this link via WhatsApp, Signal, or any messenger. It expires in 48 hours.'}
               </div>
-              <div style={{ background:'var(--surface2)', border:'1px solid var(--border)', borderRadius:8, padding:'10px 12px', fontSize:12, color:'var(--text)', wordBreak:'break-all', fontFamily:'var(--font-mono)' }}>
-                {inviteLink}
-              </div>
+              <div className="invite-link-code">{inviteLink}</div>
               <button className="btn-primary" onClick={copyLink} data-testid="copy-invite-link">
                 {copied ? '✓ Copied!' : 'Copy Link'}
               </button>
-              <div style={{ fontSize:11, color:'var(--text-muted)', textAlign:'center' }}>
+              <div className="invite-link-meta">
                 Role: <strong>{inviteRole}</strong> · Station: <strong>{inviteStation}</strong>
               </div>
             </div>
           ) : (
-            <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
-              <div style={{ display:'flex', gap:8, marginBottom:4 }}>
-                <button
-                  onClick={() => setInviteMode('link')}
-                  style={{ flex:1, padding:'8px 0', borderRadius:8, border:'1px solid', cursor:'pointer', fontSize:12, fontFamily:'var(--font-mono)',
-                    background: inviteMode==='link' ? 'var(--accent)' : 'transparent',
-                    color: inviteMode==='link' ? '#000' : 'var(--text-muted)',
-                    borderColor: inviteMode==='link' ? 'var(--accent)' : 'var(--border)' }}>
-                  Generate Link
-                </button>
-                <button
-                  onClick={() => setInviteMode('email')}
-                  style={{ flex:1, padding:'8px 0', borderRadius:8, border:'1px solid', cursor:'pointer', fontSize:12, fontFamily:'var(--font-mono)',
-                    background: inviteMode==='email' ? 'var(--accent)' : 'transparent',
-                    color: inviteMode==='email' ? '#000' : 'var(--text-muted)',
-                    borderColor: inviteMode==='email' ? 'var(--accent)' : 'var(--border)' }}>
-                  Invite by Email
-                </button>
+            <div className="invite-form">
+              <div className="invite-mode-row">
+                <button className="invite-mode-btn" onClick={() => setInviteMode('link')} style={{
+                  background: inviteMode==='link' ? 'var(--accent)' : 'transparent',
+                  color: inviteMode==='link' ? '#000' : 'var(--text-muted)',
+                  borderColor: inviteMode==='link' ? 'var(--accent)' : 'var(--border)',
+                }}>Generate Link</button>
+                <button className="invite-mode-btn" onClick={() => setInviteMode('email')} style={{
+                  background: inviteMode==='email' ? 'var(--accent)' : 'transparent',
+                  color: inviteMode==='email' ? '#000' : 'var(--text-muted)',
+                  borderColor: inviteMode==='email' ? 'var(--accent)' : 'var(--border)',
+                }}>Invite by Email</button>
               </div>
               {inviteMode === 'email' && (
                 <div><label className="form-label-sm">Email</label>
