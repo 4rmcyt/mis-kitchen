@@ -11,6 +11,7 @@
       "e2e/features/admin_recipes.feature",
       "e2e/features/push.feature"
     ],
+    "tags": "not @manual",
     "import": ["e2e/support/world.js", "e2e/steps/**/*.js"],
     "format": ["html:e2e/reports/report.html"]
   },

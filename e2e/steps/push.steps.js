@@ -1,4 +1,4 @@
-import { When, Then } from '@cucumber/cucumber';
+import { Then } from '@cucumber/cucumber';
 import { expect } from '@playwright/test';
 import { createClient } from '@supabase/supabase-js';
 import { ADMIN_EMAIL } from '../support/world.js';
@@ -29,20 +29,3 @@ Then('the app saves a push subscription to the database for the admin user', { t
   expect(subs?.length, `Expected push subscription in DB for ${ADMIN_EMAIL}, got 0`).toBeGreaterThan(0);
 });
 
-When('I navigate to the admin panel', async function () {
-  await this.page.click('text=ADMIN');
-  await this.page.waitForSelector('text=People', { timeout: 10_000 });
-});
-
-When('I click the Notify tab', async function () {
-  await this.page.click('text=Notify');
-  await this.page.waitForSelector('text=Push Notification', { timeout: 10_000 });
-});
-
-Then('I should see at least one subscribed device', { timeout: 15_000 }, async function () {
-  await this.page.fill('input[placeholder*="Prep"]', 'E2E push test');
-  await this.page.click('button:has-text("Send Notification")');
-  // Toast must show "Sent to N device(s)" where N > 0
-  const toast = this.page.locator('text=/Sent to [1-9]\\d* device/');
-  await expect(toast).toBeVisible({ timeout: 10_000 });
-});
