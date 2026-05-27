@@ -96,69 +96,60 @@ export function RotaTab() {
 
   return (
     <div className="tab-content">
-      {/* Week navigator */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+      <div className="rota-nav">
         <button className="btn-secondary" onClick={prevWeek}>← Prev</button>
-        <span style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 700, flex: 1, textAlign: 'center' }}>
-          {fmtDate(weekStart)} — {fmtDate(addDays(weekStart, 6))}
-        </span>
+        <span className="rota-nav-title">{fmtDate(weekStart)} — {fmtDate(addDays(weekStart, 6))}</span>
         <button className="btn-secondary" onClick={nextWeek}>Next →</button>
         <button className="btn-secondary" onClick={() => setWeekStart(getMonday())}>Today</button>
       </div>
 
-      {loading && <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-muted)', fontSize: 13 }}>Loading…</div>}
+      {loading && <div className="empty-inline" style={{ padding: 40 }}>Loading…</div>}
 
       {!loading && (
-        <div className="rota-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8 }}>
+        <div className="rota-grid">
           {weekDates.map((date, i) => {
             const dayShifts = shiftsForDate(date);
             const isToday = date === new Date().toISOString().split('T')[0];
             return (
-              <div key={date} style={{
-                background: 'var(--surface)', border: `1px solid ${isToday ? 'var(--accent)' : 'var(--border)'}`,
-                borderRadius: 'var(--radius)', padding: 8, minHeight: 120,
-              }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: isToday ? 'var(--accent)' : 'var(--text-muted)', marginBottom: 6, textAlign: 'center' }}>
+              <div key={date} className="rota-day" style={{ border: `1px solid ${isToday ? 'var(--accent)' : 'var(--border)'}` }}>
+                <div className="rota-day-hdr" style={{ color: isToday ? 'var(--accent)' : 'var(--text-muted)' }}>
                   {DAYS[i]}<br/>{fmtDate(date)}
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <div className="rota-shifts">
                   {dayShifts.map(shift => (
-                    <div key={shift.id} style={{
+                    <div key={shift.id} className="rota-shift" style={{
                       background: (STATION_COLORS[shift.station] || '#6B7280') + '18',
                       border: `1px solid ${(STATION_COLORS[shift.station] || '#6B7280')}44`,
-                      borderRadius: 4, padding: '3px 6px', fontSize: 11, display: 'flex', alignItems: 'center', gap: 4,
                     }}>
                       <Avatar name={shift.profiles?.name || '?'} size={16}/>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {(shift.profiles?.name || '?').split(' ')[0]}
-                        </div>
-                        {shift.station && <div style={{ color: STATION_COLORS[shift.station] || '#888', fontSize: 10 }}>{shift.station}</div>}
-                        {shift.start_time && <div style={{ color: 'var(--text-muted)', fontSize: 10 }}>{shift.start_time.slice(0,5)}–{shift.end_time?.slice(0,5)}</div>}
+                      <div className="rota-shift-body">
+                        <div className="rota-shift-name">{(shift.profiles?.name || '?').split(' ')[0]}</div>
+                        {shift.station && <div className="rota-shift-station" style={{ color: STATION_COLORS[shift.station] || '#888' }}>{shift.station}</div>}
+                        {shift.start_time && <div className="rota-shift-time">{shift.start_time.slice(0,5)}–{shift.end_time?.slice(0,5)}</div>}
                       </div>
-                      <button onClick={() => remove(shift)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 14, padding: 0, lineHeight: 1, flexShrink: 0 }}>×</button>
+                      <button className="rota-del" onClick={() => remove(shift)}>×</button>
                     </div>
                   ))}
                 </div>
                 {adding?.date === date ? (
-                  <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <select className="form-sel" style={{ fontSize: 11, padding: '3px 4px' }} value={newUserId} onChange={e => setNewUserId(e.target.value)}>
+                  <div className="rota-add-form">
+                    <select className="form-sel rota-sel-sm" value={newUserId} onChange={e => setNewUserId(e.target.value)}>
                       {users.map(u => <option key={u.id} value={u.id}>{(u.name || '?').split(' ')[0]}</option>)}
                     </select>
-                    <select className="form-sel" style={{ fontSize: 11, padding: '3px 4px' }} value={newStation} onChange={e => setNewStation(e.target.value)}>
+                    <select className="form-sel rota-sel-sm" value={newStation} onChange={e => setNewStation(e.target.value)}>
                       {STATIONS.filter(s => s !== 'Common').map(s => <option key={s}>{s}</option>)}
                     </select>
-                    <div style={{ display: 'flex', gap: 2 }}>
-                      <input type="time" style={{ flex: 1, fontSize: 10, padding: '2px 3px', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 4, color: 'var(--text)' }} value={newStart} onChange={e => setNewStart(e.target.value)}/>
-                      <input type="time" style={{ flex: 1, fontSize: 10, padding: '2px 3px', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 4, color: 'var(--text)' }} value={newEnd} onChange={e => setNewEnd(e.target.value)}/>
+                    <div className="rota-time-row">
+                      <input type="time" className="rota-time-inp" value={newStart} onChange={e => setNewStart(e.target.value)}/>
+                      <input type="time" className="rota-time-inp" value={newEnd} onChange={e => setNewEnd(e.target.value)}/>
                     </div>
-                    <div style={{ display: 'flex', gap: 3 }}>
-                      <button className="btn-primary" style={{ flex: 1, fontSize: 10, padding: '3px 0' }} onClick={saveShift} disabled={saving}>{saving ? '…' : '✓'}</button>
-                      <button className="btn-secondary" style={{ flex: 1, fontSize: 10, padding: '3px 0' }} onClick={cancelAdd}>✕</button>
+                    <div className="rota-add-actions">
+                      <button className="btn-primary rota-add-btn" onClick={saveShift} disabled={saving}>{saving ? '…' : '✓'}</button>
+                      <button className="btn-secondary rota-add-btn" onClick={cancelAdd}>✕</button>
                     </div>
                   </div>
                 ) : (
-                  <button onClick={() => startAdd(date)} style={{ width: '100%', marginTop: 6, background: 'none', border: '1px dashed var(--border)', borderRadius: 4, color: 'var(--text-muted)', cursor: 'pointer', fontSize: 11, padding: '3px 0' }}>+ Add</button>
+                  <button className="rota-add-trigger" onClick={() => startAdd(date)}>+ Add</button>
                 )}
               </div>
             );
