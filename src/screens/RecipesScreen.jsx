@@ -60,7 +60,7 @@ export function RecipesScreen() {
             <div className="recipe-card-meta">{r.ingredients.length} ingredients</div>
           </button>
         ))}
-        {filtered.length === 0 && <div className="empty-state" style={{ gridColumn:'1/-1' }}><div className="empty-icon">📖</div><div className="empty-title">No recipes found</div></div>}
+        {filtered.length === 0 && <div className="empty-state col-span-full"><div className="empty-icon">📖</div><div className="empty-title">No recipes found</div></div>}
       </div>
     </div>
   );
