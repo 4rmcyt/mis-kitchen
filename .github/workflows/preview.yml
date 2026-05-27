@@ -1,0 +1,72 @@
+name: PR Preview
+
+on:
+  pull_request:
+    branches: [staging, main]
+
+env:
+  NODE_VERSION: "lts/*"
+  PNPM_VERSION: "9"
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  preview:
+    name: Build & Preview
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v6.0.2
+
+      - uses: pnpm/action-setup@v5
+        with: { version: "${{ env.PNPM_VERSION }}" }
+
+      - uses: actions/setup-node@v6.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Type check
+        run: pnpm typecheck
+
+      - name: Build
+        run: pnpm build
+        env:
+          VITE_SUPABASE_URL:      ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_APP_ENV:           preview
+          VITE_VAPID_PUBLIC_KEY:  ${{ secrets.VITE_VAPID_PUBLIC_KEY }}
+          VITE_SENTRY_DSN:        ${{ secrets.VITE_SENTRY_DSN }}
+
+      - name: Deploy preview
+        id: cf-deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist/ --project-name=mis-kitchen-prod --branch=pr-${{ github.event.number }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Comment PR
+        uses: actions/github-script@v7
+        env:
+          DEPLOY_URL: ${{ steps.cf-deploy.outputs.deployment-url }}
+          HEAD_REF: ${{ github.head_ref }}
+          SHA: ${{ github.sha }}
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## Preview Deploy\n\n| | |\n|---|---|\n| **URL** | ${process.env.DEPLOY_URL} |\n| **Branch** | \`${process.env.HEAD_REF}\` |\n| **Commit** | \`${process.env.SHA}\` |\n\n_Preview uses staging Supabase project_`
+            })
