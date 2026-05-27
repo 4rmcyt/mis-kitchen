@@ -1,4 +1,4 @@
-import { supabase, q } from './client.js';
+import { supabase } from './client.js';
 import type { Station } from './types.js';
 
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY as string;
@@ -34,16 +34,18 @@ async function savePushSubscription(sub: PushSubscription) {
     .single();
   if (!profile) return;
   const json = sub.toJSON();
-  if (!json.endpoint || !json.keys?.p256dh || !json.keys?.auth) return;
-  return q(() =>
-    supabase.from("push_subscriptions").upsert({
-      user_id:       profile.id,
-      restaurant_id: profile.restaurant_id!,
-      endpoint:      json.endpoint!,
-      p256dh:        json.keys!.p256dh!,
-      auth:          json.keys!.auth!,
-    }, { onConflict: "user_id,endpoint" })
-  );
+  if (!json.endpoint || !json.keys?.p256dh || !json.keys?.auth) {
+    console.error("[push] savePushSubscription: missing endpoint or keys", json);
+    return;
+  }
+  const { error } = await supabase.from("push_subscriptions").upsert({
+    user_id:       profile.id,
+    restaurant_id: profile.restaurant_id!,
+    endpoint:      json.endpoint,
+    p256dh:        json.keys.p256dh,
+    auth:          json.keys.auth,
+  }, { onConflict: "user_id,endpoint" });
+  if (error) console.error("[push] upsert failed:", error.message, error);
 }
 
 export async function sendPushNotification({ title, body, station }: { title: string; body: string; station?: Station }) {
