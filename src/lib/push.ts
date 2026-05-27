@@ -34,12 +34,7 @@ async function savePushSubscription(sub: PushSubscription) {
     .single();
   if (!profile) { console.error("[push] no profile", profileError); return; }
   const json = sub.toJSON();
-  console.warn("[push] toJSON:", json);
-  if (!json.endpoint || !json.keys?.p256dh || !json.keys?.auth) {
-    console.error("[push] missing endpoint or keys", json);
-    return;
-  }
-  console.warn("[push] upserting for", profile.id, profile.restaurant_id);
+  if (!json.endpoint || !json.keys?.p256dh || !json.keys?.auth) return;
   const { error } = await supabase.from("push_subscriptions").upsert({
     user_id:       profile.id,
     restaurant_id: profile.restaurant_id!,
@@ -47,8 +42,7 @@ async function savePushSubscription(sub: PushSubscription) {
     p256dh:        json.keys.p256dh,
     auth:          json.keys.auth,
   }, { onConflict: "user_id,endpoint" });
-  if (error) console.error("[push] upsert failed:", error.message, error);
-  else console.warn("[push] upsert ok");
+  if (error) console.error("[push] upsert failed:", error.message);
 }
 
 export async function sendPushNotification({ title, body, station }: { title: string; body: string; station?: Station }) {

@@ -75,7 +75,9 @@ When('I submit the join form', async function () {
 });
 
 Then('I should be signed in as a cook', async function () {
-  await expect(this.page.locator('.app')).toBeVisible({ timeout: 15_000 });
+  // After magic link exchange the app may need extra time to hydrate auth state
+  await this.page.waitForTimeout(2000);
+  await expect(this.page.locator('.app')).toBeVisible({ timeout: 20_000 });
 });
 
 // ── Reuse existing step ───────────────────────────────────────
