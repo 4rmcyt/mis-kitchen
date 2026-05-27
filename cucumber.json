@@ -8,7 +8,8 @@
       "e2e/features/lineup.feature",
       "e2e/features/report_gate.feature",
       "e2e/features/admin_templates.feature",
-      "e2e/features/admin_recipes.feature"
+      "e2e/features/admin_recipes.feature",
+      "e2e/features/push.feature"
     ],
     "import": ["e2e/support/world.js", "e2e/steps/**/*.js"],
     "format": ["html:e2e/reports/report.html"]
