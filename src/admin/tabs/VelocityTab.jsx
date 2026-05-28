@@ -63,12 +63,12 @@ export function VelocityTab() {
     return worst;
   }, null);
 
-  const worstDay = DAYS.reduce((worst, _, dow) => {
+  const worstDay = DAYS.reduce((acc, _, dow) => {
     const total = dayTotal(dow);
-    if (total === null) return worst;
-    if (worst === null || total < dayTotal(worst)) return dow;
-    return worst;
-  }, null);
+    if (total === null) return acc;
+    if (acc === null || total < acc.total) return { dow, total };
+    return acc;
+  }, null)?.dow ?? null;
 
   return (
     <div className="tab-content">

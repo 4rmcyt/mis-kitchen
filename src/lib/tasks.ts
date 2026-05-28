@@ -42,9 +42,9 @@ export async function deleteTask(id: string): Promise<null> {
 }
 
 export async function completeTask(id: string): Promise<Task> {
-  const user = await getCurrentUser();
+  const profile = await getCurrentProfile();
   return q(() =>
-    supabase.from("tasks").update({ done: true, done_at: new Date().toISOString(), done_by: user.id }).eq("id", id).select().single()
+    supabase.from("tasks").update({ done: true, done_at: new Date().toISOString(), done_by: profile.id }).eq("id", id).select().single()
   );
 }
 

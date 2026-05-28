@@ -52,6 +52,10 @@ export function TodayScreen({ userStation = 'Common', userRole }) {
         setTasks(rows);
         return;
       }
+      if (selectedDate !== dateStr(0)) {
+        setTasks([]);
+        return;
+      }
       const tpl = await getDefaultDayTemplate().catch(() => null);
       if (cancelled) return;
       if (!tpl || !tpl.entries?.length) {

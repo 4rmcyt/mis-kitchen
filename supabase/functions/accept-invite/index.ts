@@ -53,8 +53,14 @@ serve(async (req) => {
       user_metadata: { name, role: invite.role, station: invite.station, invite_token: token },
     });
     if (authErr) {
-      // Roll back token so the user can retry
-      await supabase.from("invites").update({ used: false }).eq("token", token);
+      // Only roll back if the user was NOT created — "already registered" means
+      // the token was already consumed; rolling back would reopen a replay window.
+      const alreadyExists = authErr.message.toLowerCase().includes("already registered")
+        || authErr.message.toLowerCase().includes("already been registered")
+        || authErr.message.toLowerCase().includes("user already exists");
+      if (!alreadyExists) {
+        await supabase.from("invites").update({ used: false }).eq("token", token);
+      }
       throw new Error(authErr.message);
     }
 

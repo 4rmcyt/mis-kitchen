@@ -1,4 +1,4 @@
-import { supabase } from './client.js';
+import { supabase, getCurrentProfile } from './client.js';
 import type { Station } from './types.js';
 
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY as string;
@@ -25,14 +25,13 @@ export async function subscribePush(): Promise<PushSubscription | null> {
 }
 
 async function savePushSubscription(sub: PushSubscription) {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) { console.error("[push] no session"); return; }
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("id, restaurant_id")
-    .eq("id", session.user.id)
-    .single();
-  if (!profile) { console.error("[push] no profile", profileError); return; }
+  let profile;
+  try {
+    profile = await getCurrentProfile();
+  } catch {
+    console.error("[push] no profile");
+    return;
+  }
   const json = sub.toJSON();
   if (!json.endpoint || !json.keys?.p256dh || !json.keys?.auth) return;
   const { error } = await supabase.from("push_subscriptions").upsert({

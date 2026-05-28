@@ -55,9 +55,7 @@ export async function getRestaurantReports(date: string): Promise<ShiftReport[]>
   );
 }
 
-export async function getStationVelocity(days = 30) {
-  const profile = await getCurrentProfile();
-  const since = new Date(Date.now() - days * 86400000).toISOString().split('T')[0];
+export async function getStationVelocity() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return q(() => (supabase as any).from('station_velocity')
     .select('station,dow,completed_count')
