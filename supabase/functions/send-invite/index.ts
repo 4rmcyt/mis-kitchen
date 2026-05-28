@@ -32,6 +32,7 @@ serve(async (req) => {
 
     // Insert invite record first — trigger handle_new_user() requires it
     const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+    const inviteToken = crypto.randomUUID();
     const { error: inviteInsertError } = await supabase.from("invites").insert({
       email,
       role: role ?? "cook",
@@ -40,6 +41,7 @@ serve(async (req) => {
       invited_by,
       expires_at: expiresAt,
       used: false,
+      token: inviteToken,
     });
     if (inviteInsertError) throw new Error(`Failed to create invite: ${inviteInsertError.message}`);
 
@@ -53,8 +55,8 @@ serve(async (req) => {
       },
     });
     if (linkError) {
-      // Clean up invite record on failure
-      await supabase.from("invites").delete().eq("email", email).eq("used", false);
+      // Clean up only this specific invite record
+      await supabase.from("invites").delete().eq("token", inviteToken);
       throw new Error(linkError.message);
     }
 

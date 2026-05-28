@@ -37,7 +37,7 @@ export function useAuth() {
       supabase.auth.exchangeCodeForSession(code).then(({ data }) => {
         const s = data?.session;
         setSession(s);
-        if (s) checkOnboarding(s.user);
+        if (s) { checkOnboarding(s.user); trySubscribePush(); }
         window.history.replaceState({}, '', window.location.pathname);
       });
     } else {
@@ -54,7 +54,7 @@ export function useAuth() {
         return;
       }
       setSession(s);
-      if (s) checkOnboarding(s.user);
+      if (s) { checkOnboarding(s.user); trySubscribePush(); }
     });
 
     return () => subscription.unsubscribe();

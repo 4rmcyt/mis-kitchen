@@ -32,36 +32,51 @@ function Root() {
 
   if (session === undefined) return null
 
-  if (window.location.pathname.startsWith('/join/')) {
-    return <BrowserRouter><Routes><Route path="/join/:token" element={<JoinPage />} /></Routes></BrowserRouter>
-  }
-
-  if (needsPasswordReset) return (
-    <ResetPassword onDone={async () => {
-      setNeedsPasswordReset(false)
-      const s = await getSession()
-      setSession(s)
-      if (s) checkOnboarding(s.user)
-    }} />
-  )
-
-  if (!session) return <Login onLogin={async () => setSession(await getSession())} />
-
-  if (needsOnboarding) return (
-    <Onboarding
-      user={session.user}
-      onDone={() => { setNeedsOnboarding(false); checkOnboarding(session.user) }}
-    />
-  )
-
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/join/:token" element={<JoinPage />} />
-        <Route path="/admin/*" element={<Admin />} />
-        <Route path="/*" element={<App userRole={userRole} userStation={userStation} />} />
-      </Routes>
+      <RootRoutes
+        session={session}
+        userRole={userRole}
+        userStation={userStation}
+        needsPasswordReset={needsPasswordReset}
+        setNeedsPasswordReset={setNeedsPasswordReset}
+        needsOnboarding={needsOnboarding}
+        setNeedsOnboarding={setNeedsOnboarding}
+        checkOnboarding={checkOnboarding}
+        getSession={getSession}
+        setSession={setSession}
+      />
     </BrowserRouter>
+  )
+}
+
+function RootRoutes({ session, userRole, userStation, needsPasswordReset, setNeedsPasswordReset, needsOnboarding, setNeedsOnboarding, checkOnboarding, setSession }) {
+  return (
+    <Routes>
+      <Route path="/join/:token" element={<JoinPage />} />
+      <Route path="*" element={
+        needsPasswordReset ? (
+          <ResetPassword onDone={async () => {
+            setNeedsPasswordReset(false)
+            const s = await getSession()
+            setSession(s)
+            if (s) checkOnboarding(s.user)
+          }} />
+        ) : !session ? (
+          <Login onLogin={async () => setSession(await getSession())} />
+        ) : needsOnboarding ? (
+          <Onboarding
+            user={session.user}
+            onDone={() => { setNeedsOnboarding(false); checkOnboarding(session.user) }}
+          />
+        ) : (
+          <Routes>
+            <Route path="/admin/*" element={<Admin />} />
+            <Route path="/*" element={<App userRole={userRole} userStation={userStation} />} />
+          </Routes>
+        )
+      } />
+    </Routes>
   )
 }
 

@@ -38,6 +38,13 @@ serve(async (req) => {
     if (inviteErr) throw new Error(inviteErr.message);
     if (!invite)   throw new Error("Invalid or expired invite link");
 
+    // For email-specific invites, verify the submitted email matches
+    if (invite.email && invite.email !== email) throw new Error("Invalid or expired invite link");
+
+    // Mark invite used immediately — prevents replay attacks and double-registration
+    const { error: markErr } = await supabase.from("invites").update({ used: true }).eq("token", token).eq("used", false);
+    if (markErr) throw new Error(markErr.message);
+
     // Create auth user
     const { data: authData, error: authErr } = await supabase.auth.admin.createUser({
       email,
@@ -45,7 +52,11 @@ serve(async (req) => {
       email_confirm: true,
       user_metadata: { name, role: invite.role, station: invite.station, invite_token: token },
     });
-    if (authErr) throw new Error(authErr.message);
+    if (authErr) {
+      // Roll back token so the user can retry
+      await supabase.from("invites").update({ used: false }).eq("token", token);
+      throw new Error(authErr.message);
+    }
 
     const userId = authData.user.id;
 
@@ -58,9 +69,6 @@ serve(async (req) => {
       station: invite.station,
       restaurant_id: invite.restaurant_id,
     }, { onConflict: "id" });
-
-    // Mark invite used
-    await supabase.from("invites").update({ used: true }).eq("token", token);
 
     return new Response(JSON.stringify({ ok: true }), { headers: { ...cors, "Content-Type": "application/json" } });
 

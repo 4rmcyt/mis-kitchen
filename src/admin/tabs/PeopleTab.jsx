@@ -261,10 +261,13 @@ export function PeopleTab() {
               <button className="btn-secondary flex-1" onClick={async () => {
                 setLoading(true);
                 try {
-                  await new Promise(r => { setTimeout(r, 600); });
+                  const { error } = await supabase.auth.resetPasswordForEmail(selected.email, {
+                    redirectTo: `${window.location.origin}/reset-password`,
+                  });
+                  if (error) throw error;
                   toast(`Reset email sent to ${selected.email}`, 'success');
-                } catch {
-                  toast('Failed to send reset email', 'error');
+                } catch (err) {
+                  toast(err.message || 'Failed to send reset email', 'error');
                 } finally { setLoading(false); }
               }}>Reset Password</button>
               <button className={`btn-${selected.active ? 'danger' : 'primary'} flex-1`} onClick={() => { toggleActive(selected.id); setSelected(s => ({...s, active: !s.active})); }}>

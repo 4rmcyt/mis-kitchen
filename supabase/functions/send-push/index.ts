@@ -27,8 +27,7 @@ async function sendOne(sub: { endpoint: string; p256dh: string; auth: string }, 
   } catch (e: any) {
     const status = e.statusCode ?? e.status ?? 0;
     console.error(`push failed ${status}: ${e.body ?? e.message}`);
-    if (status === 404 || status === 410) return false;
-    return false;
+    return status === 404 || status === 410 ? false : true;
   }
 }
 

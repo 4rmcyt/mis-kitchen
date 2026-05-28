@@ -59,11 +59,12 @@ export async function getStationVelocity(days = 30) {
   const profile = await getCurrentProfile();
   const since = new Date(Date.now() - days * 86400000).toISOString().split('T')[0];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (supabase as any).from('station_velocity')
+  return q(() => (supabase as any).from('station_velocity')
     .select('station,date,total,done_count,pct,day_of_week')
     .eq('restaurant_id', profile.restaurant_id)
     .gte('date', since)
-    .order('date', { ascending: false });
+    .order('date', { ascending: false })
+  );
 }
 
 export async function getShiftExperiment(): Promise<string | null> {
