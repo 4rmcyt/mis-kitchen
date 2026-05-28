@@ -13,7 +13,13 @@ export async function createInvite({ email, role, station }: { email: string; ro
       } as any).select().single()
     );
     const { error } = await supabase.functions.invoke("send-invite", {
-      body: { invite_id: invite.id }
+      body: {
+        email:         invite.email,
+        role:          invite.role,
+        station:       invite.station,
+        restaurant_id: invite.restaurant_id,
+        invited_by:    profile.id,
+      }
     });
     if (error) console.warn("[invites] email send failed:", error.message);
     return invite;

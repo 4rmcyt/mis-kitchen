@@ -5,96 +5,73 @@ import { useToast } from "../components/Toast.jsx";
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-function pctColor(pct) {
-  if (pct === null || pct === undefined) return 'var(--surface)';
-  if (pct >= 90) return '#10B981';
-  if (pct >= 70) return '#F97316';
+function countColor(n) {
+  if (n === null || n === undefined) return 'var(--surface)';
+  if (n >= 20) return '#10B981';
+  if (n >= 8)  return '#F97316';
   return '#EF4444';
 }
 
 export function VelocityTab() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [range, setRange] = useState(30);
   const { show: toast } = useToast();
 
   useEffect(() => {
     (async () => {
       setLoading(true);
       try {
-        setRows(await getStationVelocity(range));
+        setRows(await getStationVelocity());
       } catch (e) {
         toast(e.message, 'error');
       } finally {
         setLoading(false);
       }
     })();
-  }, [range]);
+  }, []);
 
   const matrix = {};
   const stationTotals = {};
   for (const row of rows) {
     if (!matrix[row.station]) {
       matrix[row.station] = {};
-      stationTotals[row.station] = { sum: 0, count: 0 };
+      stationTotals[row.station] = 0;
     }
-    if (!matrix[row.station][row.day_of_week]) {
-      matrix[row.station][row.day_of_week] = { sum: 0, count: 0 };
-    }
-    matrix[row.station][row.day_of_week].sum += row.pct;
-    matrix[row.station][row.day_of_week].count += 1;
-    stationTotals[row.station].sum += row.pct;
-    stationTotals[row.station].count += 1;
+    matrix[row.station][row.dow] = (matrix[row.station][row.dow] || 0) + row.completed_count;
+    stationTotals[row.station] += row.completed_count;
   }
 
-  const avgFor = (station, dow) => {
-    const cell = matrix[station]?.[dow];
-    if (!cell || cell.count === 0) return null;
-    return Math.round(cell.sum / cell.count);
-  };
+  const countFor = (station, dow) => matrix[station]?.[dow] ?? null;
 
-  const stationAvg = (station) => {
-    const t = stationTotals[station];
-    if (!t || t.count === 0) return null;
-    return Math.round(t.sum / t.count);
-  };
+  const stationTotal = (station) => stationTotals[station] ?? null;
 
-  const dayAvg = (dow) => {
-    let sum = 0, count = 0;
+  const dayTotal = (dow) => {
+    let sum = 0, found = false;
     for (const station of STATIONS.filter(s => s !== 'Common')) {
-      const cell = matrix[station]?.[dow];
-      if (cell?.count) { sum += cell.sum; count += cell.count; }
+      if (matrix[station]?.[dow] !== undefined) { sum += matrix[station][dow]; found = true; }
     }
-    return count ? Math.round(sum / count) : null;
+    return found ? sum : null;
   };
 
   const activeStations = STATIONS.filter(s => s !== 'Common' && matrix[s]);
   const hasData = rows.length > 0;
 
   const worstStation = activeStations.reduce((worst, s) => {
-    const avg = stationAvg(s);
-    if (avg === null) return worst;
-    if (!worst || avg < stationAvg(worst)) return s;
+    const total = stationTotal(s);
+    if (total === null) return worst;
+    if (!worst || total < stationTotal(worst)) return s;
     return worst;
   }, null);
 
   const worstDay = DAYS.reduce((worst, _, dow) => {
-    const avg = dayAvg(dow);
-    if (avg === null) return worst;
-    if (worst === null || avg < dayAvg(worst)) return dow;
+    const total = dayTotal(dow);
+    if (total === null) return worst;
+    if (worst === null || total < dayTotal(worst)) return dow;
     return worst;
   }, null);
 
   return (
     <div className="tab-content">
-      <div className="toolbar toolbar-mb">
-        <div className="seg-ctrl">
-          {[7, 14, 30].map(d => (
-            <button key={d} className={`seg-btn ${range === d ? 'active' : ''}`} onClick={() => setRange(d)}>{d}d</button>
-          ))}
-        </div>
-      </div>
-
       {loading && <div className="empty-inline p-40">Loading…</div>}
 
       {!loading && !hasData && (
@@ -128,7 +105,7 @@ export function VelocityTab() {
                 <tr>
                   <th className="v-th">Station</th>
                   {DAYS.map((d, i) => <th key={i} className="v-th-center">{d}</th>)}
-                  <th className="v-th-center">Avg</th>
+                  <th className="v-th-center">Total</th>
                 </tr>
               </thead>
               <tbody>
@@ -141,29 +118,29 @@ export function VelocityTab() {
                       </div>
                     </td>
                     {DAYS.map((_, dow) => {
-                      const pct = avgFor(station, dow);
+                      const n = countFor(station, dow);
                       return (
                         <td key={dow} className="v-td-cell">
                           <div className="v-cell" style={{
-                            background: pct !== null ? pctColor(pct) + '33' : 'transparent',
-                            border: `1px solid ${pct !== null ? pctColor(pct) + '66' : 'var(--border)'}`,
-                            color: pct !== null ? pctColor(pct) : 'var(--text-muted)',
+                            background: n !== null ? countColor(n) + '33' : 'transparent',
+                            border: `1px solid ${n !== null ? countColor(n) + '66' : 'var(--border)'}`,
+                            color: n !== null ? countColor(n) : 'var(--text-muted)',
                           }}>
-                            {pct !== null ? `${pct}%` : '—'}
+                            {n !== null ? n : '—'}
                           </div>
                         </td>
                       );
                     })}
                     <td className="v-td-cell">
                       {(() => {
-                        const avg = stationAvg(station);
+                        const total = stationTotal(station);
                         return (
                           <div className="v-cell-avg" style={{
-                            background: avg !== null ? pctColor(avg) + '22' : 'transparent',
-                            border: `1px solid ${avg !== null ? pctColor(avg) : 'var(--border)'}`,
-                            color: avg !== null ? pctColor(avg) : 'var(--text-muted)',
+                            background: total !== null ? countColor(total) + '22' : 'transparent',
+                            border: `1px solid ${total !== null ? countColor(total) : 'var(--border)'}`,
+                            color: total !== null ? countColor(total) : 'var(--text-muted)',
                           }}>
-                            {avg !== null ? `${avg}%` : '—'}
+                            {total !== null ? total : '—'}
                           </div>
                         );
                       })()}
@@ -173,11 +150,11 @@ export function VelocityTab() {
                 <tr className="v-row-dayavg">
                   <td className="v-td-label">Day avg</td>
                   {DAYS.map((_, dow) => {
-                    const avg = dayAvg(dow);
+                    const total = dayTotal(dow);
                     return (
                       <td key={dow} className="v-td-cell">
-                        <div className="v-day-val" style={{ color: avg !== null ? pctColor(avg) : 'var(--text-muted)' }}>
-                          {avg !== null ? `${avg}%` : '—'}
+                        <div className="v-day-val" style={{ color: total !== null ? countColor(total) : 'var(--text-muted)' }}>
+                          {total !== null ? total : '—'}
                         </div>
                       </td>
                     );

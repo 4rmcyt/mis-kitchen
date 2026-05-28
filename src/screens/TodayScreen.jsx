@@ -44,13 +44,16 @@ export function TodayScreen({ userStation = 'Common', userRole }) {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
     setLoading(true);
     getTasks(selectedDate).then(async (rows) => {
+      if (cancelled) return;
       if (rows && rows.length > 0) {
         setTasks(rows);
         return;
       }
       const tpl = await getDefaultDayTemplate().catch(() => null);
+      if (cancelled) return;
       if (!tpl || !tpl.entries?.length) {
         setTasks([]);
         return;
@@ -59,8 +62,10 @@ export function TodayScreen({ userStation = 'Common', userRole }) {
         text: e.text, station: e.station, section: e.section, date: selectedDate, source: 'template',
       }));
       const created = await createTasksBatch(batch).catch(() => null);
+      if (cancelled) return;
       setTasks(created || []);
-    }).catch(() => setTasks([])).finally(() => setLoading(false));
+    }).catch(() => { if (!cancelled) setTasks([]); }).finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, [selectedDate]);
 
   const toggle = async (task) => {
