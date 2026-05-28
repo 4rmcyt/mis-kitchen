@@ -1,5 +1,5 @@
-import { supabase, getCurrentProfile } from './client.js';
-import type { Role, Station } from './types.js';
+import { supabase, q, getCurrentProfile } from './client.js';
+import type { Role, Station, Invite } from './types.js';
 
 export async function createInvite({ email, role, station }: { email: string; role: Role; station: Station }) {
   try {
