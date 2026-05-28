@@ -35,13 +35,16 @@ User opens `/join/:token`:
   → user submits
     → POST to accept-invite edge function
       → validate token (not used, not expired)
-      → supabase.auth.admin.createUser({ email, password, user_metadata: { invite_token: token } })
-        → handle_new_user() trigger fires
-          → finds matching invite by token
-          → INSERT into profiles (restaurant_id, role, station from invite)
-          → UPDATE invites SET used = true
-      → return session
-    → app redirects to Today screen
+      → if invite.email set: verify submitted email matches
+      → UPDATE invites SET used = true (atomic, before createUser — prevents replay)
+      → supabase.auth.admin.createUser({ email, password, email_confirm: true,
+          user_metadata: { name, role, station, invite_token: token } })
+        → on createUser failure (non-"already exists"): rollback used = false
+        → handle_new_user() trigger fires → INSERT into profiles
+      → upsert profile (name, password_set=true, role, station, restaurant_id)
+      → return { ok: true }
+    → JoinPage calls supabase.auth.signInWithPassword({ email, password })
+    → navigate('/') → Today screen
 ```
 
 ## E2E Test Coverage
