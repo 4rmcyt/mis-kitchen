@@ -62,18 +62,7 @@ serve(async (req) => {
     // Mark invite used
     await supabase.from("invites").update({ used: true }).eq("token", token);
 
-    // Sign in to get a session for the client
-    const { data: sessionData, error: signInErr } = await supabase.auth.admin.generateLink({
-      type: "magiclink",
-      email,
-      options: { data: { name, role: invite.role, station: invite.station } },
-    });
-    if (signInErr) throw new Error(signInErr.message);
-
-    return new Response(JSON.stringify({
-      ok: true,
-      action_link: sessionData.properties?.action_link,
-    }), { headers: { ...cors, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ ok: true }), { headers: { ...cors, "Content-Type": "application/json" } });
 
   } catch (err) {
     return new Response(JSON.stringify({ error: err.message }), {

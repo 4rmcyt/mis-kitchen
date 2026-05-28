@@ -70,13 +70,10 @@ When('I fill in join form with name {string}, email {string}, password {string}'
 
 When('I submit the join form', async function () {
   await this.page.getByRole('button', { name: 'Create account' }).click();
-  // wait for redirect away from /join/ (magic link exchange takes a few seconds)
-  await this.page.waitForURL(url => !url.pathname.startsWith('/join/'), { timeout: 15_000 });
+  await this.page.waitForURL(url => !url.pathname.startsWith('/join/'), { timeout: 20_000 });
 });
 
 Then('I should be signed in as a cook', async function () {
-  // After magic link exchange the app may need extra time to hydrate auth state
-  await this.page.waitForTimeout(2000);
   await expect(this.page.locator('.app')).toBeVisible({ timeout: 20_000 });
 });
 

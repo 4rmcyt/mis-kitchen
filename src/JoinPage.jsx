@@ -25,15 +25,12 @@ export default function JoinPage() {
         body: { token, email, name, password },
       });
       if (res.error) throw new Error(res.error.message);
-      const { error: data_error, action_link } = res.data;
+      const { error: data_error } = res.data;
       if (data_error) throw new Error(data_error);
 
-      // Follow the magic link to establish a session
-      if (action_link) {
-        window.location.href = action_link;
-      } else {
-        navigate('/');
-      }
+      const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
+      if (signInErr) throw new Error(signInErr.message);
+      navigate('/');
     } catch (err) {
       setError(err.message);
     } finally {
