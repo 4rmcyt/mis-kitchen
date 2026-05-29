@@ -95,4 +95,8 @@ function RootRoutes({ session, userRole, userStation, needsPasswordReset, setNee
   )
 }
 
-ReactDOM.createRoot(document.getElementById('root')!).render(<Root />)
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <Sentry.ErrorBoundary fallback={<div style={{ padding: 32, color: '#fff' }}>Something went wrong. Please refresh the page.</div>}>
+    <Root />
+  </Sentry.ErrorBoundary>
+)
