@@ -1,5 +1,5 @@
-import { useState, useContext } from "react";
-import { sendPushNotification } from "../../lib/supabase.js";
+import { useState, useContext, useEffect } from "react";
+import { sendPushNotification, getPushSubscriptionCount } from "../../lib/supabase.js";
 import { STATIONS, STATION_COLORS } from "../../lib/constants.js";
 import { ToastContext } from "../components/Toast.js";
 import type { Station } from "../../lib/types.js";
@@ -11,6 +11,11 @@ export function PushTab() {
   const [body, setBody]       = useState('');
   const [station, setStation] = useState('');
   const [sending, setSending] = useState(false);
+  const [deviceCount, setDeviceCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    getPushSubscriptionCount().then(setDeviceCount).catch(() => {});
+  }, []);
 
   const handleSend = async () => {
     if (!title.trim() || !body.trim()) return;
@@ -36,6 +41,12 @@ export function PushTab() {
 
   return (
     <div className="tab-content">
+      <div className="stat-row">
+        <div className="stat-card">
+          <div className="stat-val" data-testid="push-device-count">{deviceCount ?? '—'}</div>
+          <div className="stat-lbl">Subscribed devices</div>
+        </div>
+      </div>
       <div className="push-wrap">
 
         <div className="push-recipients">

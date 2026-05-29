@@ -17,7 +17,7 @@ export {
   getDeferredTasks, deferTask, markTaskCarried, deleteDeferred,
 } from './tasks.js';
 export { saveReport, getMyReports, getRestaurantReports, sendReportEmail, getShiftExperiment, setShiftExperiment, getStationVelocity } from './reports.js';
-export { subscribePush, sendPushNotification } from './push.js';
+export { subscribePush, sendPushNotification, getPushSubscriptionCount } from './push.js';
 export { getImprovementLogs, addImprovementLog, deleteImprovementLog } from './improvements.js';
 export { getShifts, createShift, deleteShift, getTodayShifts } from './shifts.js';
 export { getTempLogs, logTemperature } from './temp_logs.js';

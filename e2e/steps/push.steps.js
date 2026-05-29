@@ -29,3 +29,10 @@ Then('the app saves a push subscription to the database for the admin user', { t
   expect(subs?.length, `Expected push subscription in DB for ${ADMIN_EMAIL}, got 0`).toBeGreaterThan(0);
 });
 
+Then('the Push tab shows at least one subscribed device', { timeout: 20_000 }, async function () {
+  await this.page.getByRole('button', { name: 'Admin' }).click();
+  await this.page.getByRole('button', { name: 'Push' }).click();
+  const count = await this.page.locator('[data-testid="push-device-count"]').textContent();
+  expect(parseInt(count ?? '0', 10), 'Expected at least 1 subscribed device in Push tab').toBeGreaterThan(0);
+});
+

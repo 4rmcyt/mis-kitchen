@@ -44,6 +44,15 @@ async function savePushSubscription(sub: PushSubscription) {
   if (error) console.error("[push] upsert failed:", error.message);
 }
 
+export async function getPushSubscriptionCount(): Promise<number> {
+  const profile = await getCurrentProfile();
+  const { count } = await supabase
+    .from('push_subscriptions')
+    .select('*', { count: 'exact', head: true })
+    .eq('restaurant_id', profile.restaurant_id!);
+  return count ?? 0;
+}
+
 export async function sendPushNotification({ title, body, station }: { title: string; body: string; station?: Station }) {
   try {
     const { data, error } = await supabase.functions.invoke("send-push", {
