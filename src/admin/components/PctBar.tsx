@@ -1,4 +1,4 @@
-export function PctBar({ pct, color = "#F97316", height = 4 }) {
+export function PctBar({ pct, color = "#F97316", height = 4 }: { pct: number; color?: string; height?: number }) {
   const c = pct >= 90 ? "#10B981" : pct >= 70 ? "#F97316" : "#EF4444";
   return (
     <div className="pct-bar" style={{ height }}>

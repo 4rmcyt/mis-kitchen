@@ -55,9 +55,9 @@ export async function getRestaurantReports(date: string): Promise<ShiftReport[]>
   );
 }
 
-export async function getStationVelocity() {
+export async function getStationVelocity(): Promise<Array<{ station: string; dow: number; completed_count: number }>> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return q(() => (supabase as any).from('station_velocity')
+  return q<Array<{ station: string; dow: number; completed_count: number }>>(() => (supabase as any).from('station_velocity')
     .select('station,dow,completed_count')
     .order('station')
   );

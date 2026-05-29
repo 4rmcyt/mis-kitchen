@@ -1,24 +1,25 @@
 import { useState, useEffect } from "react";
 import { STATIONS, STATION_COLORS } from "../lib/constants.js";
 import { getTempLogs, logTemperature } from "../lib/temp_logs.js";
+import type { TempLog, Station } from "../lib/types.js";
 
 function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
-function formatTime(ts) {
+function formatTime(ts: string) {
   return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
 export function TempScreen() {
-  const [station, setStation]   = useState(STATIONS[0]);
+  const [station, setStation]   = useState<Station>(STATIONS[0] as Station);
   const [temp, setTemp]         = useState('');
-  const [logs, setLogs]         = useState([]);
+  const [logs, setLogs]         = useState<TempLog[]>([]);
   const [saving, setSaving]     = useState(false);
-  const [flash, setFlash]       = useState(null);
+  const [flash, setFlash]       = useState<string | null>(null);
 
   useEffect(() => {
-    getTempLogs(today()).then(data => setLogs(data || [])).catch(() => {});
+    getTempLogs(today()).then((data: TempLog[]) => setLogs(data || [])).catch(() => {});
   }, []);
 
   async function handleSave() {
@@ -50,7 +51,7 @@ export function TempScreen() {
             <button
               key={s}
               className={`station-pill ${station === s ? 'active' : ''}`}
-              onClick={() => setStation(s)}
+              onClick={() => setStation(s as Station)}
             >
               {s}
             </button>

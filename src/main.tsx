@@ -10,12 +10,14 @@ Sentry.init({
 })
 import { getSession } from './lib/supabase.js'
 import { useAuth } from './hooks/useAuth.js'
-import App from './App.jsx'
-import Admin from './Admin.jsx'
-import Login from './Login.jsx'
-import Onboarding from './Onboarding.jsx'
-import ResetPassword from './ResetPassword.jsx'
-import JoinPage from './JoinPage.jsx'
+import App from './App.js'
+import Admin from './Admin.js'
+import Login from './Login.js'
+import Onboarding from './Onboarding.js'
+import ResetPassword from './ResetPassword.js'
+import JoinPage from './JoinPage.js'
+import type { Session, User } from '@supabase/supabase-js'
+import type { Role, Station } from './lib/types.js'
 
 function Root() {
   const {
@@ -50,7 +52,20 @@ function Root() {
   )
 }
 
-function RootRoutes({ session, userRole, userStation, needsPasswordReset, setNeedsPasswordReset, needsOnboarding, setNeedsOnboarding, checkOnboarding, setSession }) {
+interface RootRoutesProps {
+  session: Session | null;
+  userRole: Role | null;
+  userStation: Station | string;
+  needsPasswordReset: boolean;
+  setNeedsPasswordReset: (v: boolean) => void;
+  needsOnboarding: boolean;
+  setNeedsOnboarding: (v: boolean) => void;
+  checkOnboarding: (user: User) => void;
+  getSession: () => Promise<Session | null>;
+  setSession: (s: Session | null) => void;
+}
+
+function RootRoutes({ session, userRole, userStation, needsPasswordReset, setNeedsPasswordReset, needsOnboarding, setNeedsOnboarding, checkOnboarding, setSession }: RootRoutesProps) {
   return (
     <Routes>
       <Route path="/join/:token" element={<JoinPage />} />
@@ -80,4 +95,4 @@ function RootRoutes({ session, userRole, userStation, needsPasswordReset, setNee
   )
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<Root />)
+ReactDOM.createRoot(document.getElementById('root')!).render(<Root />)

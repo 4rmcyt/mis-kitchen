@@ -1,7 +1,7 @@
 export type Role = 'superadmin' | 'admin' | 'cook';
 export type Station = 'Common' | 'Grill' | 'Rolls' | 'Pans' | 'Garmo' | 'Tandoor';
 export type TaskSource = 'manual' | 'template';
-export type ExperimentOutcome = 'yes' | 'no' | 'skipped';
+export type ExperimentOutcome = 'yes' | 'no' | 'not_tried';
 
 export interface Profile {
   id: string;
@@ -14,6 +14,8 @@ export interface Profile {
   active: boolean;
   password_set: boolean;
   created_at: string;
+  last_seen?: string | null;
+  joined?: string | null;
 }
 
 export interface Task {
@@ -81,6 +83,7 @@ export interface Template {
 
 export interface TemplateEntry {
   text: string;
+  station: string;
   section: string;
 }
 
@@ -123,9 +126,10 @@ export interface TempLog {
   restaurant_id: string;
   user_id: string;
   station: Station;
-  value: number;
-  date: string;
+  temperature: number;
+  recorded_at: string;
   created_at: string;
+  profiles?: { name: string } | null;
 }
 
 export interface PushSubscription {

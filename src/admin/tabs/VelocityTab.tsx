@@ -1,11 +1,17 @@
 import { useState, useEffect } from "react";
 import { getStationVelocity } from "../../lib/supabase.js";
 import { STATIONS, STATION_COLORS } from "../../lib/constants.js";
-import { useToast } from "../components/Toast.jsx";
+import { useToast } from "../components/Toast.js";
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-function countColor(n) {
+interface VelocityRow {
+  station: string;
+  dow: number;
+  completed_count: number;
+}
+
+function countColor(n: number | null | undefined) {
   if (n === null || n === undefined) return 'var(--surface)';
   if (n >= 20) return '#10B981';
   if (n >= 8)  return '#F97316';
@@ -13,7 +19,7 @@ function countColor(n) {
 }
 
 export function VelocityTab() {
-  const [rows, setRows] = useState([]);
+  const [rows, setRows] = useState<VelocityRow[]>([]);
   const [loading, setLoading] = useState(true);
   const { show: toast } = useToast();
 
@@ -23,15 +29,15 @@ export function VelocityTab() {
       try {
         setRows(await getStationVelocity());
       } catch (e) {
-        toast(e.message, 'error');
+        toast((e as Error).message, 'error');
       } finally {
         setLoading(false);
       }
     })();
   }, []);
 
-  const matrix = {};
-  const stationTotals = {};
+  const matrix: Record<string, Record<number, number>> = {};
+  const stationTotals: Record<string, number> = {};
   for (const row of rows) {
     if (!matrix[row.station]) {
       matrix[row.station] = {};
@@ -41,11 +47,10 @@ export function VelocityTab() {
     stationTotals[row.station] += row.completed_count;
   }
 
-  const countFor = (station, dow) => matrix[station]?.[dow] ?? null;
+  const countFor = (station: string, dow: number) => matrix[station]?.[dow] ?? null;
+  const stationTotal = (station: string) => stationTotals[station] ?? null;
 
-  const stationTotal = (station) => stationTotals[station] ?? null;
-
-  const dayTotal = (dow) => {
+  const dayTotal = (dow: number) => {
     let sum = 0, found = false;
     for (const station of STATIONS.filter(s => s !== 'Common')) {
       if (matrix[station]?.[dow] !== undefined) { sum += matrix[station][dow]; found = true; }
@@ -56,14 +61,14 @@ export function VelocityTab() {
   const activeStations = STATIONS.filter(s => s !== 'Common' && matrix[s]);
   const hasData = rows.length > 0;
 
-  const worstStation = activeStations.reduce((worst, s) => {
+  const worstStation = activeStations.reduce<string | null>((worst, s) => {
     const total = stationTotal(s);
     if (total === null) return worst;
-    if (!worst || total < stationTotal(worst)) return s;
+    if (!worst || total < stationTotal(worst)!) return s;
     return worst;
   }, null);
 
-  const worstDay = DAYS.reduce((acc, _, dow) => {
+  const worstDay = DAYS.reduce<{ dow: number; total: number } | null>((acc, _, dow) => {
     const total = dayTotal(dow);
     if (total === null) return acc;
     if (acc === null || total < acc.total) return { dow, total };

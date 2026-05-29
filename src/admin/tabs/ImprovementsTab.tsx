@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { getImprovementLogs, addImprovementLog, deleteImprovementLog } from "../../lib/supabase.js";
-import { useToast } from "../components/Toast.jsx";
-import { useConfirm } from "../components/Confirm.jsx";
-import { Avatar } from "../components/Avatar.jsx";
+import { useToast } from "../components/Toast.js";
+import { useConfirm } from "../components/Confirm.js";
+import { Avatar } from "../components/Avatar.js";
+import type { ImprovementLog } from "../../lib/types.js";
 
-function timeAgo(iso) {
+function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
   const m = Math.floor(diff / 60000);
   if (m < 60) return `${m}m ago`;
@@ -14,14 +15,14 @@ function timeAgo(iso) {
 }
 
 export function ImprovementsTab() {
-  const [logs, setLogs] = useState([]);
+  const [logs, setLogs] = useState<ImprovementLog[]>([]);
   const [text, setText] = useState('');
   const [saving, setSaving] = useState(false);
   const { show: toast } = useToast();
   const { confirm, dialog: confirmDialog } = useConfirm();
 
   useEffect(() => {
-    getImprovementLogs(20).then(setLogs).catch(e => toast(e.message, 'error'));
+    getImprovementLogs(20).then(setLogs).catch((e: Error) => toast(e.message, 'error'));
   }, []);
 
   const submit = async () => {
@@ -32,16 +33,16 @@ export function ImprovementsTab() {
       setLogs(ls => [entry, ...ls]);
       setText('');
       toast('Improvement logged', 'success');
-    } catch (e) { toast(e.message, 'error'); }
+    } catch (e) { toast((e as Error).message, 'error'); }
     setSaving(false);
   };
 
-  const remove = async (log) => {
+  const remove = async (log: ImprovementLog) => {
     if (!await confirm(`Delete this entry?`)) return;
     try {
       await deleteImprovementLog(log.id);
       setLogs(ls => ls.filter(l => l.id !== log.id));
-    } catch (e) { toast(e.message, 'error'); }
+    } catch (e) { toast((e as Error).message, 'error'); }
   };
 
   return (

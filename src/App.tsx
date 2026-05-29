@@ -2,13 +2,14 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { signOut } from "./lib/supabase.js";
 import "./App.css";
-import { TodayScreen } from "./screens/TodayScreen.jsx";
-import { RecipesScreen } from "./screens/RecipesScreen.jsx";
-import { LineupScreen } from "./screens/LineupScreen.jsx";
-import { TempScreen } from "./screens/TempScreen.jsx";
-import { TimerScreen } from "./screens/TimerScreen.jsx";
+import { TodayScreen } from "./screens/TodayScreen.js";
+import { RecipesScreen } from "./screens/RecipesScreen.js";
+import { LineupScreen } from "./screens/LineupScreen.js";
+import { TempScreen } from "./screens/TempScreen.js";
+import { TimerScreen } from "./screens/TimerScreen.js";
+import type { Role, Station } from "./lib/types.js";
 
-export default function App({ userRole, userStation = 'Common' }) {
+export default function App({ userRole, userStation = 'Common' }: { userRole: Role | null; userStation?: Station | string }) {
   const [tab, setTab] = useState('today');
   const navigate = useNavigate();
 

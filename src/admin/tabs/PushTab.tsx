@@ -1,10 +1,12 @@
 import { useState, useContext } from "react";
 import { sendPushNotification } from "../../lib/supabase.js";
 import { STATIONS, STATION_COLORS } from "../../lib/constants.js";
-import { ToastContext } from "../components/Toast.jsx";
+import { ToastContext } from "../components/Toast.js";
+import type { Station } from "../../lib/types.js";
 
 export function PushTab() {
-  const { show } = useContext(ToastContext);
+  const ctx = useContext(ToastContext);
+  const show = ctx!.show;
   const [title, setTitle]     = useState('');
   const [body, setBody]       = useState('');
   const [station, setStation] = useState('');
@@ -17,14 +19,14 @@ export function PushTab() {
       const res = await sendPushNotification({
         title: title.trim(),
         body:  body.trim(),
-        station: station || undefined,
+        station: (station || undefined) as Station | undefined,
       });
       show(`Sent to ${res.sent} device${res.sent !== 1 ? 's' : ''}`, 'success');
       setTitle('');
       setBody('');
       setStation('');
     } catch (e) {
-      show(e.message, 'error');
+      show((e as Error).message, 'error');
     } finally {
       setSending(false);
     }

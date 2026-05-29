@@ -1,18 +1,23 @@
 import { useState, useEffect } from "react";
 import { supabase, getRestaurantProfiles, adminUpdateProfile } from "../../lib/supabase.js";
 import { STATIONS, STATION_COLORS, ROLE_COLORS, ROLE_LABELS } from "../../lib/constants.js";
-import { useToast } from "../components/Toast.jsx";
-import { Avatar } from "../components/Avatar.jsx";
-import { Badge } from "../components/Badge.jsx";
-import { Modal } from "../components/Modal.jsx";
+import { useToast } from "../components/Toast.js";
+import { Avatar } from "../components/Avatar.js";
+import { Badge } from "../components/Badge.js";
+import { Modal } from "../components/Modal.js";
+import type { Profile, Role, Station } from "../../lib/types.js";
+
+function inviteExpiresAt() {
+  return new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+}
 
 export function PeopleTab() {
-  const [users, setUsers] = useState([]);
-  const [selected, setSelected] = useState(null);
+  const [users, setUsers] = useState<Profile[]>([]);
+  const [selected, setSelected] = useState<Profile | null>(null);
   const [showInvite, setShowInvite] = useState(false);
-  const [inviteRole, setInviteRole] = useState('cook');
-  const [inviteStation, setInviteStation] = useState('Grill');
-  const [inviteMode, setInviteMode] = useState('link');
+  const [inviteRole, setInviteRole] = useState<Role>('cook');
+  const [inviteStation, setInviteStation] = useState<Station>('Grill');
+  const [inviteMode, setInviteMode] = useState<'link' | 'email'>('link');
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteLink, setInviteLink] = useState('');
   const [copied, setCopied] = useState(false);
@@ -21,7 +26,7 @@ export function PeopleTab() {
   const { show: toast } = useToast();
 
   useEffect(() => {
-    getRestaurantProfiles().then(setUsers).catch(e => toast(e.message, 'error'));
+    getRestaurantProfiles().then(setUsers).catch((e: Error) => toast(e.message, 'error'));
   }, []);
 
   const filtered = users.filter(u =>
@@ -36,7 +41,8 @@ export function PeopleTab() {
     setLoading(true);
     try {
       const { data: { user: me } } = await supabase.auth.getUser();
-      const { data: myProfile } = await supabase.from('profiles').select('restaurant_id, name').eq('id', me.id).single();
+      const { data: myProfile } = await supabase.from('profiles').select('restaurant_id, name').eq('id', me!.id).single();
+      if (!myProfile) throw new Error('Profile not found');
 
       if (inviteMode === 'email') {
         const { data, error } = await supabase.functions.invoke('send-invite', {
@@ -44,9 +50,9 @@ export function PeopleTab() {
             email: inviteEmail.trim(),
             role: inviteRole,
             station: inviteStation,
-            restaurant_id: myProfile.restaurant_id,
-            invited_by: me.id,
-            invited_by_name: myProfile.name,
+            restaurant_id: (myProfile as { restaurant_id: string; name: string }).restaurant_id,
+            invited_by: me!.id,
+            invited_by_name: (myProfile as { restaurant_id: string; name: string }).name,
           },
         });
         if (error || data?.error) throw new Error(error?.message || data?.error);
@@ -56,10 +62,10 @@ export function PeopleTab() {
       }
 
       const token = crypto.randomUUID();
-      const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(); // eslint-disable-line react-hooks/purity
+      const expiresAt = inviteExpiresAt();
       const { error: invErr } = await supabase.from('invites').insert({
-        restaurant_id: myProfile.restaurant_id,
-        invited_by: me.id,
+        restaurant_id: (myProfile as { restaurant_id: string; name: string }).restaurant_id,
+        invited_by: me!.id,
         email: null,
         role: inviteRole,
         station: inviteStation,
@@ -70,7 +76,7 @@ export function PeopleTab() {
       if (invErr) throw new Error(invErr.message);
       setInviteLink(`${window.location.origin}/join/${token}`);
     } catch (e) {
-      toast(e.message, 'error');
+      toast((e as Error).message, 'error');
     } finally {
       setLoading(false);
     }
@@ -92,22 +98,23 @@ export function PeopleTab() {
     setInviteEmail('');
   };
 
-  const toggleActive = async (id) => {
+  const toggleActive = async (id: string) => {
     const user = users.find(u => u.id === id);
+    if (!user) return;
     try {
       await adminUpdateProfile(id, { active: !user.active });
       setUsers(us => us.map(u => u.id === id ? { ...u, active: !u.active } : u));
     } catch (e) {
-      toast(e.message, 'error');
+      toast((e as Error).message, 'error');
     }
   };
 
-  const changeRole = async (id, role) => {
+  const changeRole = async (id: string, role: Role) => {
     try {
       await adminUpdateProfile(id, { role });
       setUsers(us => us.map(u => u.id === id ? { ...u, role } : u));
     } catch (e) {
-      toast(e.message, 'error');
+      toast((e as Error).message, 'error');
     }
   };
 
@@ -170,7 +177,6 @@ export function PeopleTab() {
         </table>
       </div>
 
-      {/* Coverage matrix: which stations have backup */}
       {users.length > 0 && (() => {
         const workStations = STATIONS.filter(s => s !== 'Common');
         return (
@@ -179,7 +185,7 @@ export function PeopleTab() {
             <div className="coverage-rows">
               {workStations.map(st => {
                 const primary = users.filter(u => u.active && u.station === st);
-                const backup  = users.filter(u => u.active && u.station !== st && (u.secondary_stations || []).includes(st));
+                const backup  = users.filter(u => u.active && u.station !== st && (u.secondary_stations || []).includes(st as Station));
                 const covered = primary.length > 0 || backup.length > 0;
                 return (
                   <div key={st} className="coverage-row">
@@ -215,14 +221,14 @@ export function PeopleTab() {
             </div>
             <div className="form-row">
               <label className="form-label-sm">Role</label>
-              <select className="form-sel" value={selected.role} onChange={e => { changeRole(selected.id, e.target.value); setSelected(s => ({...s, role: e.target.value})); }}>
+              <select className="form-sel" value={selected.role} onChange={e => { changeRole(selected.id, e.target.value as Role); setSelected(s => s ? ({...s, role: e.target.value as Role}) : s); }}>
                 <option value="cook">Cook</option>
                 <option value="admin">Admin</option>
               </select>
             </div>
             <div className="form-row">
               <label className="form-label-sm">Station</label>
-              <select className="form-sel" value={selected.station} onChange={e => setSelected(s => ({...s, station: e.target.value}))}>
+              <select className="form-sel" value={selected.station} onChange={e => setSelected(s => s ? ({...s, station: e.target.value as Station}) : s)}>
                 {STATIONS.map(st => <option key={st}>{st}</option>)}
               </select>
             </div>
@@ -230,16 +236,16 @@ export function PeopleTab() {
               <label className="form-label-sm">Also trained for</label>
               <div className="secondary-stations">
                 {STATIONS.filter(st => st !== 'Common' && st !== selected.station).map(st => {
-                  const active = (selected.secondary_stations || []).includes(st);
+                  const active = (selected.secondary_stations || []).includes(st as Station);
                   return (
                     <button key={st} className="station-toggle" onClick={async () => {
                       const current = selected.secondary_stations || [];
-                      const next = active ? current.filter(s => s !== st) : [...current, st];
+                      const next = active ? current.filter(s => s !== st) : [...current, st as Station];
                       try {
                         await adminUpdateProfile(selected.id, { secondary_stations: next });
                         setUsers(us => us.map(u => u.id === selected.id ? { ...u, secondary_stations: next } : u));
-                        setSelected(s => ({ ...s, secondary_stations: next }));
-                      } catch (e) { toast(e.message, 'error'); }
+                        setSelected(s => s ? ({ ...s, secondary_stations: next }) : s);
+                      } catch (e) { toast((e as Error).message, 'error'); }
                     }} style={{
                       border:`1px solid ${active ? STATION_COLORS[st]||'#888' : 'var(--border)'}`,
                       background: active ? (STATION_COLORS[st]||'#888')+'22' : 'transparent',
@@ -261,16 +267,16 @@ export function PeopleTab() {
               <button className="btn-secondary flex-1" onClick={async () => {
                 setLoading(true);
                 try {
-                  const { error } = await supabase.auth.resetPasswordForEmail(selected.email, {
+                  const { error } = await supabase.auth.resetPasswordForEmail(selected.email!, {
                     redirectTo: `${window.location.origin}/reset-password`,
                   });
                   if (error) throw error;
                   toast(`Reset email sent to ${selected.email}`, 'success');
                 } catch (err) {
-                  toast(err.message || 'Failed to send reset email', 'error');
+                  toast((err as Error).message || 'Failed to send reset email', 'error');
                 } finally { setLoading(false); }
               }}>Reset Password</button>
-              <button className={`btn-${selected.active ? 'danger' : 'primary'} flex-1`} onClick={() => { toggleActive(selected.id); setSelected(s => ({...s, active: !s.active})); }}>
+              <button className={`btn-${selected.active ? 'danger' : 'primary'} flex-1`} onClick={() => { toggleActive(selected.id); setSelected(s => s ? ({...s, active: !s.active}) : s); }}>
                 {selected.active ? 'Deactivate User' : 'Activate User'}
               </button>
             </div>
@@ -316,11 +322,11 @@ export function PeopleTab() {
                 </div>
               )}
               <div><label className="form-label-sm">Role</label>
-                <select className="form-sel" value={inviteRole} onChange={e => setInviteRole(e.target.value)}>
+                <select className="form-sel" value={inviteRole} onChange={e => setInviteRole(e.target.value as Role)}>
                   <option value="cook">Cook</option><option value="admin">Admin</option>
                 </select></div>
               <div><label className="form-label-sm">Primary Station</label>
-                <select className="form-sel" value={inviteStation} onChange={e => setInviteStation(e.target.value)}>
+                <select className="form-sel" value={inviteStation} onChange={e => setInviteStation(e.target.value as Station)}>
                   {STATIONS.map(st => <option key={st}>{st}</option>)}
                 </select></div>
               {inviteMode === 'link' && (

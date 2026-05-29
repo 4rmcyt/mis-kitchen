@@ -1,36 +1,51 @@
 import { useState, useEffect } from "react";
 import { getRecipes, createRecipe, updateRecipe, deleteRecipe } from "../../lib/supabase.js";
-import { useToast } from "../components/Toast.jsx";
-import { useConfirm } from "../components/Confirm.jsx";
+import { useToast } from "../components/Toast.js";
+import { useConfirm } from "../components/Confirm.js";
+import type { Recipe, RecipeIngredient, RecipeStep } from "../../lib/types.js";
 
 const UNITS = ['g', 'kg', 'ml', 'L', 'pcs', 'tsp', 'tbsp', 'cup', 'portion'];
 
-function emptyRecipe() {
-  return { name: '', portions: 1, is_shared: true, ingredients: [], steps: [] };
+type IngWithKey = RecipeIngredient & { _key: string; amount: string };
+type StepWithKey = RecipeStep & { _key: string };
+
+interface RecipeFormData extends Omit<Recipe, 'id' | 'restaurant_id' | 'created_by' | 'created_at' | 'ingredients' | 'steps'> {
+  ingredients: IngWithKey[];
+  steps: StepWithKey[];
 }
 
-function RecipeForm({ initial, onSave, onCancel, saving }) {
-  const [form, setForm] = useState(() => ({
+function emptyRecipe(): RecipeFormData {
+  return { name: '', portions: 1, is_shared: true, station: null, ingredients: [], steps: [] };
+}
+
+interface RecipeFormProps {
+  initial: RecipeFormData;
+  onSave: (form: RecipeFormData) => void;
+  onCancel: () => void;
+  saving: boolean;
+}
+
+function RecipeForm({ initial, onSave, onCancel, saving }: RecipeFormProps) {
+  const [form, setForm] = useState<RecipeFormData>(() => ({
     ...initial,
-    ingredients: (initial.ingredients || []).map((ing, i) => ({ ...ing, _key: ing.id ?? `ing-${i}-${Date.now()}` })),
-    steps: (initial.steps || []).map((s, i) => ({ text: typeof s === 'string' ? s : s, _key: `step-${i}-${Date.now()}` })),
+    ingredients: (initial.ingredients || []).map((ing, i) => ({ ...ing, _key: (ing as IngWithKey)._key ?? `ing-${i}-${Date.now()}` })),
+    steps: (initial.steps || []).map((s, i) => ({ text: typeof s === 'string' ? s : (s as StepWithKey).text, _key: (s as StepWithKey)._key ?? `step-${i}-${Date.now()}` })),
   }));
   const [ingText, setIngText] = useState('');
   const [ingAmt, setIngAmt] = useState('');
   const [ingUnit, setIngUnit] = useState('g');
   const [stepText, setStepText] = useState('');
 
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const set = <K extends keyof RecipeFormData>(k: K, v: RecipeFormData[K]) => setForm(f => ({ ...f, [k]: v }));
 
-  // Ingredients
   const addIng = () => {
     if (!ingText.trim()) return;
     set('ingredients', [...form.ingredients, { name: ingText.trim(), amount: ingAmt, unit: ingUnit, _key: `ing-new-${Date.now()}` }]);
     setIngText(''); setIngAmt('');
   };
-  const removeIng = (key) => set('ingredients', form.ingredients.filter(x => x._key !== key));
-  const updateIng = (key, field, val) => set('ingredients', form.ingredients.map(x => x._key === key ? { ...x, [field]: val } : x));
-  const moveIng = (key, dir) => {
+  const removeIng = (key: string) => set('ingredients', form.ingredients.filter(x => x._key !== key));
+  const updateIng = (key: string, field: keyof IngWithKey, val: string) => set('ingredients', form.ingredients.map(x => x._key === key ? { ...x, [field]: val } : x));
+  const moveIng = (key: string, dir: number) => {
     const ings = [...form.ingredients];
     const i = ings.findIndex(x => x._key === key);
     const j = i + dir;
@@ -39,15 +54,14 @@ function RecipeForm({ initial, onSave, onCancel, saving }) {
     set('ingredients', ings);
   };
 
-  // Steps
   const addStep = () => {
     if (!stepText.trim()) return;
     set('steps', [...form.steps, { text: stepText.trim(), _key: `step-new-${Date.now()}` }]);
     setStepText('');
   };
-  const removeStep = (key) => set('steps', form.steps.filter(x => x._key !== key));
-  const updateStep = (key, val) => set('steps', form.steps.map(x => x._key === key ? { ...x, text: val } : x));
-  const moveStep = (key, dir) => {
+  const removeStep = (key: string) => set('steps', form.steps.filter(x => x._key !== key));
+  const updateStep = (key: string, val: string) => set('steps', form.steps.map(x => x._key === key ? { ...x, text: val } : x));
+  const moveStep = (key: string, dir: number) => {
     const steps = [...form.steps];
     const i = steps.findIndex(x => x._key === key);
     const j = i + dir;
@@ -59,8 +73,8 @@ function RecipeForm({ initial, onSave, onCancel, saving }) {
   const handleSave = () => {
     onSave({
       ...form,
-      ingredients: form.ingredients.map(({ _key, ...rest }) => rest),
-      steps: form.steps.map(({ _key, text }) => text),
+      ingredients: form.ingredients.map(({ _key: _k, ...rest }) => rest as IngWithKey),
+      steps: form.steps.map(({ _key: _k, text }) => ({ text, _key: _k })),
     });
   };
 
@@ -73,7 +87,7 @@ function RecipeForm({ initial, onSave, onCancel, saving }) {
         </div>
         <div className="recipe-form-portions">
           <label className="form-label-sm">Portions</label>
-          <input className="form-inp" type="number" min="1" value={form.portions} onChange={e => set('portions', parseInt(e.target.value)||1)}/>
+          <input className="form-inp" type="number" min="1" value={form.portions ?? 1} onChange={e => set('portions', parseInt(e.target.value)||1)}/>
         </div>
       </div>
 
@@ -141,59 +155,68 @@ function RecipeForm({ initial, onSave, onCancel, saving }) {
 }
 
 export function RecipesTab() {
-  const [recipes, setRecipes] = useState([]);
-  const [selected, setSelected] = useState(null);
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [selected, setSelected] = useState<Recipe | null>(null);
   const [showNew, setShowNew] = useState(false);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const { show: toast } = useToast();
   const { confirm, dialog: confirmDialog } = useConfirm();
 
-  useEffect(() => { getRecipes().then(setRecipes).catch(e => toast(e.message, 'error')); }, []);
+  useEffect(() => { getRecipes().then(setRecipes).catch((e: Error) => toast(e.message, 'error')); }, []);
 
-  const handleCreate = async (form) => {
+  const handleCreate = async (form: RecipeFormData) => {
     setSaving(true);
     try {
-      const r = await createRecipe(form);
+      const r = await createRecipe(form as unknown as Partial<Recipe>);
       setRecipes(rs => [r, ...rs]);
       setShowNew(false);
       setSelected(r);
       toast('Recipe created', 'success');
-    } catch (e) { toast(e.message, 'error'); }
+    } catch (e) { toast((e as Error).message, 'error'); }
     setSaving(false);
   };
 
-  const handleUpdate = async (form) => {
+  const handleUpdate = async (form: RecipeFormData) => {
+    if (!selected) return;
     setSaving(true);
     try {
-      const r = await updateRecipe(selected.id, form);
+      const r = await updateRecipe(selected.id, form as unknown as Partial<Recipe>);
       setRecipes(rs => rs.map(x => x.id === r.id ? r : x));
       setSelected(r);
       setEditing(false);
       toast('Saved', 'success');
-    } catch (e) { toast(e.message, 'error'); }
+    } catch (e) { toast((e as Error).message, 'error'); }
     setSaving(false);
   };
 
   const handleDelete = async () => {
+    if (!selected) return;
     if (!await confirm(`Delete "${selected.name}"?`)) return;
     try {
       await deleteRecipe(selected.id);
       setRecipes(rs => rs.filter(r => r.id !== selected.id));
       setSelected(null);
       toast('Deleted', 'success');
-    } catch (e) { toast(e.message, 'error'); }
+    } catch (e) { toast((e as Error).message, 'error'); }
   };
 
-
   if (selected && editing) {
+    const formData: RecipeFormData = {
+      name: selected.name,
+      portions: selected.portions,
+      is_shared: selected.is_shared,
+      station: selected.station,
+      ingredients: (selected.ingredients || []).map((ing, i) => ({ ...ing, _key: `ing-${i}`, amount: String(ing.amount) })),
+      steps: (selected.steps || []).map((s, i) => ({ text: typeof s === 'string' ? s : s.text, _key: `step-${i}` })),
+    };
     return (
       <div className="tab-content">
         <div className="recipe-detail-hdr">
           <button className="btn-secondary" onClick={() => setEditing(false)}>← Back</button>
           <span className="recipe-edit-name">Edit: {selected.name}</span>
         </div>
-        <RecipeForm initial={selected} onSave={handleUpdate} onCancel={() => setEditing(false)} saving={saving}/>
+        <RecipeForm initial={formData} onSave={handleUpdate} onCancel={() => setEditing(false)} saving={saving}/>
       </div>
     );
   }
@@ -233,7 +256,7 @@ export function RecipesTab() {
               {steps.map((step, i) => (
                 <div key={i} className="recipe-step-row">
                   <span className="recipe-step-num">{i+1}.</span>
-                  <span className="recipe-step-text">{step}</span>
+                  <span className="recipe-step-text">{typeof step === 'string' ? step : step.text}</span>
                 </div>
               ))}
             </div>

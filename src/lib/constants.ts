@@ -1,6 +1,6 @@
 export const STATIONS = ["Common", "Garmo", "Rolls", "Pans", "Grill", "Tandoor"];
 
-export const STATION_COLORS = {
+export const STATION_COLORS: Record<string, string> = {
   Garmo:   "#22D3EE",
   Rolls:   "#A78BFA",
   Pans:    "#F97316",
@@ -13,19 +13,19 @@ export const STATION_COLORS = {
 
 export const SECTIONS = ['Opening', 'Closing', 'Other'];
 
-export const SECTION_COLORS = {
+export const SECTION_COLORS: Record<string, string> = {
   Opening: '#F97316',
   Closing: '#6366F1',
   Other:   '#6B7280',
 };
 
-export const ROLE_COLORS = {
+export const ROLE_COLORS: Record<string, string> = {
   superadmin: "#F97316",
   admin:      "#6366F1",
   cook:       "#3A3A3A",
 };
 
-export const ROLE_LABELS = {
+export const ROLE_LABELS: Record<string, string> = {
   superadmin: "Super Admin",
   admin:      "Admin",
   cook:       "Cook",

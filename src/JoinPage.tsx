@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from './lib/supabase.js';
 import './Auth.css';
@@ -14,7 +14,7 @@ export default function JoinPage() {
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState('');
 
-  const submit = async (e) => {
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
     if (password !== confirm) { setError("Passwords don't match"); return; }
@@ -32,7 +32,7 @@ export default function JoinPage() {
       if (signInErr) throw new Error(signInErr.message);
       navigate('/');
     } catch (err) {
-      setError(err.message);
+      setError((err as Error).message);
     } finally {
       setLoading(false);
     }

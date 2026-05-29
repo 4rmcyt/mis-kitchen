@@ -1,19 +1,20 @@
 import { useState, useEffect } from "react";
 import { getRestaurantProfiles } from "../lib/supabase.js";
 import { STATIONS, STATION_COLORS } from "../lib/constants.js";
+import type { Profile } from "../lib/types.js";
 
 export function LineupScreen() {
-  const [profiles, setProfiles] = useState([]);
+  const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     getRestaurantProfiles()
-      .then(data => setProfiles(data || []))
+      .then((data: Profile[]) => setProfiles(data || []))
       .catch(() => setProfiles([]))
       .finally(() => setLoading(false));
   }, []);
 
-  const byStation = STATIONS.reduce((acc, st) => {
+  const byStation = STATIONS.reduce<Record<string, Profile[]>>((acc, st) => {
     acc[st] = profiles.filter(p => (p.station || 'Common') === st && p.active !== false);
     return acc;
   }, {});

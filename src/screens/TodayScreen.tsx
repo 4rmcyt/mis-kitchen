@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { getTasks, createTask, createTasksBatch, completeTask, uncompleteTask, commentTask, deleteTask, getDefaultDayTemplate, getShiftExperiment, getImprovementLogs } from "../lib/supabase.js";
 import { STATIONS, STATION_COLORS, SECTIONS, SECTION_COLORS } from "../lib/constants.js";
-import { AddTaskModal } from "../components/AddTaskModal.jsx";
-import { ReportModal } from "../components/ReportModal.jsx";
+import { AddTaskModal } from "../components/AddTaskModal.js";
+import { ReportModal } from "../components/ReportModal.js";
+import type { Task, ImprovementLog, Role, Station } from "../lib/types.js";
 
 function CheckIcon() {
   return <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><polyline points="2,7 5.5,10.5 12,3" stroke="#F97316" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>;
@@ -14,7 +15,7 @@ function dateStr(offset = 0) {
   return d.toISOString().split('T')[0];
 }
 
-function formatDateLabel(isoDate) {
+function formatDateLabel(isoDate: string) {
   const today = dateStr(0);
   const yesterday = dateStr(-1);
   const tomorrow = dateStr(1);
@@ -24,17 +25,17 @@ function formatDateLabel(isoDate) {
   return new Date(isoDate + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
-export function TodayScreen({ userStation = 'Common', userRole }) {
+export function TodayScreen({ userStation = 'Common', userRole }: { userStation?: Station | string; userRole: Role | null }) {
   const [dateOffset, setDateOffset] = useState(0);
-  const [tasks, setTasks] = useState([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [stationFilter, setStationFilter] = useState('All');
   const [showAddTask, setShowAddTask] = useState(false);
   const [showReport, setShowReport] = useState(false);
-  const [commentingId, setCommentingId] = useState(null);
+  const [commentingId, setCommentingId] = useState<string | null>(null);
   const [commentText, setCommentText] = useState('');
-  const [experiment, setExperiment] = useState(null);
-  const [improvements, setImprovements] = useState([]);
+  const [experiment, setExperiment] = useState<string | null>(null);
+  const [improvements, setImprovements] = useState<ImprovementLog[]>([]);
 
   const selectedDate = dateStr(dateOffset);
 
@@ -46,7 +47,7 @@ export function TodayScreen({ userStation = 'Common', userRole }) {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    getTasks(selectedDate).then(async (rows) => {
+    getTasks(selectedDate).then(async (rows: Task[]) => {
       if (cancelled) return;
       if (rows && rows.length > 0) {
         setTasks(rows);
@@ -63,7 +64,7 @@ export function TodayScreen({ userStation = 'Common', userRole }) {
         return;
       }
       const batch = tpl.entries.map(e => ({
-        text: e.text, station: e.station, section: e.section, date: selectedDate, source: 'template',
+        text: e.text, station: e.station as Station, section: e.section, date: selectedDate, source: 'template' as const,
       }));
       const created = await createTasksBatch(batch).catch(() => null);
       if (cancelled) return;
@@ -72,7 +73,7 @@ export function TodayScreen({ userStation = 'Common', userRole }) {
     return () => { cancelled = true; };
   }, [selectedDate]);
 
-  const toggle = async (task) => {
+  const toggle = async (task: Task) => {
     try {
       const updated = task.done
         ? await uncompleteTask(task.id)
@@ -81,14 +82,14 @@ export function TodayScreen({ userStation = 'Common', userRole }) {
     } catch (_e) { /* noop */ }
   };
 
-  const handleAddTask = async ({ text, station, section, date }) => {
+  const handleAddTask = async ({ text, station, section, date }: { text: string; station: string; section: string; date: string }) => {
     try {
-      const task = await createTask({ text, station, section, date, source: 'manual' });
+      const task = await createTask({ text, station: station as Station, section, date, source: 'manual' });
       if (date === selectedDate) setTasks(ts => [...ts, task]);
     } catch (_e) { /* noop */ }
   };
 
-  const saveComment = async (taskId) => {
+  const saveComment = async (taskId: string) => {
     try {
       const updated = await commentTask(taskId, commentText);
       setTasks(ts => ts.map(t => t.id === taskId ? { ...t, ...updated } : t));
@@ -97,7 +98,7 @@ export function TodayScreen({ userStation = 'Common', userRole }) {
     } catch (_e) { /* noop */ }
   };
 
-  const handleDelete = async (taskId) => {
+  const handleDelete = async (taskId: string) => {
     try {
       await deleteTask(taskId);
       setTasks(ts => ts.filter(t => t.id !== taskId));
@@ -110,7 +111,7 @@ export function TodayScreen({ userStation = 'Common', userRole }) {
     ? tasks
     : tasks.filter(t => t.station === stationFilter || t.station === 'Common');
 
-  const bySection = SECTIONS.reduce((acc, sec) => {
+  const bySection = SECTIONS.reduce<Record<string, Task[]>>((acc, sec) => {
     acc[sec] = filtered.filter(t => t.section === sec);
     return acc;
   }, {});

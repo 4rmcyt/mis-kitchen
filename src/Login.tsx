@@ -1,14 +1,14 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { signIn, supabase } from "./lib/supabase.js";
 import "./Auth.css";
 
-function ForgotPassword({ onBack }) {
+function ForgotPassword({ onBack }: { onBack: () => void }) {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(""); setLoading(true);
     const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
@@ -43,14 +43,14 @@ function ForgotPassword({ onBack }) {
   );
 }
 
-export default function Login({ onLogin }) {
+export default function Login({ onLogin }: { onLogin: () => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showForgot, setShowForgot] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -58,7 +58,7 @@ export default function Login({ onLogin }) {
       await signIn(email, password);
       onLogin();
     } catch (err) {
-      setError(err.message);
+      setError((err as Error).message);
     } finally {
       setLoading(false);
     }

@@ -1,21 +1,25 @@
 import { useState, useEffect } from 'react'
 import { updateProfile, supabase } from './lib/supabase.js'
 import './Auth.css'
+import type { User } from '@supabase/supabase-js'
+import type { Station } from './lib/types.js'
+
+type OnboardingStep = 'password' | 'welcome' | 'name' | 'station' | null;
 
 const STATIONS = ['Common', 'Cold', 'Rolls', 'Hot', 'Grill', 'Tandoor']
-const STATION_COLORS = {
+const STATION_COLORS: Record<string, string> = {
   Cold: '#22D3EE', Rolls: '#A78BFA', Hot: '#F97316',
   Grill: '#EF4444', Tandoor: '#F59E0B', Common: '#6B7280',
 }
 
-export default function Onboarding({ user, onDone }) {
+export default function Onboarding({ user, onDone }: { user: User; onDone: () => void }) {
   const meta = user.user_metadata || {}
-  const [step, setStep] = useState(null)
+  const [step, setStep] = useState<OnboardingStep>(null)
   const [showPasswordStep, setShowPasswordStep] = useState(false)
   const [password, setPassword] = useState('')
   const [passwordConfirm, setPasswordConfirm] = useState('')
-  const [name, setName] = useState(meta.full_name || meta.name || '')
-  const [station, setStation] = useState(meta.station || 'Common')
+  const [name, setName] = useState<string>(meta.full_name || meta.name || '')
+  const [station, setStation] = useState<string>(meta.station || 'Common')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -28,7 +32,7 @@ export default function Onboarding({ user, onDone }) {
     })();
   }, [user.id])
 
-  const allSteps = showPasswordStep
+  const allSteps: OnboardingStep[] = showPasswordStep
     ? ['password', 'welcome', 'name', 'station']
     : ['welcome', 'name', 'station']
   const visibleDotSteps = allSteps.filter(s => s !== 'welcome')
@@ -44,7 +48,7 @@ export default function Onboarding({ user, onDone }) {
       await updateProfile(user.id, { password_set: true })
       setStep('welcome')
     } catch (e) {
-      setError(e.message)
+      setError((e as Error).message)
     } finally {
       setSaving(false)
     }
@@ -55,15 +59,15 @@ export default function Onboarding({ user, onDone }) {
     setSaving(true)
     setError('')
     try {
-      await updateProfile(user.id, { name: name.trim(), station })
+      await updateProfile(user.id, { name: name.trim(), station: station as Station })
       onDone()
     } catch (e) {
-      setError(e.message)
+      setError((e as Error).message)
       setSaving(false)
     }
   }
 
-  const dotIndex = visibleDotSteps.indexOf(step)
+  const dotIndex = visibleDotSteps.indexOf(step as 'password' | 'name' | 'station')
 
   if (step === null) return null
 

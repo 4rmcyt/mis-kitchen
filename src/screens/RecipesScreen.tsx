@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
 import { getRecipes } from "../lib/supabase.js";
 import { STATION_COLORS } from "../lib/constants.js";
+import type { Recipe, RecipeIngredient } from "../lib/types.js";
 
 export function RecipesScreen() {
-  const [recipes, setRecipes] = useState([]);
-  const [active, setActive] = useState(null);
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [active, setActive] = useState<Recipe | null>(null);
   const [multiplier, setMultiplier] = useState(1);
   const [search, setSearch] = useState('');
 
   useEffect(() => {
-    getRecipes().then(data => setRecipes(data || [])).catch(() => {});
+    getRecipes().then((data: Recipe[]) => setRecipes(data || [])).catch(() => {});
   }, []);
 
   const filtered = recipes.filter(r =>
@@ -22,25 +23,25 @@ export function RecipesScreen() {
         <button className="back-btn" onClick={() => setActive(null)}>← Back</button>
       </div>
       <div className="recipe-detail">
-        <div className="recipe-station-badge" style={{ background: STATION_COLORS[active.station]||STATION_COLORS.Default }}>{active.station}</div>
+        <div className="recipe-station-badge" style={{ background: STATION_COLORS[active.station!]||STATION_COLORS.Default }}>{active.station}</div>
         <h2 className="recipe-title">{active.name}</h2>
         <div className="multiplier-row">
           <span className="mult-label">Portions</span>
           {[1,2,3,4,5,6,10].map(m => <button key={m} className={`mult-btn ${multiplier===m?'active':''}`} onClick={() => setMultiplier(m)}>{m}×</button>)}
         </div>
         <div className="ingredients-list">
-          {active.ingredients.map(ing => (
-            <div key={ing.id} className="ing-row">
+          {active.ingredients.map((ing: RecipeIngredient & { id?: string; amount: number | string }) => (
+            <div key={ing._key || ing.name} className="ing-row">
               <span className="ing-name">{ing.name}</span>
-              <span className="ing-amount">{(ing.amount*multiplier).toFixed(ing.amount*multiplier%1!==0?1:0)} {ing.unit}</span>
+              <span className="ing-amount">{(Number(ing.amount)*multiplier).toFixed(Number(ing.amount)*multiplier%1!==0?1:0)} {ing.unit}</span>
             </div>
           ))}
         </div>
         <div className="steps-list">
-          {active.steps.map((step,i) => (
+          {active.steps.map((step, i) => (
             <div key={i} className="step-row">
               <span className="step-num">{i+1}</span>
-              <span className="step-text">{step}</span>
+              <span className="step-text">{typeof step === 'string' ? step : step.text}</span>
             </div>
           ))}
         </div>
@@ -55,7 +56,7 @@ export function RecipesScreen() {
       <div className="recipe-grid">
         {filtered.map(r => (
           <button key={r.id} className="recipe-card" onClick={() => { setActive(r); setMultiplier(1); }}>
-            <div className="recipe-card-station" style={{ background: STATION_COLORS[r.station]||STATION_COLORS.Default }}>{r.station}</div>
+            <div className="recipe-card-station" style={{ background: STATION_COLORS[r.station!]||STATION_COLORS.Default }}>{r.station}</div>
             <div className="recipe-card-name">{r.name}</div>
             <div className="recipe-card-meta">{r.ingredients.length} ingredients</div>
           </button>

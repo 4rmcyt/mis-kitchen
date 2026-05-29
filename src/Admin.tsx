@@ -3,23 +3,35 @@ import { useNavigate } from "react-router-dom";
 import { supabase, signOut } from "./lib/supabase.js";
 import { ROLE_COLORS, ROLE_LABELS } from "./lib/constants.js";
 import "./Admin.css";
-import { ToastContext, ToastContainer } from "./admin/components/Toast.jsx";
-import { Avatar } from "./admin/components/Avatar.jsx";
-import { PeopleTab } from "./admin/tabs/PeopleTab.jsx";
-import { TasksTab } from "./admin/tabs/TasksTab.jsx";
-import { RecipesTab } from "./admin/tabs/RecipesTab.jsx";
-import { ReportsTab } from "./admin/tabs/ReportsTab.jsx";
-import { PushTab } from "./admin/tabs/PushTab.jsx";
-import { VelocityTab } from "./admin/tabs/VelocityTab.jsx";
-import { ImprovementsTab } from "./admin/tabs/ImprovementsTab.jsx";
-import { RotaTab } from "./admin/tabs/RotaTab.jsx";
+import { ToastContext, ToastContainer } from "./admin/components/Toast.js";
+import { Avatar } from "./admin/components/Avatar.js";
+import { PeopleTab } from "./admin/tabs/PeopleTab.js";
+import { TasksTab } from "./admin/tabs/TasksTab.js";
+import { RecipesTab } from "./admin/tabs/RecipesTab.js";
+import { ReportsTab } from "./admin/tabs/ReportsTab.js";
+import { PushTab } from "./admin/tabs/PushTab.js";
+import { VelocityTab } from "./admin/tabs/VelocityTab.js";
+import { ImprovementsTab } from "./admin/tabs/ImprovementsTab.js";
+import { RotaTab } from "./admin/tabs/RotaTab.js";
+import type { Role } from "./lib/types.js";
+
+interface Me {
+  name: string | null;
+  role: Role;
+}
+
+interface Toast {
+  id: string;
+  msg: string;
+  type: string;
+}
 
 export default function Admin() {
   const [tab, setTab] = useState('people');
-  const [me, setMe] = useState(null);
+  const [me, setMe] = useState<Me | null>(null);
   const navigate = useNavigate();
-  const [toasts, setToasts] = useState([]);
-  const showToast = (msg, type = "info") => {
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const showToast = (msg: string, type = "info") => {
     const id = Math.random().toString(36).slice(2);
     setToasts(t => [...t, { id, msg, type }]);
     setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3500);
@@ -30,19 +42,19 @@ export default function Admin() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       const { data } = await supabase.from('profiles').select('name,role').eq('id', user.id).single();
-      if (data) setMe(data);
+      if (data) setMe(data as Me);
     })();
   }, []);
 
   const TABS = [
-    { id:'people',   label:'People',   icon:'👥' },
-    { id:'tasks',    label:'Tasks',    icon:'✓'  },
-    { id:'recipes',  label:'Recipes',  icon:'⚗'  },
-    { id:'reports',  label:'Reports',  icon:'📊' },
-    { id:'velocity',     label:'Velocity',  icon:'📈' },
-    { id:'improvements', label:'Wins',      icon:'✓'  },
-    { id:'rota',     label:'Schedule',  icon:'📅' },
-    { id:'push',     label:'Notify',   icon:'🔔' },
+    { id:'people',       label:'People',   icon:'👥' },
+    { id:'tasks',        label:'Tasks',    icon:'✓'  },
+    { id:'recipes',      label:'Recipes',  icon:'⚗'  },
+    { id:'reports',      label:'Reports',  icon:'📊' },
+    { id:'velocity',     label:'Velocity', icon:'📈' },
+    { id:'improvements', label:'Wins',     icon:'✓'  },
+    { id:'rota',         label:'Schedule', icon:'📅' },
+    { id:'push',         label:'Notify',   icon:'🔔' },
   ];
 
   return (
@@ -66,7 +78,7 @@ export default function Admin() {
           <Avatar name={me?.name || '?'} size={32}/>
           <div className="sidebar-footer-info">
             <div className="sidebar-footer-name">{me?.name || '…'}</div>
-            <div className="sidebar-footer-role" style={{ color: ROLE_COLORS[me?.role] || 'var(--text-muted)' }}>{ROLE_LABELS[me?.role] || ''}</div>
+            <div className="sidebar-footer-role" style={{ color: me?.role ? ROLE_COLORS[me.role] : 'var(--text-muted)' }}>{me?.role ? ROLE_LABELS[me.role] : ''}</div>
           </div>
           <button onClick={() => signOut()} title="Sign out" className="sidebar-signout">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -90,14 +102,14 @@ export default function Admin() {
           </div>
         </div>
 
-        {tab === 'people'   && <PeopleTab/>}
-        {tab === 'tasks'    && <TasksTab/>}
-        {tab === 'recipes'  && <RecipesTab/>}
-        {tab === 'reports'  && <ReportsTab/>}
+        {tab === 'people'       && <PeopleTab/>}
+        {tab === 'tasks'        && <TasksTab/>}
+        {tab === 'recipes'      && <RecipesTab/>}
+        {tab === 'reports'      && <ReportsTab/>}
         {tab === 'velocity'     && <VelocityTab/>}
         {tab === 'improvements' && <ImprovementsTab/>}
-        {tab === 'rota'     && <RotaTab/>}
-        {tab === 'push'     && <PushTab/>}
+        {tab === 'rota'         && <RotaTab/>}
+        {tab === 'push'         && <PushTab/>}
       </main>
 
       <nav className="admin-bottom-nav">

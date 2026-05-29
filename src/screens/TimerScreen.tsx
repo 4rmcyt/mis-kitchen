@@ -1,46 +1,56 @@
 import { useState, useEffect, useRef } from "react";
 
-let globalTimers = [];
-let globalListeners = [];
+interface Timer {
+  id: number;
+  label: string;
+  seconds: number;
+  running: boolean;
+  done: boolean;
+}
+
+type TimerListener = (timers: Timer[]) => void;
+
+let globalTimers: Timer[] = [];
+let globalListeners: TimerListener[] = [];
 
 function notifyListeners() {
   globalListeners.forEach(fn => fn([...globalTimers]));
 }
 
-function addTimer(label) {
+function addTimer(label: string) {
   const id = Date.now();
   globalTimers = [...globalTimers, { id, label, seconds: 0, running: false, done: false }];
   notifyListeners();
   return id;
 }
 
-function startTimer(id) {
+function startTimer(id: number) {
   globalTimers = globalTimers.map(t => t.id === id ? { ...t, running: true, done: false } : t);
   notifyListeners();
 }
 
-function pauseTimer(id) {
+function pauseTimer(id: number) {
   globalTimers = globalTimers.map(t => t.id === id ? { ...t, running: false } : t);
   notifyListeners();
 }
 
-function resetTimer(id) {
+function resetTimer(id: number) {
   globalTimers = globalTimers.map(t => t.id === id ? { ...t, seconds: 0, running: false, done: false } : t);
   notifyListeners();
 }
 
-function removeTimer(id) {
+function removeTimer(id: number) {
   globalTimers = globalTimers.filter(t => t.id !== id);
   notifyListeners();
 }
 
-function setTimerDuration(id, seconds) {
+function setTimerDuration(id: number, seconds: number) {
   globalTimers = globalTimers.map(t => t.id === id ? { ...t, seconds, running: false, done: false } : t);
   notifyListeners();
 }
 
 function useGlobalTimers() {
-  const [timers, setTimers] = useState([...globalTimers]);
+  const [timers, setTimers] = useState<Timer[]>([...globalTimers]);
   useEffect(() => {
     globalListeners.push(setTimers);
     return () => { globalListeners = globalListeners.filter(fn => fn !== setTimers); };
@@ -64,13 +74,13 @@ function useTimerTick() {
   }, []);
 }
 
-function formatDuration(s) {
+function formatDuration(s: number) {
   const m = Math.floor(s / 60);
   const sec = s % 60;
   return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
 }
 
-function TimerCard({ timer }) {
+function TimerCard({ timer }: { timer: Timer }) {
   const [inputMin, setInputMin] = useState('');
   const [inputSec, setInputSec] = useState('');
   const beepRef = useRef(false);
@@ -79,7 +89,8 @@ function TimerCard({ timer }) {
     if (timer.done && !beepRef.current) {
       beepRef.current = true;
       try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        const ctx = new AudioCtx();
         [0, 0.15, 0.3].forEach(delay => {
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();

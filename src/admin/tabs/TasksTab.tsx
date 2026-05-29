@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { getDayTemplates, createDayTemplate, updateDayTemplate, deleteDayTemplate, createTasksBatch, getShiftExperiment, setShiftExperiment } from "../../lib/supabase.js";
 import { STATIONS, STATION_COLORS, SECTIONS, SECTION_COLORS } from "../../lib/constants.js";
-import { useToast } from "../components/Toast.jsx";
-import { useConfirm } from "../components/Confirm.jsx";
-import { Badge } from "../components/Badge.jsx";
+import { useToast } from "../components/Toast.js";
+import { useConfirm } from "../components/Confirm.js";
+import { Badge } from "../components/Badge.js";
+import type { Template, Station } from "../../lib/types.js";
 
 export function TasksTab() {
-  const [dayTemplates, setDayTemplates] = useState([]);
-  const [selected, setSelected] = useState(null);
+  const [dayTemplates, setDayTemplates] = useState<Template[]>([]);
+  const [selected, setSelected] = useState<Template | null>(null);
   const [showNew, setShowNew] = useState(false);
   const [newName, setNewName] = useState('');
   const [saving, setSaving] = useState(false);
@@ -23,7 +24,7 @@ export function TasksTab() {
   const { confirm, dialog: confirmDialog } = useConfirm();
 
   useEffect(() => {
-    getDayTemplates().then(setDayTemplates).catch(e => toast(e.message, 'error'));
+    getDayTemplates().then(setDayTemplates).catch((e: Error) => toast(e.message, 'error'));
     getShiftExperiment().then(v => { setExperiment(v || ''); setExperimentSaved(v || ''); }).catch(() => {});
   }, []);
 
@@ -33,7 +34,7 @@ export function TasksTab() {
       await setShiftExperiment(experiment.trim());
       setExperimentSaved(experiment.trim());
       toast('Experiment saved', 'success');
-    } catch (e) { toast(e.message, 'error'); }
+    } catch (e) { toast((e as Error).message, 'error'); }
     setExperimentSaving(false);
   };
 
@@ -44,7 +45,7 @@ export function TasksTab() {
       setExperiment('');
       setExperimentSaved('');
       toast('Experiment cleared', 'success');
-    } catch (e) { toast(e.message, 'error'); }
+    } catch (e) { toast((e as Error).message, 'error'); }
     setExperimentSaving(false);
   };
 
@@ -56,45 +57,50 @@ export function TasksTab() {
       setDayTemplates(ds => [dt, ...ds]);
       setNewName(''); setShowNew(false);
       setSelected({ ...dt, entries: [] });
-    } catch (e) { toast(e.message, 'error'); }
+    } catch (e) { toast((e as Error).message, 'error'); }
     setSaving(false);
   };
 
-  const deleteTemplate = async (dt) => {
+  const deleteTemplate = async (dt: Template) => {
     if (!await confirm(`Delete "${dt.name}"?`)) return;
     try {
       await deleteDayTemplate(dt.id);
       setDayTemplates(ds => ds.filter(d => d.id !== dt.id));
       if (selected?.id === dt.id) setSelected(null);
-    } catch (e) { toast(e.message, 'error'); }
+    } catch (e) { toast((e as Error).message, 'error'); }
   };
 
-  const saveEntries = async (entries) => {
+  const saveEntries = async (entries: Template['entries']) => {
+    if (!selected) return;
     try {
       await updateDayTemplate(selected.id, { entries });
       setDayTemplates(ds => ds.map(d => d.id === selected.id ? { ...d, entries } : d));
-      setSelected(s => ({ ...s, entries }));
-    } catch (e) { toast(e.message, 'error'); }
+      setSelected(s => s ? ({ ...s, entries }) : s);
+    } catch (e) { toast((e as Error).message, 'error'); }
   };
 
   const addTask = () => {
-    if (!newText.trim()) return;
+    if (!newText.trim() || !selected) return;
     const entries = [...(selected.entries || []), { text: newText.trim(), station: newStation, section: newSection }];
     saveEntries(entries);
     setNewText('');
   };
 
-  const removeTask = (idx) => saveEntries(selected.entries.filter((_, i) => i !== idx));
+  const removeTask = (idx: number) => {
+    if (!selected) return;
+    saveEntries(selected.entries.filter((_, i) => i !== idx));
+  };
 
   const applyToDate = async () => {
+    if (!selected) return;
     const entries = selected.entries || [];
     if (!entries.length) { toast('No tasks in this template', 'error'); return; }
     setAssigning(true);
     try {
-      const tasks = entries.map(e => ({ text: e.text, station: e.station, section: e.section, date: assignDate, source: 'template' }));
+      const tasks = entries.map(e => ({ text: e.text, station: e.station as Station, section: e.section, date: assignDate, source: 'template' as const }));
       await createTasksBatch(tasks);
       toast(`${tasks.length} tasks created for ${assignDate}`, 'success');
-    } catch (e) { toast(e.message, 'error'); }
+    } catch (e) { toast((e as Error).message, 'error'); }
     setAssigning(false);
   };
 
@@ -171,7 +177,7 @@ export function TasksTab() {
 
       <div className="stat-row">
         <div className="stat-card"><div className="stat-val">{dayTemplates.length}</div><div className="stat-lbl">Templates</div></div>
-        <div className="stat-card"><div className="stat-val">{dayTemplates.reduce((a,d) => a+(d.entries?.length||0), 0)}</div><div className="stat-lbl">Total Tasks</div></div>
+        <div className="stat-card"><div className="stat-val">{dayTemplates.reduce((a, d) => a+(d.entries?.length||0), 0)}</div><div className="stat-lbl">Total Tasks</div></div>
       </div>
       <div className="toolbar">
         <div className="flex-1"/>

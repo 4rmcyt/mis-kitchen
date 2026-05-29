@@ -1,10 +1,29 @@
 import { useState } from "react";
 import { saveReport, sendReportEmail } from "../lib/supabase.js";
+import type { ExperimentOutcome } from "../lib/types.js";
 
-export function ReportModal({ sections, nextShift, pct, done, total, date, experiment, onClose }) {
-  const [state, setState] = useState('idle');
+interface ReportSection {
+  name: string;
+  items: Array<{ text: string; done: boolean }>;
+  done: number;
+  total: number;
+}
+
+interface ReportModalProps {
+  sections: ReportSection[];
+  nextShift: string[];
+  pct: number;
+  done: number;
+  total: number;
+  date: string;
+  experiment: string | null;
+  onClose: () => void;
+}
+
+export function ReportModal({ sections, nextShift, pct, done, total, date, experiment, onClose }: ReportModalProps) {
+  const [state, setState] = useState<'idle' | 'saving' | 'sent' | 'error'>('idle');
   const [errMsg, setErrMsg] = useState('');
-  const [experimentOutcome, setExperimentOutcome] = useState(null);
+  const [experimentOutcome, setExperimentOutcome] = useState<ExperimentOutcome | null>(null);
   const [experimentNote, setExperimentNote] = useState('');
   const pctColor = pct >= 90 ? '#10B981' : pct >= 70 ? '#F97316' : '#EF4444';
 
@@ -14,14 +33,14 @@ export function ReportModal({ sections, nextShift, pct, done, total, date, exper
       await saveReport({
         sections,
         nextShift,
-        experimentText: experiment || null,
+        experimentText: experiment || '',
         experimentOutcome: experimentOutcome || null,
-        experimentNote: experimentNote.trim() || null,
+        experimentNote: experimentNote.trim() || '',
       });
       await sendReportEmail(date);
       setState('sent');
     } catch (e) {
-      setErrMsg(e.message);
+      setErrMsg((e as Error).message);
       setState('error');
     }
   };
@@ -72,13 +91,18 @@ export function ReportModal({ sections, nextShift, pct, done, total, date, exper
                 <div className="experiment-report-text">{experiment}</div>
                 <div className="experiment-report-hint">Did it work?</div>
                 <div className="experiment-outcome-row">
-                  {[['yes','✓ Yes','#10B981'],['no','✗ No','#EF4444'],['not_tried','— Not tried','#6B7280']].map(([val, label, color]) => (
-                    <button key={val} onClick={() => setExperimentOutcome(v => v === val ? null : val)}
-                      className="experiment-outcome-btn"
-                      style={{ border:`1px solid ${experimentOutcome===val ? color : 'var(--border)'}`, background: experimentOutcome===val ? color+'22' : 'transparent', color: experimentOutcome===val ? color : 'var(--text-muted)' }}>
-                      {label}
-                    </button>
-                  ))}
+                  {(['yes', 'no', 'not_tried'] as const).map((val) => {
+                    const labels: Record<string, string> = { yes: '✓ Yes', no: '✗ No', not_tried: '— Not tried' };
+                    const colors: Record<string, string> = { yes: '#10B981', no: '#EF4444', not_tried: '#6B7280' };
+                    const color = colors[val];
+                    return (
+                      <button key={val} onClick={() => setExperimentOutcome(v => v === val ? null : val)}
+                        className="experiment-outcome-btn"
+                        style={{ border:`1px solid ${experimentOutcome===val ? color : 'var(--border)'}`, background: experimentOutcome===val ? color+'22' : 'transparent', color: experimentOutcome===val ? color : 'var(--text-muted)' }}>
+                        {labels[val]}
+                      </button>
+                    );
+                  })}
                 </div>
                 <input
                   className="add-input experiment-note-inp"

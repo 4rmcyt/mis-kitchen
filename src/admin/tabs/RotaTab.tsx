@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { getShifts, createShift, deleteShift, getRestaurantProfiles } from "../../lib/supabase.js";
 import { STATIONS, STATION_COLORS } from "../../lib/constants.js";
-import { useToast } from "../components/Toast.jsx";
-import { Avatar } from "../components/Avatar.jsx";
+import { useToast } from "../components/Toast.js";
+import { Avatar } from "../components/Avatar.js";
+import type { Shift, Profile, Station } from "../../lib/types.js";
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -14,22 +15,22 @@ function getMonday(date = new Date()) {
   return d.toISOString().split('T')[0];
 }
 
-function addDays(isoDate, n) {
+function addDays(isoDate: string, n: number) {
   const d = new Date(isoDate + 'T12:00:00');
   d.setDate(d.getDate() + n);
   return d.toISOString().split('T')[0];
 }
 
-function fmtDate(iso) {
+function fmtDate(iso: string) {
   return new Date(iso + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
 export function RotaTab() {
   const [weekStart, setWeekStart] = useState(getMonday());
-  const [shifts, setShifts] = useState([]);
-  const [users, setUsers] = useState([]);
+  const [shifts, setShifts] = useState<Shift[]>([]);
+  const [users, setUsers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
-  const [adding, setAdding] = useState(null); // { date }
+  const [adding, setAdding] = useState<{ date: string } | null>(null);
   const [newUserId, setNewUserId] = useState('');
   const [newStation, setNewStation] = useState('');
   const [newStart, setNewStart] = useState('09:00');
@@ -43,9 +44,9 @@ export function RotaTab() {
       try {
         const [s, u] = await Promise.all([getShifts(weekStart), getRestaurantProfiles()]);
         setShifts(s || []);
-        setUsers((u || []).filter(u => u.active));
+        setUsers((u || []).filter((u: Profile) => u.active));
       } catch (e) {
-        toast(e.message, 'error');
+        toast((e as Error).message, 'error');
       } finally {
         setLoading(false);
       }
@@ -54,9 +55,9 @@ export function RotaTab() {
 
   const weekDates = DAYS.map((_, i) => addDays(weekStart, i));
 
-  const shiftsForDate = (date) => shifts.filter(s => s.date === date);
+  const shiftsForDate = (date: string) => shifts.filter(s => s.date === date);
 
-  const startAdd = (date) => {
+  const startAdd = (date: string) => {
     setAdding({ date });
     setNewUserId(users[0]?.id || '');
     setNewStation(users[0]?.station || STATIONS[1]);
@@ -67,28 +68,28 @@ export function RotaTab() {
   const cancelAdd = () => setAdding(null);
 
   const saveShift = async () => {
-    if (!newUserId) return;
+    if (!newUserId || !adding) return;
     setSaving(true);
     try {
       const s = await createShift({
         userId: newUserId,
         date: adding.date,
-        station: newStation,
+        station: newStation as Station,
         startTime: newStart,
         endTime: newEnd,
       });
       setShifts(prev => [...prev, s]);
       setAdding(null);
       toast('Shift added', 'success');
-    } catch (e) { toast(e.message, 'error'); }
+    } catch (e) { toast((e as Error).message, 'error'); }
     setSaving(false);
   };
 
-  const remove = async (shift) => {
+  const remove = async (shift: Shift) => {
     try {
       await deleteShift(shift.id);
       setShifts(prev => prev.filter(s => s.id !== shift.id));
-    } catch (e) { toast(e.message, 'error'); }
+    } catch (e) { toast((e as Error).message, 'error'); }
   };
 
   const prevWeek = () => setWeekStart(addDays(weekStart, -7));

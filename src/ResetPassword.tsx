@@ -1,14 +1,14 @@
-import { useState } from 'react'
+import { useState, type FormEvent } from 'react'
 import { supabase } from './lib/supabase.js'
 import './Auth.css'
 
-export default function ResetPassword({ onDone }) {
+export default function ResetPassword({ onDone }: { onDone: () => void }) {
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
-  async function handleSubmit(e) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     setError('')
     if (password.length < 8) { setError('Password must be at least 8 characters'); return }

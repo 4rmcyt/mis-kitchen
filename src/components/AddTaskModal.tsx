@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { STATIONS, SECTIONS } from "../lib/constants.js";
+import type { Station } from "../lib/types.js";
 
 function dateStr(offset = 0) {
   const d = new Date();
@@ -7,7 +8,13 @@ function dateStr(offset = 0) {
   return d.toISOString().split('T')[0];
 }
 
-export function AddTaskModal({ userStation, onSave, onClose }) {
+interface AddTaskModalProps {
+  userStation: Station | string;
+  onSave: (task: { text: string; station: string; section: string; date: string }) => Promise<void>;
+  onClose: () => void;
+}
+
+export function AddTaskModal({ userStation, onSave, onClose }: AddTaskModalProps) {
   const [text, setText] = useState('');
   const [station, setStation] = useState(userStation);
   const [section, setSection] = useState('Other');
@@ -19,7 +26,7 @@ export function AddTaskModal({ userStation, onSave, onClose }) {
   const save = async () => {
     if (!text.trim()) return;
     setSaving(true);
-    await onSave({ text: text.trim(), station, section, date });
+    await onSave({ text: text.trim(), station: station as string, section, date });
     onClose();
   };
 
@@ -32,7 +39,7 @@ export function AddTaskModal({ userStation, onSave, onClose }) {
         <div className="recipe-grid">
           <div>
             <div className="form-label">Station</div>
-            <select className="form-input" value={station} onChange={e => setStation(e.target.value)}>
+            <select className="form-input" value={station as string} onChange={e => setStation(e.target.value)}>
               {STATIONS.map(s => <option key={s}>{s}</option>)}
             </select>
           </div>
