@@ -54,7 +54,7 @@ export default function Admin() {
     { id:'velocity',     label:'Velocity', icon:'📈' },
     { id:'improvements', label:'Wins',     icon:'✓'  },
     { id:'rota',         label:'Schedule', icon:'📅' },
-    { id:'push',         label:'Notify',   icon:'🔔' },
+    { id:'push',         label:'Push',     icon:'🔔' },
   ];
 
   return (
