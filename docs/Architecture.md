@@ -4,13 +4,14 @@
 
 | Layer              | Technology                                 |
 | ------------------ | ------------------------------------------ |
-| Frontend           | React 18 + Vite, SPA                       |
+| Frontend           | React 19 + Vite, SPA (TypeScript)          |
 | Hosting            | Cloudflare Pages                           |
 | Backend            | Supabase (PostgreSQL + PostgREST + GoTrue) |
 | Edge Functions     | Supabase Edge Functions (Deno)             |
 | Email              | Resend                                     |
 | Push Notifications | Web Push API + FCM                         |
 | PWA                | Service Worker, installable iOS/Android    |
+| Error Tracking     | Sentry (ErrorBoundary + DSN via env)       |
 | E2E Tests          | Cucumber.js + Playwright                   |
 | CI/CD              | GitHub Actions                             |
 
@@ -25,33 +26,41 @@
 
 ```
 src/
-  main.jsx             — root: auth via useAuth(), routing
-  App.jsx              — user app tab routing + push subscribe
-  Admin.jsx            — admin layout + tab routing
+  main.tsx             — root: Sentry.ErrorBoundary + auth via useAuth() + routing
+  App.tsx              — user app (5-tab bottom nav) + push subscribe
+  Admin.tsx            — admin layout (8-tab sidebar)
   hooks/
-    useAuth.js         — session, onboarding, password reset logic
+    useAuth.ts         — session, onboarding, password reset logic
   screens/
-    TodayScreen.jsx    — tasks, progress ring, date switcher
-    RecipesScreen.jsx  — recipe list + detail view
-    LineupScreen.jsx   — crew grouped by station
+    TodayScreen.tsx    — tasks, progress ring, date switcher
+    RecipesScreen.tsx  — recipe list + detail view
+    LineupScreen.tsx   — crew grouped by station
+    TempScreen.tsx     — temperature logging
+    TimerScreen.tsx    — timer functionality
   components/
-    AddTaskModal.jsx   — add task modal
-    ReportModal.jsx    — end-of-shift report modal
+    AddTaskModal.tsx   — add/edit task modal
+    ReportModal.tsx    — end-of-shift report modal
   admin/
-    tabs/              — PeopleTab, TasksTab, RecipesTab, ReportsTab, PushTab
+    tabs/              — PeopleTab, TasksTab, RecipesTab, ReportsTab, PushTab,
+                         VelocityTab, ImprovementsTab, RotaTab
     components/        — Toast, Confirm, Avatar, Badge, PctBar, Modal
   lib/
-    supabase.js        — re-export barrel (backwards compat)
-    client.js          — Supabase client instance
-    auth.js            — signIn, signOut, getSession, onAuthChange
-    tasks.js           — task CRUD + deferred tasks
-    recipes.js         — recipe CRUD
-    templates.js       — day template CRUD
-    reports.js         — saveReport, sendReportEmail, getRestaurantReports
-    push.js            — subscribePush, sendPushNotification
-    invites.js         — createInvite, getInvites
-    profiles.js        — getProfile, updateProfile, getRestaurantProfiles
-    constants.js       — STATIONS, SECTIONS, colors, role labels
+    supabase.ts        — re-export barrel (backwards compat)
+    client.ts          — Supabase client singleton
+    auth.ts            — signIn, signOut, getSession, onAuthChange
+    tasks.ts           — task CRUD + deferred tasks
+    recipes.ts         — recipe CRUD
+    templates.ts       — day template CRUD
+    reports.ts         — saveReport, sendReportEmail, getRestaurantReports
+    push.ts            — subscribePush, sendPushNotification
+    invites.ts         — createInvite, getInvites
+    profiles.ts        — getProfile, updateProfile, getRestaurantProfiles
+    improvements.ts    — improvement log ops
+    shifts.ts          — shift scheduling ops
+    temp_logs.ts       — temperature log ops
+    constants.ts       — STATIONS, SECTIONS, colors, role labels
+    types.ts           — TypeScript interfaces
+    database.types.ts  — auto-generated Supabase types
 
 supabase/
   migrations/      — SQL migrations (stubs always committed after MCP apply)
@@ -66,13 +75,13 @@ supabase/
 e2e/
   features/        — Cucumber .feature files (incl. layout.feature for mobile)
   steps/           — Playwright step definitions
-  support/         — world.js (viewport via E2E_VIEWPORT=mobile), login.js, supabase_admin.js, mailtrap.js
+  support/         — world.js (viewport via E2E_VIEWPORT), login.js,
+                     supabase_admin.js, mailtrap.js
 
 .github/workflows/
   deploy.yml       — lint → build → Cloudflare deploy → trigger E2E
-  e2e.yml          — E2E Sanity + mobile layout tests (runs after deploy)
+  e2e.yml          — E2E sanity + mobile layout tests (runs after deploy)
   e2e-invite.yml   — Invite flow E2E
-  monitor.yml      — health check every 5min, alerts via Telegram + Resend email
 ```
 
 ## CI/CD Flow
@@ -86,9 +95,22 @@ git push staging
     → supabase db push (migrations)
     → trigger e2e.yml + e2e-invite.yml
   → e2e.yml
-    → cucumber-js (24 scenarios)
+    → cucumber-js (desktop 1280×720 + mobile 390×844)
     → upload HTML report artifact
 ```
+
+## Admin Tabs
+
+| Tab | Purpose |
+|---|---|
+| People | User management (invite, activate/deactivate) |
+| Tasks | Day template CRUD |
+| Recipes | Recipe editor (inline edit ingredients/steps + reorder) |
+| Reports | View end-of-shift reports |
+| Velocity | Station burndown heatmap (completion counts by station × day) |
+| Wins | Improvement log — admin posts wins, staff see recent wins |
+| Schedule | Weekly rota shift grid |
+| Notify | Push notification sender + subscriber count |
 
 ## Related
 

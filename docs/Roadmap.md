@@ -10,10 +10,8 @@
 
 | # | Title |
 |---|---|
-| #83 | Error boundary — wrap app in `<ErrorBoundary>` + Sentry reporting on crash |
-| #84 | Sentry: configure DSN + source maps in Vite (currently dep installed but unused) |
 | #85 | `useAsync` hook — unify loading/error pattern across all tabs |
-| #86 | Verify `supabase client.js` is a singleton (not re-created on each import) |
+| #86 | Verify `supabase client.ts` is a singleton (not re-created on each import) |
 | #87 | E2E: add Rota, Push, Velocity tab scenarios |
 | #88 | Audit `report_gate.feature` and `push.feature` — remove or fix stale tests |
 | #89 | Offline cache: cache `getTasks` in service worker so Today screen works on bad WiFi |
@@ -32,13 +30,15 @@
 | #25 | Import recipes from PDF/photo (OCR) |
 | #24 | iOS/Android native app |
 | #48 | Admin Recipes: create/edit/delete |
-| #47 | Timer tab in user screen |
 | #23 | Separate Supabase project for staging |
 
 ## Done
 
 | # | Title |
 |---|---|
+| #84 | Sentry: ErrorBoundary wraps app + DSN wired via env |
+| #83 | Error boundary — wrap app in `<Sentry.ErrorBoundary>` |
+| #82 | refactor: migrate all JS/JSX source files to TypeScript |
 | #75 | ROTA schedule builder — weekly shift grid |
 | #74 | T-shaped skills tracker — coverage matrix + secondary stations |
 | #73 | Improvement log — admin posts wins, staff see recent wins |
@@ -54,7 +54,7 @@
 | #38 | Admin push notification sender |
 | #22 | Push notifications end-to-end |
 | #56 | End of shift report flow |
-| #55 | App health monitoring (Telegram + Email alerts) |
+| #55 | App health monitoring (removed — no health endpoint, constant noise) |
 | #52 | Load recipes from Supabase |
 | #50 | Fix Node.js 20 deprecation warnings in CI |
 | #51 | Fix Supabase security advisor warnings |

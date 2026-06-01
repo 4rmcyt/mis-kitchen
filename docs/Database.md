@@ -13,6 +13,7 @@ User accounts. Created by `handle_new_user()` trigger on auth.users insert.
 | email | text | |
 | role | text | cook / admin / superadmin |
 | station | text | Common / Garmo / Rolls / Pans / Grill / Tandoor |
+| secondary_station | text | nullable — T-shaped skill (secondary station) |
 | active | boolean | default true |
 | last_seen | timestamptz | updated by trigger |
 | password_set | boolean | false until user sets password on onboarding |
@@ -79,6 +80,39 @@ Web Push subscriptions per device.
 
 ### day_templates + templates
 Named task sets. `day_templates` is the parent, `templates` contains individual entries.
+
+### shifts
+Weekly rota entries.
+
+| Column | Type | Notes |
+|---|---|---|
+| user_id | uuid | FK → auth.users |
+| restaurant_id | uuid | |
+| week_start | date | Monday of the week |
+| day | int | 0–6 (Mon–Sun) |
+| shift | text | morning / evening / off |
+
+### improvement_logs
+Staff win records posted by admins.
+
+| Column | Type | Notes |
+|---|---|---|
+| restaurant_id | uuid | |
+| posted_by | uuid | FK → auth.users (admin) |
+| text | text | |
+| created_at | timestamptz | |
+
+### temp_logs
+Temperature log entries.
+
+| Column | Type | Notes |
+|---|---|---|
+| user_id | uuid | FK → auth.users |
+| restaurant_id | uuid | |
+| item | text | what was measured |
+| temperature | numeric | |
+| unit | text | C / F |
+| logged_at | timestamptz | |
 
 ## RLS Functions
 
