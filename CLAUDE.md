@@ -45,6 +45,33 @@ Never create the local file after applying — MCP generates its own timestamp.
 - **Recipes**: loaded from Supabase, not localStorage; cooks see `is_shared=true` only
 - **Prod DB**: will be clean 2-file schema (ticket #49) — don't add to staging migration history
 
+## Architecture — Layer Rules
+
+Imports flow **top → bottom only**. Lower layers must not import from upper layers.
+
+```
+[screens/ + admin/tabs/]  ← UI: JSX only, no supabase calls
+        ↓
+[hooks/features/]         ← controllers: call lib/, pass data through domain/
+        ↓
+[domain/]                 ← pure functions, no I/O, no imports from lib/
+        ↓
+[lib/]                    ← Supabase, Edge Functions, auth
+```
+
+**Rules enforced for all new code:**
+
+- `supabase.from()` / `supabase.auth.*` **never** in screens or components — only in `src/lib/`
+- Business logic (filtering, grouping, calculations, payload building) → `src/domain/`
+- Every function added to `src/domain/` must have a unit test (`pnpm test`)
+- Screens/tabs call hooks, hooks call lib + domain
+
+**When adding a feature with logic:**
+1. Extract rules into `src/domain/<entity>.ts`
+2. Write unit tests for those functions
+3. Wire up the call in `src/hooks/features/use<Feature>.ts`
+4. Screen/tab only does JSX + hook calls
+
 ## Project Structure
 
 ```
@@ -52,16 +79,24 @@ src/
   main.jsx              — root: useAuth() + routing
   App.jsx               — user app tab routing
   Admin.jsx             — admin layout + tab routing
-  hooks/useAuth.js      — session, onboarding, password reset
+  domain/               — pure business logic (no I/O)
+    tasks.ts            — filterByStation, groupBySection, calcProgress, buildTasksFromTemplate
+    invites.ts          — inviteExpiresAt, buildLinkInvitePayload, buildEmailInvitePayload
+    *.test.ts           — vitest unit tests (pnpm test)
+  hooks/
+    useAuth.ts          — session, onboarding, password reset
+    features/           — feature hooks (controllers)
+      useTodayTasks.ts  — task loading, filtering, toggle/comment/delete
+      usePeopleTab.ts   — users, invite, role/station management
   screens/              — TodayScreen, RecipesScreen, LineupScreen
   components/           — AddTaskModal, ReportModal
   admin/tabs/           — PeopleTab, TasksTab, RecipesTab, ReportsTab, PushTab
   admin/components/     — Toast, Confirm, Avatar, Badge, PctBar, Modal
   lib/
-    supabase.js         — re-export barrel
-    client.js / auth.js / tasks.js / recipes.js / templates.js
-    reports.js / push.js / invites.js / profiles.js
-    constants.js        — STATIONS, SECTIONS, colors, role labels
+    supabase.ts         — re-export barrel
+    client.ts / auth.ts / tasks.ts / recipes.ts / templates.ts
+    reports.ts / push.ts / invites.ts / profiles.ts
+    constants.ts        — STATIONS, SECTIONS, colors, role labels
 
 supabase/
   migrations/           — SQL stubs (always committed after MCP apply)

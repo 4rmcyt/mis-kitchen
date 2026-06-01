@@ -1,18 +1,14 @@
-import { useState, useEffect } from "react";
-import { supabase, getRestaurantProfiles, adminUpdateProfile } from "../../lib/supabase.js";
+import { useState } from "react";
 import { STATIONS, STATION_COLORS, ROLE_COLORS, ROLE_LABELS } from "../../lib/constants.js";
 import { useToast } from "../components/Toast.js";
 import { Avatar } from "../components/Avatar.js";
 import { Badge } from "../components/Badge.js";
 import { Modal } from "../components/Modal.js";
+import { usePeopleTab } from "../../hooks/features/usePeopleTab.js";
 import type { Profile, Role, Station } from "../../lib/types.js";
 
-function inviteExpiresAt() {
-  return new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
-}
-
 export function PeopleTab() {
-  const [users, setUsers] = useState<Profile[]>([]);
+  const { users, loading, toggleActive, changeRole, changeSecondaryStations, generateLinkInvite, sendEmailInvite, resetPassword } = usePeopleTab();
   const [selected, setSelected] = useState<Profile | null>(null);
   const [showInvite, setShowInvite] = useState(false);
   const [inviteRole, setInviteRole] = useState<Role>('cook');
@@ -22,12 +18,7 @@ export function PeopleTab() {
   const [inviteLink, setInviteLink] = useState('');
   const [copied, setCopied] = useState(false);
   const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(false);
   const { show: toast } = useToast();
-
-  useEffect(() => {
-    getRestaurantProfiles().then(setUsers).catch((e: Error) => toast(e.message, 'error'));
-  }, []);
 
   const filtered = users.filter(u =>
     (u.name || '').toLowerCase().includes(search.toLowerCase()) ||
@@ -37,48 +28,18 @@ export function PeopleTab() {
   const activeCount = users.filter(u => u.active).length;
   const adminCount = users.filter(u => u.role === 'admin' || u.role === 'superadmin').length;
 
-  const generateInvite = async () => {
-    setLoading(true);
+  const handleGenerateInvite = async () => {
     try {
-      const { data: { user: me } } = await supabase.auth.getUser();
-      const { data: myProfile } = await supabase.from('profiles').select('restaurant_id, name').eq('id', me!.id).single();
-      if (!myProfile) throw new Error('Profile not found');
-
       if (inviteMode === 'email') {
-        const { data, error } = await supabase.functions.invoke('send-invite', {
-          body: {
-            email: inviteEmail.trim(),
-            role: inviteRole,
-            station: inviteStation,
-            restaurant_id: (myProfile as { restaurant_id: string; name: string }).restaurant_id,
-            invited_by: me!.id,
-            invited_by_name: (myProfile as { restaurant_id: string; name: string }).name,
-          },
-        });
-        if (error || data?.error) throw new Error(error?.message || data?.error);
+        await sendEmailInvite(inviteEmail, inviteRole, inviteStation);
         toast('Invite sent!', 'success');
         setTimeout(closeInvite, 1500);
         return;
       }
-
-      const token = crypto.randomUUID();
-      const expiresAt = inviteExpiresAt();
-      const { error: invErr } = await supabase.from('invites').insert({
-        restaurant_id: (myProfile as { restaurant_id: string; name: string }).restaurant_id,
-        invited_by: me!.id,
-        email: null,
-        role: inviteRole,
-        station: inviteStation,
-        token,
-        used: false,
-        expires_at: expiresAt,
-      });
-      if (invErr) throw new Error(invErr.message);
-      setInviteLink(`${window.location.origin}/join/${token}`);
+      const link = await generateLinkInvite(inviteRole, inviteStation);
+      setInviteLink(link);
     } catch (e) {
       toast((e as Error).message, 'error');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -98,23 +59,28 @@ export function PeopleTab() {
     setInviteEmail('');
   };
 
-  const toggleActive = async (id: string) => {
-    const user = users.find(u => u.id === id);
-    if (!user) return;
+  const handleToggleActive = async (id: string) => {
     try {
-      await adminUpdateProfile(id, { active: !user.active });
-      setUsers(us => us.map(u => u.id === id ? { ...u, active: !u.active } : u));
+      await toggleActive(id);
     } catch (e) {
       toast((e as Error).message, 'error');
     }
   };
 
-  const changeRole = async (id: string, role: Role) => {
+  const handleChangeRole = async (id: string, role: Role) => {
     try {
-      await adminUpdateProfile(id, { role });
-      setUsers(us => us.map(u => u.id === id ? { ...u, role } : u));
+      await changeRole(id, role);
     } catch (e) {
       toast((e as Error).message, 'error');
+    }
+  };
+
+  const handleResetPassword = async (email: string) => {
+    try {
+      await resetPassword(email);
+      toast(`Reset email sent to ${email}`, 'success');
+    } catch (e) {
+      toast((e as Error).message || 'Failed to send reset email', 'error');
     }
   };
 
@@ -135,12 +101,7 @@ export function PeopleTab() {
         <table className="data-table">
           <thead>
             <tr>
-              <th>User</th>
-              <th>Role</th>
-              <th>Station</th>
-              <th>Last seen</th>
-              <th>Status</th>
-              <th></th>
+              <th>User</th><th>Role</th><th>Station</th><th>Last seen</th><th>Status</th><th></th>
             </tr>
           </thead>
           <tbody>
@@ -166,7 +127,7 @@ export function PeopleTab() {
                 <td onClick={e => e.stopPropagation()}>
                   <div className="flex-row gap-4">
                     <button className="tbl-btn" onClick={() => setSelected(u)}>Edit</button>
-                    <button className="tbl-btn danger" onClick={() => toggleActive(u.id)}>
+                    <button className="tbl-btn danger" onClick={() => handleToggleActive(u.id)}>
                       {u.active ? 'Deactivate' : 'Activate'}
                     </button>
                   </div>
@@ -221,7 +182,7 @@ export function PeopleTab() {
             </div>
             <div className="form-row">
               <label className="form-label-sm">Role</label>
-              <select className="form-sel" value={selected.role} onChange={e => { changeRole(selected.id, e.target.value as Role); setSelected(s => s ? ({...s, role: e.target.value as Role}) : s); }}>
+              <select className="form-sel" value={selected.role} onChange={e => { handleChangeRole(selected.id, e.target.value as Role); setSelected(s => s ? ({...s, role: e.target.value as Role}) : s); }}>
                 <option value="cook">Cook</option>
                 <option value="admin">Admin</option>
               </select>
@@ -242,8 +203,7 @@ export function PeopleTab() {
                       const current = selected.secondary_stations || [];
                       const next = active ? current.filter(s => s !== st) : [...current, st as Station];
                       try {
-                        await adminUpdateProfile(selected.id, { secondary_stations: next });
-                        setUsers(us => us.map(u => u.id === selected.id ? { ...u, secondary_stations: next } : u));
+                        await changeSecondaryStations(selected.id, next);
                         setSelected(s => s ? ({ ...s, secondary_stations: next }) : s);
                       } catch (e) { toast((e as Error).message, 'error'); }
                     }} style={{
@@ -264,19 +224,10 @@ export function PeopleTab() {
               </div>
             </div>
             <div className="modal-user-actions">
-              <button className="btn-secondary flex-1" onClick={async () => {
-                setLoading(true);
-                try {
-                  const { error } = await supabase.auth.resetPasswordForEmail(selected.email!, {
-                    redirectTo: `${window.location.origin}/reset-password`,
-                  });
-                  if (error) throw error;
-                  toast(`Reset email sent to ${selected.email}`, 'success');
-                } catch (err) {
-                  toast((err as Error).message || 'Failed to send reset email', 'error');
-                } finally { setLoading(false); }
-              }}>Reset Password</button>
-              <button className={`btn-${selected.active ? 'danger' : 'primary'} flex-1`} onClick={() => { toggleActive(selected.id); setSelected(s => s ? ({...s, active: !s.active}) : s); }}>
+              <button className="btn-secondary flex-1" onClick={() => handleResetPassword(selected.email!)} disabled={loading}>
+                Reset Password
+              </button>
+              <button className={`btn-${selected.active ? 'danger' : 'primary'} flex-1`} onClick={() => { handleToggleActive(selected.id); setSelected(s => s ? ({...s, active: !s.active}) : s); }}>
                 {selected.active ? 'Deactivate User' : 'Activate User'}
               </button>
             </div>
@@ -334,7 +285,7 @@ export function PeopleTab() {
                   🔒 No email needed. The person fills in their details when they open the link.
                 </div>
               )}
-              <button className="btn-primary" onClick={generateInvite} disabled={loading || (inviteMode==='email' && !inviteEmail.trim())} data-testid="generate-invite-btn">
+              <button className="btn-primary" onClick={handleGenerateInvite} disabled={loading || (inviteMode==='email' && !inviteEmail.trim())} data-testid="generate-invite-btn">
                 {loading ? 'Generating…' : inviteMode === 'email' ? 'Send Invite' : 'Generate Link'}
               </button>
             </div>
