@@ -1,6 +1,11 @@
 import { When, Then } from '@cucumber/cucumber';
 import { expect } from '@playwright/test';
 
+When('I navigate to the admin panel', async function () {
+  await this.page.click('.admin-btn');
+  await this.page.waitForSelector('.admin-app', { timeout: 10_000 });
+});
+
 When('I click the {string} tab', async function (label) {
   await this.page.getByRole('button', { name: label }).click();
   await this.page.waitForTimeout(500);

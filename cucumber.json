@@ -6,9 +6,14 @@
       "e2e/features/add_task.feature",
       "e2e/features/recipes.feature",
       "e2e/features/lineup.feature",
-      "e2e/features/report_gate.feature",
+      "e2e/features/admin.feature",
       "e2e/features/admin_templates.feature",
       "e2e/features/admin_recipes.feature",
+      "e2e/features/improvements.feature",
+      "e2e/features/rota.feature",
+      "e2e/features/skills.feature",
+      "e2e/features/velocity.feature",
+      "e2e/features/report.feature",
       "e2e/features/push.feature"
     ],
     "tags": "not @manual",
@@ -16,9 +21,7 @@
     "format": ["html:e2e/reports/report.html"]
   },
   "mobile": {
-    "paths": [
-      "e2e/features/layout.feature"
-    ],
+    "paths": ["e2e/features/layout.feature"],
     "import": ["e2e/support/world.js", "e2e/steps/**/*.js"],
     "format": ["html:e2e/reports/mobile-report.html"]
   },

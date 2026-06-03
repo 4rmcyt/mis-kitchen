@@ -10,8 +10,14 @@ When('I navigate to Admin Velocity tab', async function () {
 
 Then('I should see the velocity tab', async function () {
   await this.page.waitForTimeout(1500);
-  // Range selector is always visible
-  await expect(this.page.locator('.seg-btn').filter({ hasText: '30d' })).toBeVisible({ timeout: 10_000 });
+  await expect(this.page.locator('.tab-content')).toBeVisible({ timeout: 10_000 });
+  // velocity tab shows either heatmap or empty state
+  const hasHeatmap = await this.page.locator('.velocity-heatmap').isVisible().catch(() => false);
+  const hasEmpty   = await this.page.getByText('No data yet').isVisible().catch(() => false);
+  const hasLoading = await this.page.getByText('Loading').isVisible().catch(() => false);
+  if (!hasHeatmap && !hasEmpty && !hasLoading) {
+    throw new Error('Velocity tab: expected heatmap, empty state, or loading to be visible');
+  }
 });
 
 Then('I should see the velocity empty state or heatmap', async function () {

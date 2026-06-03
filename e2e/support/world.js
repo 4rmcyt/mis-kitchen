@@ -37,6 +37,7 @@ class KitchenWorld {
   context = null;
   page = null;
 
+
   async init() {
     const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
       || process.env.CHROME_PATH

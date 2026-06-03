@@ -50,10 +50,12 @@
     "onlyBuiltDependencies": [
       "esbuild",
       "sharp",
-      "workerd"
+      "workerd",
+      "tsx"
     ],
     "approvedBuilds": [
-      "workerd"
+      "workerd",
+      "tsx"
     ]
   }
 }

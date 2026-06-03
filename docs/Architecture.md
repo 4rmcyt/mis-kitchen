@@ -22,6 +22,25 @@
 | Staging | staging.mis-kitchen-prod.pages.dev | cloud `nlvuqcvjlkgybvcpiqzn` |
 | Production | mis.kitchen (planned) | self-hosted k3s [[Self-hosted Supabase]] |
 
+## Architecture Layers
+
+Imports flow **top → bottom only**. Lower layers must not import from upper layers.
+
+```
+[screens/ + admin/tabs/]  ← UI: JSX only, no supabase calls
+        ↓
+[hooks/features/]         ← controllers: call lib/, pass data through domain/
+        ↓
+[domain/]                 ← pure functions, no I/O, no imports from lib/
+        ↓
+[lib/]                    ← Supabase, Edge Functions, auth
+```
+
+Rules:
+- `supabase.from()` / `supabase.auth.*` only in `src/lib/` — never in screens or components
+- Business logic (filtering, grouping, calculations, payload building) → `src/domain/`
+- Every function in `src/domain/` must have a unit test (`pnpm test`)
+
 ## Key Files
 
 ```
@@ -29,8 +48,15 @@ src/
   main.tsx             — root: Sentry.ErrorBoundary + auth via useAuth() + routing
   App.tsx              — user app (5-tab bottom nav) + push subscribe
   Admin.tsx            — admin layout (8-tab sidebar)
+  domain/              — pure business logic (no I/O)
+    tasks.ts           — filterByStation, groupBySection, calcProgress, buildTasksFromTemplate
+    invites.ts         — inviteExpiresAt, buildLinkInvitePayload, buildEmailInvitePayload
+    *.test.ts          — vitest unit tests (pnpm test)
   hooks/
     useAuth.ts         — session, onboarding, password reset logic
+    features/          — feature controllers
+      useTodayTasks.ts — task loading, filtering, toggle/comment/delete
+      usePeopleTab.ts  — users, invite, role/station management
   screens/
     TodayScreen.tsx    — tasks, progress ring, date switcher
     RecipesScreen.tsx  — recipe list + detail view
@@ -47,13 +73,13 @@ src/
   lib/
     supabase.ts        — re-export barrel (backwards compat)
     client.ts          — Supabase client singleton
-    auth.ts            — signIn, signOut, getSession, onAuthChange
+    auth.ts            — signIn, signOut, getSession, onAuthChange, sendPasswordReset
     tasks.ts           — task CRUD + deferred tasks
     recipes.ts         — recipe CRUD
     templates.ts       — day template CRUD
     reports.ts         — saveReport, sendReportEmail, getRestaurantReports
     push.ts            — subscribePush, sendPushNotification
-    invites.ts         — createInvite, getInvites
+    invites.ts         — createLinkInvite, createEmailInvite, getInvites
     profiles.ts        — getProfile, updateProfile, getRestaurantProfiles
     improvements.ts    — improvement log ops
     shifts.ts          — shift scheduling ops
