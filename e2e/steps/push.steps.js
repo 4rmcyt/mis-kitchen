@@ -32,7 +32,17 @@ Then('the app saves a push subscription to the database for the admin user', { t
 Then('the Push tab shows at least one subscribed device', { timeout: 20_000 }, async function () {
   await this.page.getByRole('button', { name: 'Admin' }).click();
   await this.page.getByRole('button', { name: 'Push' }).click();
-  const count = await this.page.locator('[data-testid="push-device-count"]').textContent();
+  const locator = this.page.locator('[data-testid="push-device-count"]');
+  await locator.waitFor({ state: 'visible', timeout: 10_000 });
+  // wait until the count loads from Supabase (replaces the '—' placeholder)
+  await this.page.waitForFunction(
+    () => {
+      const el = document.querySelector('[data-testid="push-device-count"]');
+      return el && el.textContent !== '—';
+    },
+    { timeout: 10_000 }
+  );
+  const count = await locator.textContent();
   expect(parseInt(count ?? '0', 10), 'Expected at least 1 subscribed device in Push tab').toBeGreaterThan(0);
 });
 
