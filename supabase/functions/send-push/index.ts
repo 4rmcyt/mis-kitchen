@@ -16,18 +16,23 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-async function sendOne(sub: { endpoint: string; p256dh: string; auth: string }, payload: string): Promise<boolean> {
+type SendResult = "sent" | "stale" | "failed";
+
+async function sendOne(sub: { endpoint: string; p256dh: string; auth: string }, payload: string): Promise<SendResult> {
   try {
     await webpush.sendNotification(
       { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
       payload,
       { TTL: 86400 },
     );
-    return true;
+    return "sent";
   } catch (e: any) {
     const status = e.statusCode ?? e.status ?? 0;
     console.error(`push failed ${status}: ${e.body ?? e.message}`);
-    return status === 404 || status === 410 ? false : true;
+    // 404/410 = subscription expired/unsubscribed — delete from DB
+    if (status === 404 || status === 410) return "stale";
+    // 429, 5xx, network errors — transient, don't delete subscription
+    return "failed";
   }
 }
 
@@ -54,7 +59,16 @@ serve(async (req) => {
     let query = supabase.from("push_subscriptions").select("id, endpoint, p256dh, auth, user_id").eq("restaurant_id", profile.restaurant_id);
 
     if (station) {
-      const { data: stationUsers } = await supabase.from("profiles").select("id").eq("restaurant_id", profile.restaurant_id).eq("station", station).eq("active", true);
+      const { data: stationUsers, error: stationErr } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("restaurant_id", profile.restaurant_id)
+        .eq("station", station)
+        .eq("active", true);
+      if (stationErr) {
+        console.error("stationUsers query failed:", stationErr.message);
+        return new Response(JSON.stringify({ error: "Failed to load station users" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
       const ids = (stationUsers ?? []).map((p: any) => p.id);
       if (ids.length === 0) return new Response(JSON.stringify({ ok: true, sent: 0, failed: 0 }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       query = query.in("user_id", ids);
@@ -66,16 +80,18 @@ serve(async (req) => {
     const payload = JSON.stringify({ title, body: msgBody });
     const staleIds: string[] = [];
     let sent = 0;
+    let failed = 0;
 
     await Promise.all(subs.map(async (sub) => {
-      const ok = await sendOne(sub, payload);
-      if (ok) sent++;
-      else staleIds.push(sub.id);
+      const result = await sendOne(sub, payload);
+      if (result === "sent") sent++;
+      else if (result === "stale") staleIds.push(sub.id);
+      else failed++;
     }));
 
     if (staleIds.length > 0) await supabase.from("push_subscriptions").delete().in("id", staleIds);
 
-    return new Response(JSON.stringify({ ok: true, sent, failed: staleIds.length }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ ok: true, sent, failed: failed + staleIds.length }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   } catch (err) {
     console.error("send-push error:", err);

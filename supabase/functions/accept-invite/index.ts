@@ -41,9 +41,16 @@ serve(async (req) => {
     // For email-specific invites, verify the submitted email matches
     if (invite.email && invite.email !== email) throw new Error("Invalid or expired invite link");
 
-    // Mark invite used immediately — prevents replay attacks and double-registration
-    const { error: markErr } = await supabase.from("invites").update({ used: true }).eq("token", token).eq("used", false);
+    // Mark invite used — .eq("used", false) is the atomic guard against double-submit.
+    // If count=0, another concurrent request already claimed it.
+    const { data: markData, error: markErr } = await supabase
+      .from("invites")
+      .update({ used: true })
+      .eq("token", token)
+      .eq("used", false)
+      .select("id");
     if (markErr) throw new Error(markErr.message);
+    if (!markData || markData.length === 0) throw new Error("Invalid or expired invite link");
 
     // Create auth user
     const { data: authData, error: authErr } = await supabase.auth.admin.createUser({
@@ -67,7 +74,7 @@ serve(async (req) => {
     const userId = authData.user.id;
 
     // Upsert profile — trigger may not have run yet when we get here
-    await supabase.from("profiles").upsert({
+    const { error: upsertErr } = await supabase.from("profiles").upsert({
       id: userId,
       name,
       password_set: true,
@@ -75,6 +82,11 @@ serve(async (req) => {
       station: invite.station,
       restaurant_id: invite.restaurant_id,
     }, { onConflict: "id" });
+    if (upsertErr) {
+      // Profile upsert failed — roll back invite so admin can retry
+      await supabase.from("invites").update({ used: false }).eq("token", token);
+      throw new Error(`Failed to create profile: ${upsertErr.message}`);
+    }
 
     return new Response(JSON.stringify({ ok: true }), { headers: { ...cors, "Content-Type": "application/json" } });
 

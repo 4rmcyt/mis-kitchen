@@ -2,25 +2,6 @@ import { supabase, q, getCurrentProfile } from './client.js';
 import type { Role, Station, Invite } from './types.js';
 import { buildLinkInvitePayload, buildEmailInvitePayload } from '../domain/invites.js';
 
-export async function createInvite({ email, role, station }: { email: string; role: Role; station: Station }) {
-  try {
-    const profile = await getCurrentProfile();
-    const { error } = await supabase.functions.invoke("send-invite", {
-      body: {
-        email,
-        role,
-        station,
-        restaurant_id: profile.restaurant_id,
-        invited_by:    profile.id,
-      }
-    });
-    if (error) throw new Error(error.message);
-  } catch (err) {
-    console.error("[invites] createInvite:", (err as Error).message);
-    throw err;
-  }
-}
-
 export async function createLinkInvite({ role, station }: { role: Role; station: Station }): Promise<string> {
   const profile = await getCurrentProfile();
   const token = crypto.randomUUID();

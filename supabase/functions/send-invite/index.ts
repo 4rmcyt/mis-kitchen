@@ -9,6 +9,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 const RESEND_API_KEY       = Deno.env.get("RESEND_API_KEY")!;
 const SUPABASE_URL         = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SUPABASE_ANON_KEY    = Deno.env.get("SUPABASE_ANON_KEY")!;
 const FROM_EMAIL           = Deno.env.get("FROM_EMAIL") ?? "noreply@mail.labhome.work";
 const APP_URL              = Deno.env.get("APP_URL") ?? "https://mis.labhome.work";
 
@@ -23,12 +24,32 @@ serve(async (req) => {
   }
 
   try {
-    const { email, role, station, restaurant_id, invited_by, invited_by_name } = await req.json();
-    if (!email) throw new Error("email required");
-    if (!restaurant_id) throw new Error("restaurant_id required");
-    if (!invited_by) throw new Error("invited_by required");
+    // Verify caller identity — never trust restaurant_id/invited_by from body
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) throw new Error("Missing authorization");
+
+    const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: { user }, error: authError } = await userClient.auth.getUser();
+    if (authError || !user) throw new Error("Invalid token");
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+
+    const { data: callerProfile, error: profileErr } = await supabase
+      .from("profiles")
+      .select("id, restaurant_id, role, name")
+      .eq("id", user.id)
+      .single();
+    if (profileErr || !callerProfile) throw new Error("Profile not found");
+    if (!["admin", "superadmin"].includes(callerProfile.role)) throw new Error("Forbidden");
+
+    const { email, role, station, invited_by_name } = await req.json();
+    if (!email) throw new Error("email required");
+
+    // Use verified values from DB, not from request body
+    const restaurant_id = callerProfile.restaurant_id;
+    const invited_by    = callerProfile.id;
 
     // Insert invite record first — trigger handle_new_user() requires it
     const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();

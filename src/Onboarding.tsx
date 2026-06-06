@@ -3,14 +3,9 @@ import { updateProfile, supabase } from './lib/supabase.js'
 import './Auth.css'
 import type { User } from '@supabase/supabase-js'
 import type { Station } from './lib/types.js'
+import { STATIONS, STATION_COLORS } from './lib/constants.js'
 
 type OnboardingStep = 'password' | 'welcome' | 'name' | 'station' | null;
-
-const STATIONS = ['Common', 'Cold', 'Rolls', 'Hot', 'Grill', 'Tandoor']
-const STATION_COLORS: Record<string, string> = {
-  Cold: '#22D3EE', Rolls: '#A78BFA', Hot: '#F97316',
-  Grill: '#EF4444', Tandoor: '#F59E0B', Common: '#6B7280',
-}
 
 export default function Onboarding({ user, onDone }: { user: User; onDone: () => void }) {
   const meta = user.user_metadata || {}

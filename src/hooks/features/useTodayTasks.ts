@@ -76,10 +76,8 @@ export function useTodayTasks(dateOffset: number, stationFilter: string) {
   };
 
   const removeTask = async (taskId: string) => {
-    try {
-      await deleteTask(taskId);
-      setTasks(ts => ts.filter(t => t.id !== taskId));
-    } catch { /* noop */ }
+    await deleteTask(taskId);
+    setTasks(ts => ts.filter(t => t.id !== taskId));
   };
 
   const filtered = filterByStation(tasks, stationFilter);

@@ -4,7 +4,7 @@
 export { supabase, getCurrentProfile } from './client.js';
 export { signIn, signOut, getSession, onAuthChange, sendPasswordReset } from './auth.js';
 export { getProfile, updateProfile, getRestaurantProfiles, adminUpdateProfile } from './profiles.js';
-export { createInvite, createLinkInvite, createEmailInvite, getInvites } from './invites.js';
+export { createLinkInvite, createEmailInvite, getInvites } from './invites.js';
 export { getTemplates, createTemplate, updateTemplate, deleteTemplate } from './templates.js';
 export { getRecipes, createRecipe, updateRecipe, deleteRecipe } from './recipes.js';
 export {

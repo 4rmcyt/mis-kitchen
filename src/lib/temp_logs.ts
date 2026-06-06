@@ -2,8 +2,10 @@ import { supabase, q, getCurrentProfile } from './client.js';
 import type { TempLog, Station } from './types.js';
 
 export async function getTempLogs(date: string): Promise<TempLog[]> {
-  const start = `${date}T00:00:00+00:00`;
-  const end   = `${date}T23:59:59+00:00`;
+  // date is a local YYYY-MM-DD in UTC+3 (restaurant timezone).
+  // Convert to UTC boundaries so records stored around midnight aren't lost.
+  const start = `${date}T00:00:00+03:00`;
+  const end   = `${date}T23:59:59+03:00`;
   return q(() =>
     supabase.from('temp_logs')
       .select('*, profiles(name)')
