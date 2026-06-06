@@ -118,6 +118,7 @@ export async function wipeE2EData() {
   await supabase.from('tasks').delete().like('text', 'E2E%');
   await supabase.from('invites').delete().eq('source', 'e2e');
   await supabase.from('invites').delete().like('token', 'e2e-invite-%');
+  await supabase.from('improvement_logs').delete().like('text', '%opening checklist%');
   await deleteTestUser('e2e-test-cook@mis-kitchen.test').catch(() => {});
 }
 

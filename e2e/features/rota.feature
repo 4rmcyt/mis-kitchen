@@ -8,16 +8,16 @@ Feature: ROTA schedule builder
 
   Scenario: Navigate to Rota tab
     When I navigate to the admin panel
-    And I click the "Rota" tab
+    And I click the "Schedule" tab
     Then I should see the weekly rota grid
 
   Scenario: Weekly grid shows 7 days
     When I navigate to the admin panel
-    And I click the "Rota" tab
+    And I click the "Schedule" tab
     Then I should see 7 day columns in the rota
 
   Scenario: Week navigation
     When I navigate to the admin panel
-    And I click the "Rota" tab
+    And I click the "Schedule" tab
     And I click the "Next" week button
     Then I should see the next week dates

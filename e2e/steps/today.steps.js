@@ -23,7 +23,7 @@ Then('I should see tasks on the screen', async function () {
 });
 
 Then('I should see Opening section', async function () {
-  await expect(this.page.locator('text=Opening')).toBeVisible();
+  await expect(this.page.locator('.section-name').filter({ hasText: 'Opening' })).toBeVisible();
 });
 
 Then('I should see Closing section', async function () {

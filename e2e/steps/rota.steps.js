@@ -7,7 +7,7 @@ When('I navigate to the admin panel', async function () {
 });
 
 When('I click the {string} tab', async function (label) {
-  await this.page.getByRole('button', { name: label }).click();
+  await this.page.locator('.nav-item').filter({ hasText: label }).click();
   await this.page.waitForTimeout(500);
 });
 
