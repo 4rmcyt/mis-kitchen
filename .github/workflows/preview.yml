@@ -57,7 +57,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Comment PR
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           DEPLOY_URL: ${{ steps.cf-deploy.outputs.deployment-url }}
           HEAD_REF: ${{ github.head_ref }}
