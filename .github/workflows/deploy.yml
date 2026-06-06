@@ -16,9 +16,9 @@ jobs:
     name: Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v6.0.3
 
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@v6.0.8
         with: { version: "${{ env.PNPM_VERSION }}" }
 
       - uses: actions/setup-node@v6.4.0
@@ -46,9 +46,9 @@ jobs:
         environment: ${{ github.ref == 'refs/heads/main' && fromJson('["prod"]') || fromJson('["staging"]') }}
 
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v6.0.3
 
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@v6.0.8
         with: { version: "${{ env.PNPM_VERSION }}" }
 
       - uses: actions/setup-node@v6.4.0
@@ -82,10 +82,10 @@ jobs:
     needs: check
 
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v6.0.3
 
       - name: Setup Supabase CLI
-        uses: supabase/setup-cli@v2
+        uses: supabase/setup-cli@v2.1.1
         with: { version: 2.101.0 }
 
       - name: Run migrations (staging)
@@ -111,10 +111,10 @@ jobs:
     needs: migrate
 
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v6.0.3
 
       - name: Setup Supabase CLI
-        uses: supabase/setup-cli@v2
+        uses: supabase/setup-cli@v2.1.1
         with: { version: 2.101.0 }
 
       - name: Deploy functions (staging)
@@ -148,9 +148,9 @@ jobs:
     needs: [build, deploy-functions]
 
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v6.0.3
 
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@v6.0.8
         with: { version: "${{ env.PNPM_VERSION }}" }
 
       - uses: actions/setup-node@v6.4.0
@@ -174,7 +174,7 @@ jobs:
 
       - name: Deploy to Cloudflare Pages (staging)
         if: github.ref == 'refs/heads/staging'
-        uses: cloudflare/wrangler-action@v3
+        uses: cloudflare/wrangler-action@v4.0.0
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -185,7 +185,7 @@ jobs:
 
       - name: Deploy to Cloudflare Pages (prod)
         if: github.ref == 'refs/heads/main'
-        uses: cloudflare/wrangler-action@v3
+        uses: cloudflare/wrangler-action@v4.0.0
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
