@@ -19,17 +19,17 @@
     "test:invite:ui": "E2E_HEADLESS=false cucumber-js --profile invite"
   },
   "dependencies": {
-    "@sentry/react": "^10.54.0",
-    "@supabase/supabase-js": "^2.106.2",
-    "react": "^19.2.6",
-    "react-dom": "^19.2.6",
-    "react-router-dom": "^7.15.1"
+    "@sentry/react": "^10.56.0",
+    "@supabase/supabase-js": "^2.107.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "react-router-dom": "^7.16.0"
   },
   "devDependencies": {
     "@cucumber/cucumber": "^13.0.0",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.60.0",
-    "@types/react": "^19.2.15",
+    "@types/react": "^19.2.16",
     "@types/react-dom": "^19.2.3",
     "@types/react-router-dom": "^5.3.3",
     "@typescript-eslint/eslint-plugin": "^8.60.1",
