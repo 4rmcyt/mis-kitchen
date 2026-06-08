@@ -45,7 +45,6 @@ function Root() {
         needsOnboarding={needsOnboarding}
         setNeedsOnboarding={setNeedsOnboarding}
         checkOnboarding={checkOnboarding}
-        getSession={getSession}
         setSession={setSession}
       />
     </BrowserRouter>
@@ -61,7 +60,6 @@ interface RootRoutesProps {
   needsOnboarding: boolean;
   setNeedsOnboarding: (v: boolean) => void;
   checkOnboarding: (user: User) => void;
-  getSession: () => Promise<Session | null>;
   setSession: (s: Session | null) => void;
 }
 

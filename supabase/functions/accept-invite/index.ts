@@ -53,22 +53,23 @@ serve(async (req) => {
     if (!markData || markData.length === 0) throw new Error("Invalid or expired invite link");
 
     // Create auth user
-    const { data: authData, error: authErr } = await supabase.auth.admin.createUser({
+    let { data: authData, error: authErr } = await supabase.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
       user_metadata: { name, role: invite.role, station: invite.station, invite_token: token },
     });
     if (authErr) {
-      // Only roll back if the user was NOT created — "already registered" means
-      // the token was already consumed; rolling back would reopen a replay window.
-      const alreadyExists = authErr.message.toLowerCase().includes("already registered")
-        || authErr.message.toLowerCase().includes("already been registered")
-        || authErr.message.toLowerCase().includes("user already exists");
-      if (!alreadyExists) {
+      // Check if user was actually created despite the error (e.g. timeout on a successful request).
+      // If so, recover by proceeding to profile upsert instead of rolling back.
+      const { data: existingUsers } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
+      const existingUser = existingUsers?.users?.find(u => u.email === email);
+      if (existingUser) {
+        authData = { user: existingUser } as typeof authData;
+      } else {
         await supabase.from("invites").update({ used: false }).eq("token", token);
+        throw new Error(authErr.message);
       }
-      throw new Error(authErr.message);
     }
 
     const userId = authData.user.id;

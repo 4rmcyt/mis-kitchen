@@ -66,22 +66,7 @@ serve(async (req) => {
     });
     if (inviteInsertError) throw new Error(`Failed to create invite: ${inviteInsertError.message}`);
 
-    // Generate magic invite link via Supabase Auth
-    const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
-      type: "invite",
-      email,
-      options: {
-        data: { role: role ?? "cook", station: station ?? "Grill", restaurant_id },
-        redirectTo: APP_URL,
-      },
-    });
-    if (linkError) {
-      // Clean up only this specific invite record
-      await supabase.from("invites").delete().eq("token", inviteToken);
-      throw new Error(linkError.message);
-    }
-
-    const inviteUrl = linkData.properties?.action_link ?? APP_URL;
+    const inviteUrl = `${APP_URL}/join/${inviteToken}`;
 
     // Send email via Resend
     const res = await fetch("https://api.resend.com/emails", {

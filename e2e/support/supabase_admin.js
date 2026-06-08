@@ -124,9 +124,17 @@ export async function wipeE2EData() {
 
 export async function resetUserPassword(email, newPassword) {
   const supabase = adminClient();
-  const { data } = await supabase.auth.admin.listUsers();
-  const user = data?.users?.find(u => u.email === email);
-  if (!user) throw new Error(`User ${email} not found`);
-  const { error } = await supabase.auth.admin.updateUserById(user.id, { password: newPassword });
+  let page = 1;
+  let userId = null;
+  while (true) {
+    const { data } = await supabase.auth.admin.listUsers({ page, perPage: 1000 }).catch(() => ({ data: null }));
+    const users = data?.users ?? [];
+    const found = users.find(u => u.email === email);
+    if (found) { userId = found.id; break; }
+    if (users.length < 1000) break;
+    page++;
+  }
+  if (!userId) throw new Error(`User ${email} not found`);
+  const { error } = await supabase.auth.admin.updateUserById(userId, { password: newPassword });
   if (error) throw new Error(`resetUserPassword failed: ${error.message}`);
 }

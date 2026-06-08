@@ -56,7 +56,7 @@ export function useAuth() {
         return;
       }
       setSession(s);
-      if (s) { checkOnboarding(s.user); trySubscribePush(); }
+      if (s) { checkOnboarding(s.user); if (event === 'SIGNED_IN') trySubscribePush(); }
     });
 
     return () => subscription.unsubscribe();
