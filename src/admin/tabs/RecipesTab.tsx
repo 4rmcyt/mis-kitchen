@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { getRecipes, createRecipe, updateRecipe, deleteRecipe } from "../../lib/supabase.js";
+import { fetchSheetCsv } from "../../lib/sheets.js";
+import { parseSheetCsv } from "../../domain/sheets.js";
 import { useToast } from "../components/Toast.js";
 import { useConfirm } from "../components/Confirm.js";
 import type { Recipe, RecipeIngredient, RecipeStep } from "../../lib/types.js";
@@ -154,16 +156,134 @@ function RecipeForm({ initial, onSave, onCancel, saving }: RecipeFormProps) {
   );
 }
 
+interface SheetImportModalProps {
+  onImport: (form: RecipeFormData) => void;
+  onClose: () => void;
+}
+
+function SheetImportModal({ onImport, onClose }: SheetImportModalProps) {
+  const [url, setUrl] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [preview, setPreview] = useState<RecipeFormData | null>(null);
+
+  const handleFetch = async () => {
+    if (!url.trim()) return;
+    setLoading(true);
+    setError('');
+    setPreview(null);
+    try {
+      const csv = await fetchSheetCsv(url.trim());
+      const parsed = parseSheetCsv(csv);
+      const form: RecipeFormData = {
+        name: parsed.name,
+        portions: parsed.portions ?? 1,
+        is_shared: true,
+        station: null,
+        ingredients: parsed.ingredients.map((ing, i) => ({
+          ...ing,
+          _key: `ing-${i}-${Date.now()}`,
+          amount: String(ing.amount),
+        })),
+        steps: parsed.steps.map((s, i) => ({ text: s.text, _key: `step-${i}-${Date.now()}` })),
+      };
+      setPreview(form);
+    } catch (e) {
+      setError((e as Error).message);
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="sheet-import-overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="sheet-import-modal">
+        <div className="sheet-import-hdr">
+          <span className="sheet-import-title">Import from Google Sheets</span>
+          <button className="sheet-import-close" onClick={onClose}>×</button>
+        </div>
+
+        <div className="sheet-import-body">
+          <label className="form-label-sm">Sheet URL</label>
+          <div className="sheet-import-url-row">
+            <input
+              className="form-inp sheet-import-url-inp"
+              placeholder="https://docs.google.com/spreadsheets/d/…"
+              value={url}
+              onChange={e => setUrl(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleFetch()}
+              autoFocus
+            />
+            <button className="btn-primary" onClick={handleFetch} disabled={loading || !url.trim()}>
+              {loading ? 'Loading…' : 'Fetch'}
+            </button>
+          </div>
+          <p className="sheet-import-hint">Sheet must be shared as "Anyone with the link → Viewer"</p>
+
+          {error && <div className="sheet-import-error">{error}</div>}
+
+          {preview && (
+            <div className="sheet-import-preview">
+              <div className="sheet-import-preview-name">{preview.name}</div>
+              <div className="sheet-import-preview-meta">
+                {preview.portions}p · {preview.ingredients.length} ingredients · {preview.steps.length} steps
+              </div>
+              {preview.ingredients.length > 0 && (
+                <div className="sheet-import-section">
+                  <div className="sheet-import-section-title">Ingredients</div>
+                  {preview.ingredients.map((ing, i) => (
+                    <div key={i} className="sheet-import-ing-row">
+                      <span className="sheet-import-ing-name">{ing.name}</span>
+                      <span className="sheet-import-ing-amt">{ing.amount} {ing.unit}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {preview.steps.length > 0 && (
+                <div className="sheet-import-section">
+                  <div className="sheet-import-section-title">Steps</div>
+                  {preview.steps.map((s, i) => (
+                    <div key={i} className="sheet-import-step-row">
+                      <span className="sheet-import-step-num">{i + 1}.</span>
+                      <span>{s.text}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="sheet-import-actions">
+                <button className="btn-secondary" onClick={() => setPreview(null)}>Back</button>
+                <button className="btn-primary" onClick={() => onImport(preview)}>Save Recipe</button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function RecipesTab() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [selected, setSelected] = useState<Recipe | null>(null);
   const [showNew, setShowNew] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const { show: toast } = useToast();
   const { confirm, dialog: confirmDialog } = useConfirm();
 
   useEffect(() => { getRecipes().then(setRecipes).catch((e: Error) => toast(e.message, 'error')); }, []);
+
+  const handleImport = async (form: RecipeFormData) => {
+    setShowImport(false);
+    setSaving(true);
+    try {
+      const r = await createRecipe(form as unknown as Partial<Recipe>);
+      setRecipes(rs => [r, ...rs]);
+      setSelected(r);
+      toast('Recipe imported', 'success');
+    } catch (e) { toast((e as Error).message, 'error'); }
+    setSaving(false);
+  };
 
   const handleCreate = async (form: RecipeFormData) => {
     setSaving(true);
@@ -284,12 +404,14 @@ export function RecipesTab() {
 
   return (
     <div className="tab-content">
+      {showImport && <SheetImportModal onImport={handleImport} onClose={() => setShowImport(false)} />}
       <div className="stat-row">
         <div className="stat-card"><div className="stat-val">{recipes.length}</div><div className="stat-lbl">Recipes</div></div>
         <div className="stat-card"><div className="stat-val c-green">{recipes.filter(r=>r.is_shared).length}</div><div className="stat-lbl">Shared</div></div>
       </div>
       <div className="toolbar">
         <button className="btn-primary" onClick={() => setShowNew(true)}>+ New Recipe</button>
+        <button className="btn-secondary" onClick={() => setShowImport(true)}>Import from Sheets</button>
       </div>
       <div className="recipe-list">
         {recipes.map(r => (
