@@ -217,7 +217,7 @@ function SheetImportModal({ onImport, onClose }: SheetImportModalProps) {
               {loading ? 'Loading…' : 'Fetch'}
             </button>
           </div>
-          <p className="sheet-import-hint">Sheet must be shared as "Anyone with the link → Viewer"</p>
+          <p className="sheet-import-hint">Sheet must be shared as &ldquo;Anyone with the link → Viewer&rdquo;</p>
 
           {error && <div className="sheet-import-error">{error}</div>}
 
