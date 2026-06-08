@@ -3,3 +3,9 @@ onlyBuiltDependencies:
   - sharp
   - workerd
   - tsx
+
+allowBuilds:
+  esbuild: true
+  sharp: true
+  workerd: true
+  tsx: true
