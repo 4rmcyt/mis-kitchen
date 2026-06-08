@@ -36,6 +36,8 @@
 
 | # | Title |
 |---|---|
+| #101 | Auto-detect allergens from recipe ingredients via Open Food Facts |
+| #100 | Allergen tracking — DB schema (allergens + recipe_allergens) + admin picker + cook badges |
 | #84 | Sentry: ErrorBoundary wraps app + DSN wired via env |
 | #83 | Error boundary — wrap app in `<Sentry.ErrorBoundary>` |
 | #82 | refactor: migrate all JS/JSX source files to TypeScript |

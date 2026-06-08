@@ -75,7 +75,8 @@ src/
     client.ts          — Supabase client singleton
     auth.ts            — signIn, signOut, getSession, onAuthChange, sendPasswordReset
     tasks.ts           — task CRUD + deferred tasks
-    recipes.ts         — recipe CRUD
+    recipes.ts         — recipe CRUD + getAllergens, setRecipeAllergens
+    allergens.ts       — fetchAllergenSuggestions via Open Food Facts API
     templates.ts       — day template CRUD
     reports.ts         — saveReport, sendReportEmail, getRestaurantReports
     push.ts            — subscribePush, sendPushNotification
@@ -85,7 +86,7 @@ src/
     shifts.ts          — shift scheduling ops
     temp_logs.ts       — temperature log ops
     constants.ts       — STATIONS, SECTIONS, colors, role labels
-    types.ts           — TypeScript interfaces
+    types.ts           — TypeScript interfaces (incl. Allergen, RecipeAllergen)
     database.types.ts  — auto-generated Supabase types
 
 supabase/

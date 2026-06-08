@@ -52,6 +52,24 @@ Daily prep tasks.
 | is_shared | boolean | true = visible to all cooks |
 | restaurant_id | uuid | |
 
+### allergens
+Reference table — seeded from CCC Allergy Sheet Summer 2025.
+
+| Column | Type | Notes |
+|---|---|---|
+| id | uuid | PK |
+| name | text | e.g. "Gluten", "Dairy" |
+| slug | text | e.g. "gluten", "fresh-cilantro" |
+
+### recipe_allergens
+Join table: recipe ↔ allergen with optional modifier note.
+
+| Column | Type | Notes |
+|---|---|---|
+| recipe_id | uuid | FK → recipes |
+| allergen_id | uuid | FK → allergens |
+| note | text | nullable, e.g. "no butter", "no yogurt" |
+
 ### daily_reports
 End-of-shift reports saved by cooks.
 
