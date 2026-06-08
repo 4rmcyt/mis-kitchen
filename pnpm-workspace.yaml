@@ -5,5 +5,7 @@ onlyBuiltDependencies:
   - tsx
 
 approvedBuilds:
+  - esbuild
+  - sharp
   - workerd
   - tsx
