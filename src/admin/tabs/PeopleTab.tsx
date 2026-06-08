@@ -8,7 +8,7 @@ import { usePeopleTab } from "../../hooks/features/usePeopleTab.js";
 import type { Profile, Role, Station } from "../../lib/types.js";
 
 export function PeopleTab() {
-  const { users, loading, toggleActive, changeRole, changeSecondaryStations, generateLinkInvite, sendEmailInvite, resetPassword } = usePeopleTab();
+  const { users, loading, toggleActive, changeRole, changeStation, changeSecondaryStations, generateLinkInvite, sendEmailInvite, resetPassword } = usePeopleTab();
   const [selected, setSelected] = useState<Profile | null>(null);
   const [showInvite, setShowInvite] = useState(false);
   const [inviteRole, setInviteRole] = useState<Role>('cook');
@@ -189,7 +189,13 @@ export function PeopleTab() {
             </div>
             <div className="form-row">
               <label className="form-label-sm">Station</label>
-              <select className="form-sel" value={selected.station} onChange={e => setSelected(s => s ? ({...s, station: e.target.value as Station}) : s)}>
+              <select className="form-sel" value={selected.station} onChange={async e => {
+                const station = e.target.value as Station;
+                try {
+                  await changeStation(selected.id, station);
+                  setSelected(s => s ? ({...s, station}) : s);
+                } catch (err) { toast((err as Error).message, 'error'); }
+              }}>
                 {STATIONS.map(st => <option key={st}>{st}</option>)}
               </select>
             </div>

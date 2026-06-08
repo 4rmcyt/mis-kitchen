@@ -38,8 +38,8 @@ serve(async (req) => {
     if (inviteErr) throw new Error(inviteErr.message);
     if (!invite)   throw new Error("Invalid or expired invite link");
 
-    // For email-specific invites, verify the submitted email matches
-    if (invite.email && invite.email !== email) throw new Error("Invalid or expired invite link");
+    // For email-specific invites, verify the submitted email matches (case-insensitive)
+    if (invite.email && invite.email.toLowerCase() !== email.toLowerCase()) throw new Error("Invalid or expired invite link");
 
     // Mark invite used — .eq("used", false) is the atomic guard against double-submit.
     // If count=0, another concurrent request already claimed it.

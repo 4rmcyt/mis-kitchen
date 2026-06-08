@@ -40,9 +40,10 @@ export default function Admin() {
   useEffect(() => {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) { navigate('/'); return; }
       const { data } = await supabase.from('profiles').select('name,role').eq('id', user.id).single();
-      if (data) setMe(data as Me);
+      if (!data || (data.role !== 'admin' && data.role !== 'superadmin')) { navigate('/'); return; }
+      setMe(data as Me);
     })();
   }, []);
 

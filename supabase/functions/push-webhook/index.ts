@@ -238,7 +238,14 @@ serve(async (req) => {
   const signature = req.headers.get("X-Push-Signature") ?? "";
   const isValid   = await verifySignature(rawBody, signature);
 
-  if (PUSH_WEBHOOK_SECRET && !isValid) {
+  if (!PUSH_WEBHOOK_SECRET) {
+    console.error("PUSH_WEBHOOK_SECRET not configured — rejecting all requests");
+    return new Response(JSON.stringify({ error: "Webhook not configured" }), {
+      status: 503,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+  if (!isValid) {
     console.error("Invalid webhook signature");
     return new Response(JSON.stringify({ error: "Invalid signature" }), {
       status: 401,

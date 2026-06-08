@@ -245,11 +245,12 @@ async function runSync(supabase: any, restaurantId: string) {
       .in("push_employee_id", workingEmployeeIds)
       .eq("restaurant_id", restaurantId);
 
-    // Reset everyone else
+    // Reset everyone else — UUIDs must be quoted in the PostgREST IN list
+    const quotedIds = workingEmployeeIds.map((id: string) => `"${id}"`).join(",");
     await supabase
       .from("profiles")
       .update({ on_shift_today: false })
-      .not("push_employee_id", "in", `(${workingEmployeeIds.join(",")})`)
+      .not("push_employee_id", "in", `(${quotedIds})`)
       .eq("restaurant_id", restaurantId);
   }
 
@@ -261,6 +262,16 @@ async function runSync(supabase: any, restaurantId: string) {
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
+  }
+
+  // Require service-role bearer token — prevents unauthenticated triggers
+  const authHeader = req.headers.get("Authorization") ?? "";
+  const token = authHeader.replace(/^Bearer\s+/i, "");
+  if (!token || token !== SUPABASE_SERVICE_KEY) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   try {

@@ -24,6 +24,11 @@ export function usePeopleTab() {
     setUsers(us => us.map(u => u.id === id ? { ...u, role } : u));
   };
 
+  const changeStation = async (id: string, station: Station) => {
+    await adminUpdateProfile(id, { station });
+    setUsers(us => us.map(u => u.id === id ? { ...u, station } : u));
+  };
+
   const changeSecondaryStations = async (id: string, stations: Station[]) => {
     await adminUpdateProfile(id, { secondary_stations: stations });
     setUsers(us => us.map(u => u.id === id ? { ...u, secondary_stations: stations } : u));
@@ -62,6 +67,7 @@ export function usePeopleTab() {
     loading,
     toggleActive,
     changeRole,
+    changeStation,
     changeSecondaryStations,
     generateLinkInvite,
     sendEmailInvite,

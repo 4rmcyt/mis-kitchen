@@ -44,7 +44,7 @@ serve(async (req) => {
     if (profileErr || !callerProfile) throw new Error("Profile not found");
     if (!["admin", "superadmin"].includes(callerProfile.role)) throw new Error("Forbidden");
 
-    const { email, role, station, invited_by_name } = await req.json();
+    const { email, role, station } = await req.json();
     if (!email) throw new Error("email required");
 
     // Use verified values from DB, not from request body
@@ -68,6 +68,14 @@ serve(async (req) => {
 
     const inviteUrl = `${APP_URL}/join/${inviteToken}`;
 
+    // Escape user-supplied strings before inserting into HTML
+    const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    const safeRole    = esc(role ?? "cook");
+    const safeStation = station ? esc(station) : null;
+    const inviterLine = callerProfile.name
+      ? `<strong style="color:#E8E8E0">${esc(callerProfile.name)}</strong> has invited you to Mis Kitchen`
+      : "You've been invited to Mis Kitchen";
+
     // Send email via Resend
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -84,11 +92,11 @@ serve(async (req) => {
             <div style="font-size:24px;font-weight:800;margin-bottom:8px">mis<span style="color:#F97316">.</span></div>
             <h2 style="margin:0 0 16px;font-size:18px">You're invited to join the kitchen</h2>
             <p style="color:#888;margin-bottom:8px">
-              ${invited_by_name ? `<strong style="color:#E8E8E0">${invited_by_name}</strong> has invited you to Mis Kitchen` : "You've been invited to Mis Kitchen"} as <strong style="color:#F97316">${role ?? "cook"}</strong>${station ? ` · ${station} station` : ""}.
+              ${inviterLine} as <strong style="color:#F97316">${safeRole}</strong>${safeStation ? ` · ${safeStation} station` : ""}.
             </p>
             <p style="color:#888;margin-bottom:24px">Click the button below to set your password and get started.</p>
             <a href="${inviteUrl}" style="display:inline-block;background:#F97316;color:#fff;text-decoration:none;padding:12px 24px;border-radius:6px;font-weight:700;font-size:14px">Accept Invite</a>
-            <p style="color:#555;font-size:11px;margin-top:24px">Link expires in 24 hours. If you didn't expect this, ignore this email.</p>
+            <p style="color:#555;font-size:11px;margin-top:24px">Link expires in 48 hours. If you didn't expect this, ignore this email.</p>
           </div>
         `,
       }),

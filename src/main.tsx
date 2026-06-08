@@ -84,7 +84,11 @@ function RootRoutes({ session, userRole, userStation, needsPasswordReset, setNee
           />
         ) : (
           <Routes>
-            <Route path="/admin/*" element={<Admin />} />
+            <Route path="/admin/*" element={
+              (userRole === 'admin' || userRole === 'superadmin')
+                ? <Admin />
+                : <App userRole={userRole} userStation={userStation} />
+            } />
             <Route path="/*" element={<App userRole={userRole} userStation={userStation} />} />
           </Routes>
         )
