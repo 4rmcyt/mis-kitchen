@@ -10,7 +10,7 @@ on:
 
 env:
   NODE_VERSION: "lts/*"
-  PNPM_VERSION: "9"
+  PNPM_VERSION: "11"
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
