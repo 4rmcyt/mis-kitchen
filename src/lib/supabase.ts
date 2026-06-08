@@ -6,7 +6,7 @@ export { signIn, signOut, getSession, onAuthChange, sendPasswordReset } from './
 export { getProfile, updateProfile, getRestaurantProfiles, adminUpdateProfile } from './profiles.js';
 export { createLinkInvite, createEmailInvite, getInvites } from './invites.js';
 export { getTemplates, createTemplate, updateTemplate, deleteTemplate } from './templates.js';
-export { getRecipes, createRecipe, updateRecipe, deleteRecipe } from './recipes.js';
+export { getRecipes, createRecipe, updateRecipe, deleteRecipe, getAllergens, setRecipeAllergens } from './recipes.js';
 export {
   getDefaultDayTemplate, getDayTemplates, createDayTemplate,
   updateDayTemplate, deleteDayTemplate,

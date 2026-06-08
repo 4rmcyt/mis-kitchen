@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { getRecipes } from "../lib/supabase.js";
 import { STATION_COLORS } from "../lib/constants.js";
-import type { Recipe, RecipeIngredient } from "../lib/types.js";
+import type { Recipe, RecipeIngredient, RecipeAllergen } from "../lib/types.js";
 
 export function RecipesScreen() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -29,6 +29,15 @@ export function RecipesScreen() {
           <span className="mult-label">Portions</span>
           {[1,2,3,4,5,6,10].map(m => <button key={m} className={`mult-btn ${multiplier===m?'active':''}`} onClick={() => setMultiplier(m)}>{m}×</button>)}
         </div>
+        {(active.recipe_allergens || []).length > 0 && (
+          <div className="allergen-badges">
+            {(active.recipe_allergens as RecipeAllergen[]).map(ra => (
+              <span key={ra.allergen_id} className="allergen-badge" title={ra.note || ''}>
+                {ra.allergens.name}{ra.note ? ` (${ra.note})` : ''}
+              </span>
+            ))}
+          </div>
+        )}
         <div className="ingredients-list">
           {active.ingredients.map((ing: RecipeIngredient & { id?: string; amount: number | string }) => (
             <div key={ing._key || ing.name} className="ing-row">

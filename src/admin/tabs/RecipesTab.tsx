@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { getRecipes, createRecipe, updateRecipe, deleteRecipe } from "../../lib/supabase.js";
+import { getRecipes, createRecipe, updateRecipe, deleteRecipe, getAllergens, setRecipeAllergens as saveRecipeAllergens } from "../../lib/supabase.js";
 import { fetchSheetCsv } from "../../lib/sheets.js";
 import { parseSheetCsv } from "../../domain/sheets.js";
 import { useToast } from "../components/Toast.js";
 import { useConfirm } from "../components/Confirm.js";
-import type { Recipe, RecipeIngredient, RecipeStep } from "../../lib/types.js";
+import type { Recipe, RecipeIngredient, RecipeStep, Allergen, RecipeAllergen } from "../../lib/types.js";
 
 const UNITS = ['g', 'kg', 'ml', 'L', 'pcs', 'tsp', 'tbsp', 'cup', 'portion'];
 
@@ -261,17 +261,89 @@ function SheetImportModal({ onImport, onClose }: SheetImportModalProps) {
   );
 }
 
+interface AllergenPickerProps {
+  allergens: Allergen[];
+  selected: { allergen_id: string; note: string | null }[];
+  onChange: (selected: { allergen_id: string; note: string | null }[]) => void;
+}
+
+function AllergenPicker({ allergens, selected, onChange }: AllergenPickerProps) {
+  const toggle = (id: string) => {
+    if (selected.find(x => x.allergen_id === id)) {
+      onChange(selected.filter(x => x.allergen_id !== id));
+    } else {
+      onChange([...selected, { allergen_id: id, note: null }]);
+    }
+  };
+  const setNote = (id: string, note: string) => {
+    onChange(selected.map(x => x.allergen_id === id ? { ...x, note: note || null } : x));
+  };
+
+  return (
+    <div className="allergen-picker">
+      <div className="allergen-picker-chips">
+        {allergens.map(a => {
+          const active = !!selected.find(x => x.allergen_id === a.id);
+          return (
+            <button
+              key={a.id}
+              type="button"
+              className={`allergen-chip ${active ? 'allergen-chip--active' : ''}`}
+              onClick={() => toggle(a.id)}
+            >
+              {a.name}
+            </button>
+          );
+        })}
+      </div>
+      {selected.length > 0 && (
+        <div className="allergen-notes">
+          {selected.map(s => {
+            const a = allergens.find(x => x.id === s.allergen_id);
+            if (!a) return null;
+            return (
+              <div key={s.allergen_id} className="allergen-note-row">
+                <span className="allergen-note-name">{a.name}</span>
+                <input
+                  className="allergen-note-inp"
+                  placeholder="note (optional)"
+                  value={s.note || ''}
+                  onChange={e => setNote(s.allergen_id, e.target.value)}
+                />
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function RecipesTab() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [allergens, setAllergens] = useState<Allergen[]>([]);
   const [selected, setSelected] = useState<Recipe | null>(null);
   const [showNew, setShowNew] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [recipeAllergens, setRecipeAllergens] = useState<{ allergen_id: string; note: string | null }[]>([]);
   const { show: toast } = useToast();
   const { confirm, dialog: confirmDialog } = useConfirm();
 
-  useEffect(() => { getRecipes().then(setRecipes).catch((e: Error) => toast(e.message, 'error')); }, []);
+  useEffect(() => {
+    getRecipes().then(setRecipes).catch((e: Error) => toast(e.message, 'error'));
+    getAllergens().then(setAllergens).catch(() => {});
+  }, []);
+
+  const selectRecipe = (r: Recipe | null) => {
+    setSelected(r);
+    if (r) {
+      setRecipeAllergens((r.recipe_allergens || []).map((ra: RecipeAllergen) => ({ allergen_id: ra.allergen_id, note: ra.note })));
+    } else {
+      setRecipeAllergens([]);
+    }
+  };
 
   const handleImport = async (form: RecipeFormData) => {
     setShowImport(false);
@@ -279,7 +351,7 @@ export function RecipesTab() {
     try {
       const r = await createRecipe(form as unknown as Partial<Recipe>);
       setRecipes(rs => [r, ...rs]);
-      setSelected(r);
+      selectRecipe(r);
       toast('Recipe imported', 'success');
     } catch (e) { toast((e as Error).message, 'error'); }
     setSaving(false);
@@ -291,7 +363,7 @@ export function RecipesTab() {
       const r = await createRecipe(form as unknown as Partial<Recipe>);
       setRecipes(rs => [r, ...rs]);
       setShowNew(false);
-      setSelected(r);
+      selectRecipe(r);
       toast('Recipe created', 'success');
     } catch (e) { toast((e as Error).message, 'error'); }
     setSaving(false);
@@ -301,9 +373,13 @@ export function RecipesTab() {
     if (!selected) return;
     setSaving(true);
     try {
-      const r = await updateRecipe(selected.id, form as unknown as Partial<Recipe>);
-      setRecipes(rs => rs.map(x => x.id === r.id ? r : x));
-      setSelected(r);
+      const [r, savedAllergens] = await Promise.all([
+        updateRecipe(selected.id, form as unknown as Partial<Recipe>),
+        saveRecipeAllergens(selected.id, recipeAllergens),
+      ]);
+      const updated: Recipe = { ...r, recipe_allergens: savedAllergens };
+      setRecipes(rs => rs.map(x => x.id === r.id ? updated : x));
+      selectRecipe(updated);
       setEditing(false);
       toast('Saved', 'success');
     } catch (e) { toast((e as Error).message, 'error'); }
@@ -316,7 +392,7 @@ export function RecipesTab() {
     try {
       await deleteRecipe(selected.id);
       setRecipes(rs => rs.filter(r => r.id !== selected.id));
-      setSelected(null);
+      selectRecipe(null);
       toast('Deleted', 'success');
     } catch (e) { toast((e as Error).message, 'error'); }
   };
@@ -337,6 +413,12 @@ export function RecipesTab() {
           <span className="recipe-edit-name">Edit: {selected.name}</span>
         </div>
         <RecipeForm initial={formData} onSave={handleUpdate} onCancel={() => setEditing(false)} saving={saving}/>
+        {allergens.length > 0 && (
+          <div className="recipe-block">
+            <div className="recipe-block-title">Allergens</div>
+            <AllergenPicker allergens={allergens} selected={recipeAllergens} onChange={setRecipeAllergens} />
+          </div>
+        )}
       </div>
     );
   }
@@ -348,12 +430,25 @@ export function RecipesTab() {
       <div className="tab-content">
         {confirmDialog}
         <div className="recipe-detail-hdr">
-          <button className="btn-secondary" onClick={() => setSelected(null)}>← Back</button>
+          <button className="btn-secondary" onClick={() => selectRecipe(null)}>← Back</button>
           <span className="recipe-detail-name">{selected.name}</span>
           <button className="btn-secondary" onClick={() => setEditing(true)}>Edit</button>
           <button className="btn-danger" onClick={handleDelete}>Delete</button>
         </div>
         <div className="recipe-meta">{selected.portions} portion{selected.portions!==1?'s':''}</div>
+        {recipeAllergens.length > 0 && (
+          <div className="allergen-badges">
+            {recipeAllergens.map(ra => {
+              const a = allergens.find(x => x.id === ra.allergen_id);
+              if (!a) return null;
+              return (
+                <span key={ra.allergen_id} className="allergen-badge" title={ra.note || ''}>
+                  {a.name}{ra.note ? ` (${ra.note})` : ''}
+                </span>
+              );
+            })}
+          </div>
+        )}
 
         {ings.length > 0 && (
           <div className="recipe-block">
@@ -415,7 +510,7 @@ export function RecipesTab() {
       </div>
       <div className="recipe-list">
         {recipes.map(r => (
-          <div key={r.id} className="recipe-list-item" onClick={() => setSelected(r)}>
+          <div key={r.id} className="recipe-list-item" onClick={() => selectRecipe(r)}>
             <div className="recipe-list-body">
               <div className="recipe-list-name">{r.name}</div>
               <div className="recipe-list-meta">

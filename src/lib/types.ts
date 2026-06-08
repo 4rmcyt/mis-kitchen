@@ -47,6 +47,18 @@ export interface DeferredTask {
   created_at: string;
 }
 
+export interface Allergen {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+export interface RecipeAllergen {
+  allergen_id: string;
+  note: string | null;
+  allergens: Allergen;
+}
+
 export interface Recipe {
   id: string;
   restaurant_id: string;
@@ -58,6 +70,7 @@ export interface Recipe {
   steps: RecipeStep[];
   is_shared: boolean;
   created_at: string;
+  recipe_allergens?: RecipeAllergen[];
 }
 
 export interface RecipeIngredient {
