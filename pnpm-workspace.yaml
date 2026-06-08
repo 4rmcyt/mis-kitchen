@@ -1,0 +1,9 @@
+onlyBuiltDependencies:
+  - esbuild
+  - sharp
+  - workerd
+  - tsx
+
+approvedBuilds:
+  - workerd
+  - tsx

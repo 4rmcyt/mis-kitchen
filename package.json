@@ -46,16 +46,5 @@
     "vite": "^8.0.16",
     "vitest": "^4.1.8"
   },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild",
-      "sharp",
-      "workerd",
-      "tsx"
-    ],
-    "approvedBuilds": [
-      "workerd",
-      "tsx"
-    ]
-  }
+
 }
