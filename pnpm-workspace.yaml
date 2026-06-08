@@ -3,9 +3,3 @@ onlyBuiltDependencies:
   - sharp
   - workerd
   - tsx
-
-approvedBuilds:
-  - esbuild
-  - sharp
-  - workerd
-  - tsx
