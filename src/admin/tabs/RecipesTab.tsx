@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { getRecipes, createRecipe, updateRecipe, deleteRecipe, getAllergens, setRecipeAllergens as saveRecipeAllergens } from "../../lib/supabase.js";
+import { fetchAllergenSuggestions } from "../../lib/allergens.js";
 import { fetchSheetCsv } from "../../lib/sheets.js";
 import { parseSheetCsv } from "../../domain/sheets.js";
 import { useToast } from "../components/Toast.js";
@@ -265,9 +266,11 @@ interface AllergenPickerProps {
   allergens: Allergen[];
   selected: { allergen_id: string; note: string | null }[];
   onChange: (selected: { allergen_id: string; note: string | null }[]) => void;
+  onAutoDetect?: () => Promise<void>;
+  detecting?: boolean;
 }
 
-function AllergenPicker({ allergens, selected, onChange }: AllergenPickerProps) {
+function AllergenPicker({ allergens, selected, onChange, onAutoDetect, detecting }: AllergenPickerProps) {
   const toggle = (id: string) => {
     if (selected.find(x => x.allergen_id === id)) {
       onChange(selected.filter(x => x.allergen_id !== id));
@@ -281,20 +284,32 @@ function AllergenPicker({ allergens, selected, onChange }: AllergenPickerProps) 
 
   return (
     <div className="allergen-picker">
-      <div className="allergen-picker-chips">
-        {allergens.map(a => {
-          const active = !!selected.find(x => x.allergen_id === a.id);
-          return (
-            <button
-              key={a.id}
-              type="button"
-              className={`allergen-chip ${active ? 'allergen-chip--active' : ''}`}
-              onClick={() => toggle(a.id)}
-            >
-              {a.name}
-            </button>
-          );
-        })}
+      <div className="allergen-picker-header">
+        <div className="allergen-picker-chips">
+          {allergens.map(a => {
+            const active = !!selected.find(x => x.allergen_id === a.id);
+            return (
+              <button
+                key={a.id}
+                type="button"
+                className={`allergen-chip ${active ? 'allergen-chip--active' : ''}`}
+                onClick={() => toggle(a.id)}
+              >
+                {a.name}
+              </button>
+            );
+          })}
+        </div>
+        {onAutoDetect && (
+          <button
+            type="button"
+            className="btn-secondary allergen-autodetect-btn"
+            onClick={onAutoDetect}
+            disabled={detecting}
+          >
+            {detecting ? 'Detecting…' : 'Auto-detect'}
+          </button>
+        )}
       </div>
       {selected.length > 0 && (
         <div className="allergen-notes">
@@ -328,6 +343,7 @@ export function RecipesTab() {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [recipeAllergens, setRecipeAllergens] = useState<{ allergen_id: string; note: string | null }[]>([]);
+  const [detecting, setDetecting] = useState(false);
   const { show: toast } = useToast();
   const { confirm, dialog: confirmDialog } = useConfirm();
 
@@ -335,6 +351,22 @@ export function RecipesTab() {
     getRecipes().then(setRecipes).catch((e: Error) => toast(e.message, 'error'));
     getAllergens().then(setAllergens).catch(() => {});
   }, []);
+
+  const handleAutoDetect = async (ingredients: RecipeIngredient[]) => {
+    if (!ingredients.length) { toast('No ingredients to detect from', 'error'); return; }
+    setDetecting(true);
+    try {
+      const names = ingredients.map(i => i.name);
+      const ids = await fetchAllergenSuggestions(names, allergens);
+      if (!ids.length) { toast('No allergens detected', 'success'); return; }
+      setRecipeAllergens(ids.map(id => ({ allergen_id: id, note: null })));
+      toast(`Detected ${ids.length} allergen${ids.length > 1 ? 's' : ''} — review and save`, 'success');
+    } catch {
+      toast('Detection failed', 'error');
+    } finally {
+      setDetecting(false);
+    }
+  };
 
   const selectRecipe = (r: Recipe | null) => {
     setSelected(r);
@@ -416,7 +448,13 @@ export function RecipesTab() {
         {allergens.length > 0 && (
           <div className="recipe-block">
             <div className="recipe-block-title">Allergens</div>
-            <AllergenPicker allergens={allergens} selected={recipeAllergens} onChange={setRecipeAllergens} />
+            <AllergenPicker
+              allergens={allergens}
+              selected={recipeAllergens}
+              onChange={setRecipeAllergens}
+              onAutoDetect={() => handleAutoDetect(selected.ingredients || [])}
+              detecting={detecting}
+            />
           </div>
         )}
       </div>
