@@ -29,13 +29,18 @@ function localDayUtcBounds(localDate: string, tz: string): { start: string; end:
   const noonUtcCandidate = Date.UTC(year, month - 1, day, 12, 0, 0);
   const parts = formatter.formatToParts(noonUtcCandidate);
   const p = Object.fromEntries(parts.filter(x => x.type !== 'literal').map(x => [x.type, x.value]));
+
+  // Reconstruct the local "noon" as a UTC timestamp to find the discrepancy (the timezone offset)
   const localNoon = Date.UTC(Number(p.year), Number(p.month) - 1, Number(p.day), Number(p.hour), Number(p.minute), Number(p.second));
   const offsetMs = noonUtcCandidate - localNoon; // positive = behind UTC (e.g. MDT = +6h)
 
+  // Apply the calculated offset to the midnight baseline
   const startMs = midnightUtcCandidate + offsetMs;
+
+  // Calculate the end of the day by adding 24 hours minus 1 millisecond
   const dayInMs = 24 * 60 * 60 * 1000;
   const endMs   = startMs + dayInMs - 1;
-  
+
   return {
     start: new Date(startMs).toISOString(),
     end:   new Date(endMs).toISOString(),
