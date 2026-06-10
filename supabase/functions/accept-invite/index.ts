@@ -13,6 +13,19 @@ const cors = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Paginated listUsers — mirrors deleteTestUser loop in e2e/support/supabase_admin.js
+async function findUserByEmail(supabase: ReturnType<typeof createClient>, email: string) {
+  let page = 1;
+  while (true) {
+    const { data } = await supabase.auth.admin.listUsers({ page, perPage: 1000 });
+    const users = data?.users ?? [];
+    const found = users.find((u: { email?: string }) => u.email === email);
+    if (found) return found;
+    if (users.length < 1000) return null;
+    page++;
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
 
@@ -22,6 +35,7 @@ serve(async (req) => {
     if (!email)    throw new Error("email required");
     if (!name)     throw new Error("name required");
     if (!password) throw new Error("password required");
+    if (password.length < 8) throw new Error("Password must be at least 8 characters");
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
@@ -60,15 +74,21 @@ serve(async (req) => {
       user_metadata: { name, role: invite.role, station: invite.station, invite_token: token },
     });
     if (authErr) {
-      // Check if user was actually created despite the error (e.g. timeout on a successful request).
-      // If so, recover by proceeding to profile upsert instead of rolling back.
-      const { data: existingUsers } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
-      const existingUser = existingUsers?.users?.find(u => u.email === email);
-      if (existingUser) {
+      // Recovery branch: only treat an existing user as "ours" if BOTH conditions hold:
+      //   1. user.user_metadata.invite_token === token (this invite created the user)
+      //   2. user was created within the last 60 seconds (timeout on a successful createUser)
+      // Anything else means a pre-existing account — roll back and reject to prevent
+      // an attacker from re-binding someone else's profile to a different restaurant.
+      const existingUser = await findUserByEmail(supabase, email);
+      const isOurs = existingUser &&
+        existingUser.user_metadata?.invite_token === token &&
+        (Date.now() - new Date(existingUser.created_at).getTime()) < 60_000;
+
+      if (isOurs) {
         authData = { user: existingUser } as typeof authData;
       } else {
         await supabase.from("invites").update({ used: false }).eq("token", token);
-        throw new Error(authErr.message);
+        throw new Error("Invalid or expired invite link");
       }
     }
 

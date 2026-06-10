@@ -1,5 +1,8 @@
 export const STATIONS = ["Common", "Garmo", "Rolls", "Pans", "Grill", "Tandoor"];
 
+// Single-tenant: CCC is in Calgary. Switch to per-restaurant column when multi-tenant ships (Roadmap #62).
+export const RESTAURANT_TIMEZONE = 'America/Edmonton';
+
 export const STATION_COLORS: Record<string, string> = {
   Garmo:   "#22D3EE",
   Rolls:   "#A78BFA",
