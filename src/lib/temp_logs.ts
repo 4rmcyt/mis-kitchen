@@ -14,7 +14,7 @@ function localDayUtcBounds(localDate: string, tz: string): { start: string; end:
   // We do this by formatting a candidate UTC instant and adjusting until it matches.
   // The simpler approach: treat the date string as if it were local, then apply
   // the tz offset that Intl reports at that moment.
-  const midnightUtcCandidate = Date.UTC(year, month - 1, day, 0, 0, 0);
+  const _midnightUtcCandidate = Date.UTC(year, month - 1, day, 0, 0, 0);
 
   // Get what time the candidate instant looks like in the target tz
   const formatter = new Intl.DateTimeFormat('en-CA', {
