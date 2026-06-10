@@ -132,6 +132,19 @@ Temperature log entries.
 | unit | text | C / F |
 | logged_at | timestamptz | |
 
+## Task Update Rules
+
+The `tasks_update` RLS policy allows any authenticated user in the same restaurant to issue
+an UPDATE. Column-level enforcement is added by the `enforce_task_update_columns` BEFORE UPDATE
+trigger (migration `20260610180529`):
+
+- **Admins / superadmins**: may update any column.
+- **Cooks**: may only change `done`, `done_at`, `done_by`, `comment`.
+  Attempting to change `text`, `station`, `section`, `date`, `source`, `template_id`,
+  `restaurant_id`, or `created_by` raises a permission error.
+- **done_by**: forced to `auth.uid()` or `NULL` for non-admins — prevents attributing
+  completions to other users (which would corrupt `station_velocity` stats).
+
 ## RLS Functions
 
 All functions: `SECURITY DEFINER`, `SET search_path = ''`, must use `public.` prefix internally.

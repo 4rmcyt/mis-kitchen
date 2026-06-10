@@ -54,6 +54,21 @@ User opens `/join/:token`:
   - Admin can send invite by email
   - Invited user completes onboarding via link
 
+## Security: Account-Takeover Guard (recovery branch)
+
+When `createUser` returns an error, the edge function checks whether the user was
+actually created despite the error (e.g. a network timeout on a successful request).
+The recovery branch only proceeds if **both** conditions are true:
+
+1. `user.user_metadata.invite_token === token` — this exact invite created the user.
+2. `user.created_at` is within the last **60 seconds** — rules out pre-existing accounts.
+
+If either condition fails the function rolls back `invites.used = false` and returns
+`"Invalid or expired invite link"`. This prevents an attacker with a valid token from
+re-binding a pre-existing user's profile (role + restaurant_id) to a different restaurant.
+
+`listUsers` uses a paginated loop (1000 per page) to avoid missing users on large tenants.
+
 ## Related
 
 - [[Architecture]]
