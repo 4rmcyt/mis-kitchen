@@ -128,16 +128,16 @@ git push staging
 
 ## Admin Tabs
 
-| Tab | Purpose |
-|---|---|
-| People | User management (invite, activate/deactivate) |
-| Tasks | Day template CRUD |
-| Recipes | Recipe editor (inline edit ingredients/steps + reorder) |
-| Reports | View end-of-shift reports |
+| Tab      | Purpose                                                       |
+| -------- | ------------------------------------------------------------- |
+| People   | User management (invite, activate/deactivate)                 |
+| Tasks    | Day template CRUD                                             |
+| Recipes  | Recipe editor (inline edit ingredients/steps + reorder)       |
+| Reports  | View end-of-shift reports                                     |
 | Velocity | Station burndown heatmap (completion counts by station × day) |
-| Wins | Improvement log — admin posts wins, staff see recent wins |
-| Schedule | Weekly rota shift grid |
-| Notify | Push notification sender + subscriber count |
+| Wins     | Improvement log — admin posts wins, staff see recent wins     |
+| Schedule | Weekly rota shift grid                                        |
+| Notify   | Push notification sender + subscriber count                   |
 
 ## Related
 
