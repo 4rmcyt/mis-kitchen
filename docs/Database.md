@@ -146,11 +146,20 @@ Defined in migration `20260526235301` with `SECURITY INVOKER`.
 | dow | int | 0 = Sunday … 6 = Saturday (PostgreSQL EXTRACT) |
 | completed_count | bigint | count of completed tasks |
 
-## Task Update Rules
+## Task Integrity Rules
+
+### INSERT (`enforce_task_insert_done_by` trigger — migration `20260611145146`)
+
+The `tasks_insert` RLS policy only checks `restaurant_id`. The trigger adds:
+
+- **Admins / superadmins**: no restrictions.
+- **Cooks**: `done_by` must be `auth.uid()` or `NULL`. Inserting with a foreign `done_by` raises a permission error.
+- If `done = true` and `done_by IS NULL`, `done_by` is automatically set to `auth.uid()`.
+
+### UPDATE (`enforce_task_update_columns` trigger — migration `20260610180529`)
 
 The `tasks_update` RLS policy allows any authenticated user in the same restaurant to issue
-an UPDATE. Column-level enforcement is added by the `enforce_task_update_columns` BEFORE UPDATE
-trigger (migration `20260610180529`):
+an UPDATE. Column-level enforcement:
 
 - **Admins / superadmins**: may update any column.
 - **Cooks**: may only change `done`, `done_at`, `done_by`, `comment`.

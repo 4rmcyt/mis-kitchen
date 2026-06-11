@@ -79,7 +79,7 @@ jobs:
   migrate:
     name: DB Migration
     runs-on: ubuntu-latest
-    needs: check
+    needs: build
 
     steps:
       - uses: actions/checkout@v6.0.3

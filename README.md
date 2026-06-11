@@ -19,33 +19,44 @@ See the deployment checklist in DEPLOY.md.
 
 ```
 src/
-  App.jsx          # Main PWA (Today / Recipes / Templates)
-  Admin.jsx        # Admin panel (People / Content / Reports / Security)
-  main.jsx         # React entry point
-  lib/
-    supabase.js    # Supabase client + all query helpers
-    push.js        # Push Operations helpers (when token available)
+  main.tsx              — React entry point
+  App.jsx               — cook app tab routing (Today / Recipes / Lineup)
+  Admin.tsx             — admin panel (People / Tasks / Recipes / Reports / Velocity / Wins / Schedule / Push)
+  domain/               — pure business logic, no I/O (unit-tested)
+  hooks/features/       — feature controllers (data fetching + state)
+  screens/              — cook-facing screens
+  admin/tabs/           — admin tab components
+  lib/                  — Supabase client, query helpers, constants, types
 
 supabase/
-  migrations/
-    001_schema.sql            # Full DB schema + RLS policies
-    002_push_integration.sql  # Push Operations tables (apply when ready)
+  migrations/           — applied via Supabase MCP; local stubs committed after each apply
   functions/
-    send-report/    # Sends end-of-shift email via Resend
-    push-sync/      # Daily employee + schedule sync from Push
-    push-webhook/   # Real-time Push Operations events
+    send-report/        — end-of-shift email via Resend
+    send-invite/        — invite email + link delivery
+    accept-invite/      — invite onboarding (account creation)
+    send-push/          — web push delivery
+    push-sync/          — employee + schedule sync
+    push-webhook/       — real-time Push Operations events
+
+e2e/
+  features/             — Cucumber .feature files
+  steps/                — Playwright step definitions
+  support/              — world.js, supabase_admin.js (test data helpers)
 
 public/
-  sw.js            # Service worker (offline support)
-  manifest.json    # PWA manifest
+  sw.js                 — service worker (offline support)
+  manifest.json         — PWA manifest
 
 terraform/
-  main.tf          # Cloudflare Pages + DNS + WAF + Supabase IaC
+  main.tf               — Cloudflare Pages + DNS + WAF + Supabase IaC
 
 .github/workflows/
-  deploy.yml       # CI/CD pipeline
-  terraform.yml    # IaC pipeline
-  monitor.yml      # Health checks every 5 min
+  ci.yml                — main pipeline: deploy → E2E (staging only)
+  deploy.yml            — check → build → migrate → edge functions → Cloudflare Pages
+  e2e.yml               — full E2E suite (Playwright + Cucumber)
+  e2e-invite.yml        — invite onboarding E2E
+  preview.yml           — Cloudflare preview deploys for PRs
+  terraform.yml         — IaC pipeline
 ```
 
 ## Secrets needed

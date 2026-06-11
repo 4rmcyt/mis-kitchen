@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { getRecipes } from "../lib/supabase.js";
 import { STATION_COLORS } from "../lib/constants.js";
+import { scaleAmount } from "../domain/recipes.js";
 import type { Recipe, RecipeIngredient, RecipeAllergen } from "../lib/types.js";
 
 export function RecipesScreen() {
@@ -42,7 +43,7 @@ export function RecipesScreen() {
           {active.ingredients.map((ing: RecipeIngredient & { id?: string; amount: number | string }) => (
             <div key={ing._key || ing.name} className="ing-row">
               <span className="ing-name">{ing.name}</span>
-              <span className="ing-amount">{(Number(ing.amount)*multiplier).toFixed(Number(ing.amount)*multiplier%1!==0?1:0)} {ing.unit}</span>
+              <span className="ing-amount">{scaleAmount(String(ing.amount ?? ''), multiplier)} {ing.unit}</span>
             </div>
           ))}
         </div>

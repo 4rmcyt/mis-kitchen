@@ -29,7 +29,7 @@ When('I click Sign In', async function () {
 });
 
 Then('I should see the Today screen', async function () {
-  await this.page.waitForSelector('text=Today', { timeout: 15_000 });
+  await this.page.waitForSelector('.screen-title', { timeout: 15_000 });
 });
 
 Then('I should see the ADMIN button', async function () {

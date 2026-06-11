@@ -18,11 +18,13 @@ jobs:
   e2e:
     name: E2E Sanity
     needs: deploy
+    if: github.ref == 'refs/heads/staging'
     uses: ./.github/workflows/e2e.yml
     secrets: inherit
 
   e2e-invite:
     name: E2E Invite & Onboarding
     needs: e2e
+    if: github.ref == 'refs/heads/staging'
     uses: ./.github/workflows/e2e-invite.yml
     secrets: inherit
