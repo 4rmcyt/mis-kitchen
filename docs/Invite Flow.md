@@ -34,18 +34,30 @@ User opens `/join/:token`:
   → shows form: name, email, password, confirm password
   → user submits
     → POST to accept-invite edge function
-      → validate token (not used, not expired)
-      → if invite.email set: verify submitted email matches
-      → UPDATE invites SET used = true (atomic, before createUser — prevents replay)
+      → validate token (used=false, not expired)
+      → if invite.email set: verify submitted email matches (case-insensitive)
       → supabase.auth.admin.createUser({ email, password, email_confirm: true,
           user_metadata: { name, role, station, invite_token: token } })
-        → on createUser failure (non-"already exists"): rollback used = false
-        → handle_new_user() trigger fires → INSERT into profiles
-      → upsert profile (name, password_set=true, role, station, restaurant_id)
+        → handle_new_user() trigger fires:
+            - finds invite via invite_token in user_metadata (or email for email invites)
+            - INSERT into profiles (id, restaurant_id, name, email, role, station)
+            - UPDATE invites SET used = true
+        → on createUser failure: reject with error (invite remains unused for retry)
+      → upsert profile (password_set=true, name override in case trigger had stale data)
       → return { ok: true }
     → JoinPage calls supabase.auth.signInWithPassword({ email, password })
     → navigate('/') → Today screen
 ```
+
+## Security
+
+The `handle_new_user` trigger atomically marks the invite used at the same time as
+the auth user is created (both happen inside the same DB transaction). This prevents
+replay attacks — a second `createUser` call with the same token will fail because the
+trigger will find no matching `used=false` invite.
+
+If `createUser` fails (e.g. email already registered), the function rejects outright.
+The invite is NOT rolled back so the admin can re-invite with a different email.
 
 ## E2E Test Coverage
 
@@ -53,21 +65,6 @@ User opens `/join/:token`:
   - Admin can generate an invite link
   - Admin can send invite by email
   - Invited user completes onboarding via link
-
-## Security: Account-Takeover Guard (recovery branch)
-
-When `createUser` returns an error, the edge function checks whether the user was
-actually created despite the error (e.g. a network timeout on a successful request).
-The recovery branch only proceeds if **both** conditions are true:
-
-1. `user.user_metadata.invite_token === token` — this exact invite created the user.
-2. `user.created_at` is within the last **60 seconds** — rules out pre-existing accounts.
-
-If either condition fails the function rolls back `invites.used = false` and returns
-`"Invalid or expired invite link"`. This prevents an attacker with a valid token from
-re-binding a pre-existing user's profile (role + restaurant_id) to a different restaurant.
-
-`listUsers` uses a paginated loop (1000 per page) to avoid missing users on large tenants.
 
 ## Related
 
