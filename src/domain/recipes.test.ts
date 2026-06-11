@@ -30,4 +30,16 @@ describe('scaleAmount', () => {
   it('handles multiplier of 1 (no-op)', () => {
     expect(scaleAmount('500ml', 1)).toBe('500ml');
   });
+
+  it('returns fraction unchanged instead of producing wrong partial scale', () => {
+    expect(scaleAmount('1/2 cup', 2)).toBe('1/2 cup');
+  });
+
+  it('returns mixed fraction unchanged', () => {
+    expect(scaleAmount('2 1/2 cups', 2)).toBe('2 1/2 cups');
+  });
+
+  it('returns thousands-separated number unchanged instead of scaling only leading digit', () => {
+    expect(scaleAmount('1,200g', 2)).toBe('1,200g');
+  });
 });
