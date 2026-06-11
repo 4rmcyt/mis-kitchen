@@ -46,7 +46,7 @@ export function useTodayTasks(dateOffset: number, stationFilter: string) {
         setTasks([]);
         return;
       }
-      const batch = buildTasksFromTemplate(tpl.entries, selectedDate);
+      const batch = buildTasksFromTemplate(tpl.entries, selectedDate, tpl.id);
       const created = await createTasksBatch(batch).catch(() => null);
       if (cancelled) return;
       setTasks(created || []);

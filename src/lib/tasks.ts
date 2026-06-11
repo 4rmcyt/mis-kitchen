@@ -27,7 +27,12 @@ export async function createTasksBatch(tasks: Array<{ text: string; station: Sta
     created_by:    profile.id,
     restaurant_id: profile.restaurant_id,
   }));
-  return q(() => supabase.from("tasks").insert(rows).select());
+  return q(() =>
+    supabase.from("tasks").upsert(rows, {
+      onConflict: 'restaurant_id,date,day_template_id,station,section,text',
+      ignoreDuplicates: true,
+    }).select()
+  );
 }
 
 export async function updateTask(id: string, updates: Partial<Task>): Promise<Task> {

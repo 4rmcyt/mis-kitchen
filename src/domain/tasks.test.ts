@@ -91,12 +91,14 @@ describe('calcProgress', () => {
 });
 
 describe('buildTasksFromTemplate', () => {
-  it('maps entries to task create inputs', () => {
+  const TPL_ID = 'aaaaaaaa-0000-0000-0000-000000000001';
+
+  it('maps entries to task create inputs with day_template_id', () => {
     const entries = [
       { text: 'Prep grill', station: 'Grill', section: 'Opening' },
       { text: 'Clean rolls', station: 'Rolls', section: 'Closing' },
     ];
-    const result = buildTasksFromTemplate(entries, '2026-06-01');
+    const result = buildTasksFromTemplate(entries, '2026-06-01', TPL_ID);
     expect(result).toHaveLength(2);
     expect(result[0]).toMatchObject({
       text: 'Prep grill',
@@ -104,6 +106,25 @@ describe('buildTasksFromTemplate', () => {
       section: 'Opening',
       date: '2026-06-01',
       source: 'template',
+      day_template_id: TPL_ID,
     });
+    expect(result[1]).toMatchObject({
+      text: 'Clean rolls',
+      station: 'Rolls',
+      section: 'Closing',
+      date: '2026-06-01',
+      source: 'template',
+      day_template_id: TPL_ID,
+    });
+  });
+
+  it('sets day_template_id on every produced row', () => {
+    const entries = [
+      { text: 'A', station: 'Common', section: 'Opening' },
+      { text: 'B', station: 'Grill', section: 'Prep' },
+      { text: 'C', station: 'Rolls', section: 'Closing' },
+    ];
+    const result = buildTasksFromTemplate(entries, '2026-06-11', TPL_ID);
+    expect(result.every(r => r.day_template_id === TPL_ID)).toBe(true);
   });
 });

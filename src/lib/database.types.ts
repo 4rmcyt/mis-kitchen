@@ -696,6 +696,7 @@ export type Database = {
           created_at: string
           created_by: string
           date: string
+          day_template_id: string | null
           done: boolean
           done_at: string | null
           done_by: string | null
@@ -712,6 +713,7 @@ export type Database = {
           created_at?: string
           created_by: string
           date?: string
+          day_template_id?: string | null
           done?: boolean
           done_at?: string | null
           done_by?: string | null
@@ -728,6 +730,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           date?: string
+          day_template_id?: string | null
           done?: boolean
           done_at?: string | null
           done_by?: string | null
@@ -753,6 +756,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "todays_schedule"
             referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "tasks_day_template_id_fkey"
+            columns: ["day_template_id"]
+            isOneToOne: false
+            referencedRelation: "day_templates"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "tasks_done_by_fkey"

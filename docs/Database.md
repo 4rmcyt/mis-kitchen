@@ -40,7 +40,18 @@ Daily prep tasks.
 | date | date | |
 | done | boolean | |
 | source | text | manual / template / e2e |
-| template_id | uuid | nullable FK → day_templates |
+| template_id | uuid | nullable FK → templates (station-level template, rarely used) |
+| day_template_id | uuid | nullable FK → day_templates — set on all rows generated from a day template |
+
+**Idempotency:** day-template generation is idempotent via a partial unique index:
+
+```sql
+CREATE UNIQUE INDEX tasks_day_template_dedup
+  ON public.tasks (restaurant_id, date, day_template_id, station, section, text)
+  WHERE day_template_id IS NOT NULL;
+```
+
+`createTasksBatch` uses `upsert({ onConflict: 'restaurant_id,date,day_template_id,station,section,text', ignoreDuplicates: true })` so a concurrent second generation call no-ops instead of duplicating rows. Ad-hoc tasks (`day_template_id IS NULL`) are unaffected.
 
 ### recipes
 | Column | Type | Notes |
@@ -164,7 +175,7 @@ an UPDATE. Column-level enforcement:
 - **Admins / superadmins**: may update any column.
 - **Cooks**: may only change `done`, `done_at`, `done_by`, `comment`.
   Attempting to change `text`, `station`, `section`, `date`, `source`, `template_id`,
-  `restaurant_id`, or `created_by` raises a permission error.
+  `day_template_id`, `restaurant_id`, or `created_by` raises a permission error.
 - **done_by**: forced to `auth.uid()` or `NULL` for non-admins — prevents attributing
   completions to other users (which would corrupt `station_velocity` stats).
 

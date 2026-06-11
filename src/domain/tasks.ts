@@ -13,6 +13,7 @@ export interface TaskCreateInput {
   date: string;
   source?: 'manual' | 'template';
   template_id?: string | null;
+  day_template_id?: string | null;
 }
 
 /** Filter tasks by station: 'All' returns everything; any other station returns that station + Common. */
@@ -36,10 +37,11 @@ export function calcProgress(tasks: Task[]): TaskProgress {
   return { done, total, pct: total ? Math.round((done / total) * 100) : 0 };
 }
 
-/** Build the batch input rows from a template's entries for a given date. */
+/** Build the batch input rows from a day_template's entries for a given date. */
 export function buildTasksFromTemplate(
   entries: Array<{ text: string; station: string; section: string }>,
   date: string,
+  dayTemplateId: string,
 ): TaskCreateInput[] {
   return entries.map(e => ({
     text: e.text,
@@ -47,5 +49,6 @@ export function buildTasksFromTemplate(
     section: e.section,
     date,
     source: 'template' as const,
+    day_template_id: dayTemplateId,
   }));
 }
