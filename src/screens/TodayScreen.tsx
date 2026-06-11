@@ -33,10 +33,18 @@ export function TodayScreen({ userStation = 'Common', userRole }: { userStation?
   const [commentingId, setCommentingId] = useState<string | null>(null);
   const [commentText, setCommentText] = useState('');
 
-  const { filtered, bySection, progress, loading, experiment, improvements, selectedDate, toggle, addTask, saveComment, removeTask } =
+  const { tasks, bySection, progress, loading, experiment, improvements, selectedDate, toggle, addTask, saveComment, removeTask } =
     useTodayTasks(dateOffset, stationFilter);
 
   const isAdmin = userRole === 'admin' || userRole === 'superadmin';
+
+  // Scope nextShift to the cook's own station from the full task list,
+  // independent of the current view filter.
+  // TODO: replace with ownership-based scoping once that ticket ships.
+  const ownStation = userStation === 'All' ? null : userStation;
+  const nextShiftTasks = tasks
+    .filter((t: Task) => !t.done && (ownStation ? t.station === ownStation : true))
+    .map((t: Task) => t.text);
 
   const handleSaveComment = async (taskId: string) => {
     await saveComment(taskId, commentText);
@@ -173,7 +181,7 @@ export function TodayScreen({ userStation = 'Common', userRole }: { userStation?
             done: bySection[sec].filter((t: Task) => t.done).length,
             total: bySection[sec].length,
           }))}
-          nextShift={filtered.filter((t: Task) => !t.done).map((t: Task) => t.text)}
+          nextShift={nextShiftTasks}
           pct={progress.pct}
           done={progress.done}
           total={progress.total}
