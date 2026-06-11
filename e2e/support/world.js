@@ -69,6 +69,8 @@ setWorldConstructor(KitchenWorld);
 BeforeAll(async function () {
   await wipeE2EData().catch(() => {});
   await deleteTestUser(TEST_COOK_EMAIL).catch(() => {});
+  // Also purge the invite-onboarding test user in case a prior run's AfterAll was skipped.
+  await deleteTestUser('e2e-test-cook@mis-kitchen.test').catch(() => {});
   await createTestUser({ email: TEST_COOK_EMAIL, password: TEST_COOK_PASSWORD });
 });
 
