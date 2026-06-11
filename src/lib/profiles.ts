@@ -1,5 +1,21 @@
 import { supabase, q } from './client.js';
-import type { Profile } from './types.js';
+import type { Profile, Role, Station } from './types.js';
+
+export interface OnboardingState {
+  name: string | null;
+  role: Role;
+  password_set: boolean;
+  station: Station;
+}
+
+export async function getOnboardingState(userId: string): Promise<OnboardingState | null> {
+  const { data } = await supabase
+    .from('profiles')
+    .select('name, role, password_set, station')
+    .eq('id', userId)
+    .limit(1);
+  return (data?.[0] as OnboardingState | undefined) ?? null;
+}
 
 export async function getProfile(userId: string): Promise<Profile> {
   return q<Profile>(() => supabase.from("profiles").select("*").eq("id", userId).single());

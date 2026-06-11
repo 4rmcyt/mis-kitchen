@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase, signOut } from "./lib/supabase.js";
+import { signOut } from "./lib/supabase.js";
+import { getCurrentProfile } from "./lib/client.js";
 import { ROLE_COLORS, ROLE_LABELS } from "./lib/constants.js";
 import "./Admin.css";
 import { ToastContext, ToastContainer } from "./admin/components/Toast.js";
@@ -38,13 +39,12 @@ export default function Admin() {
   };
 
   useEffect(() => {
-    (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { navigate('/'); return; }
-      const { data } = await supabase.from('profiles').select('name,role').eq('id', user.id).single();
-      if (!data || (data.role !== 'admin' && data.role !== 'superadmin')) { navigate('/'); return; }
-      setMe(data as Me);
-    })();
+    getCurrentProfile()
+      .then(profile => {
+        if (profile.role !== 'admin' && profile.role !== 'superadmin') { navigate('/'); return; }
+        setMe({ name: profile.name, role: profile.role });
+      })
+      .catch(() => navigate('/'));
   }, []);
 
   const TABS = [

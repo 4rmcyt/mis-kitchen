@@ -128,7 +128,7 @@ export interface Shift {
 export interface ImprovementLog {
   id: string;
   restaurant_id: string;
-  posted_by: string;
+  author_id: string;
   text: string;
   created_at: string;
   profiles?: { name: string } | null;

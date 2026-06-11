@@ -100,23 +100,27 @@ Web Push subscriptions per device.
 Named task sets. `day_templates` is the parent, `templates` contains individual entries.
 
 ### shifts
-Weekly rota entries.
+Daily rota entries (one row per staff per day).
 
 | Column | Type | Notes |
 |---|---|---|
-| user_id | uuid | FK → auth.users |
-| restaurant_id | uuid | |
-| week_start | date | Monday of the week |
-| day | int | 0–6 (Mon–Sun) |
-| shift | text | morning / evening / off |
+| id | uuid | PK |
+| user_id | uuid | nullable FK → profiles |
+| restaurant_id | uuid | FK → restaurants |
+| date | date | calendar date of the shift |
+| start_time | time | nullable |
+| end_time | time | nullable |
+| station | text | nullable |
+| created_at | timestamptz | |
 
 ### improvement_logs
 Staff win records posted by admins.
 
 | Column | Type | Notes |
 |---|---|---|
-| restaurant_id | uuid | |
-| posted_by | uuid | FK → auth.users (admin) |
+| id | uuid | PK |
+| restaurant_id | uuid | FK → restaurants |
+| author_id | uuid | FK → profiles (admin) |
 | text | text | |
 | created_at | timestamptz | |
 
@@ -125,12 +129,22 @@ Temperature log entries.
 
 | Column | Type | Notes |
 |---|---|---|
-| user_id | uuid | FK → auth.users |
-| restaurant_id | uuid | |
-| item | text | what was measured |
+| id | uuid | PK |
+| user_id | uuid | FK → profiles |
+| restaurant_id | uuid | FK → restaurants |
+| station | text | |
 | temperature | numeric | |
-| unit | text | C / F |
-| logged_at | timestamptz | |
+| recorded_at | timestamptz | |
+
+### station_velocity (view)
+Aggregated task completion stats per station per day-of-week. Used by VelocityTab.
+Defined in migration `20260526235301` with `SECURITY INVOKER`.
+
+| Column | Type | Notes |
+|---|---|---|
+| station | text | |
+| dow | int | 0 = Sunday … 6 = Saturday (PostgreSQL EXTRACT) |
+| completed_count | bigint | count of completed tasks |
 
 ## Task Update Rules
 
