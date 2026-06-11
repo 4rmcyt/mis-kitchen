@@ -9,5 +9,5 @@ Feature: Improvement Log
 
   Scenario: Admin can post an improvement
     When I navigate to Admin Wins tab
-    And I post an improvement "Reduced opening checklist time by 5 minutes"
+    And I post an improvement "E2E Reduced opening checklist time by 5 minutes"
     Then I should see the improvement in the list

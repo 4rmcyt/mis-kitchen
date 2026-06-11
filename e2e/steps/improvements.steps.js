@@ -20,6 +20,6 @@ When('I post an improvement {string}', async function (text) {
 
 Then('I should see the improvement in the list', async function () {
   await expect(
-    this.page.locator('.log-list').getByText('Reduced opening checklist time by 5 minutes').first()
+    this.page.locator('.log-list').getByText('E2E Reduced opening checklist time by 5 minutes').first()
   ).toBeVisible({ timeout: 10_000 });
 });
