@@ -32,6 +32,8 @@ export interface Task {
   comment: string | null;
   source: TaskSource;
   template_id: string | null;
+  day_template_id: string | null;
+  assigned_to: string | null;
   created_at: string;
   profiles?: { name: string } | null;
 }
