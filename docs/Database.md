@@ -43,15 +43,17 @@ Daily prep tasks.
 | template_id | uuid | nullable FK → templates (station-level template, rarely used) |
 | day_template_id | uuid | nullable FK → day_templates — set on all rows generated from a day template |
 
-**Idempotency:** day-template generation is idempotent via a partial unique index:
+**Idempotency:** day-template generation is idempotent via a full unique constraint:
 
 ```sql
-CREATE UNIQUE INDEX tasks_day_template_dedup
-  ON public.tasks (restaurant_id, date, day_template_id, station, section, text)
-  WHERE day_template_id IS NOT NULL;
+ALTER TABLE public.tasks
+  ADD CONSTRAINT tasks_day_template_dedup
+  UNIQUE (restaurant_id, date, day_template_id, station, section, text);
 ```
 
-`createTasksBatch` uses `upsert({ onConflict: 'restaurant_id,date,day_template_id,station,section,text', ignoreDuplicates: true })` so a concurrent second generation call no-ops instead of duplicating rows. Ad-hoc tasks (`day_template_id IS NULL`) are unaffected.
+`createTasksBatch` uses `upsert({ onConflict: 'restaurant_id,date,day_template_id,station,section,text', ignoreDuplicates: true })` so a concurrent second generation call no-ops instead of duplicating rows.
+
+Ad-hoc tasks (`day_template_id IS NULL`) are **not** deduplicated — `NULL != NULL` in Postgres unique indexes, so two manual tasks with the same text on the same date pass through freely. Do **not** add `NULLS NOT DISTINCT` to this constraint.
 
 ### recipes
 | Column | Type | Notes |
