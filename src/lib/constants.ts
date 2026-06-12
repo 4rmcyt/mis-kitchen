@@ -14,9 +14,10 @@ export const STATION_COLORS: Record<string, string> = {
   Default: "#6B7280",
 };
 
-export const SECTIONS = ['Opening', 'Closing', 'Other'];
+export const SECTIONS = ['Prep', 'Opening', 'Closing', 'Other'];
 
 export const SECTION_COLORS: Record<string, string> = {
+  Prep:    '#D97706',
   Opening: '#F97316',
   Closing: '#6366F1',
   Other:   '#6B7280',
