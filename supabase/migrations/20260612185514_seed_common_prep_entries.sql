@@ -9,7 +9,7 @@ SET entries = entries || '[
   {"text": "Orange Chutney",   "station": "Common", "section": "Prep"},
   {"text": "Hari Chutney",     "station": "Common", "section": "Prep"},
   {"text": "Rice",             "station": "Common", "section": "Prep"},
-  {"text": "Chicken x3",       "station": "Common", "section": "Prep"},
+  {"text": "Chicken Tandoori 3 trays", "station": "Common", "section": "Prep"},
   {"text": "Chili Oil",        "station": "Common", "section": "Prep"},
   {"text": "Egg Mix",          "station": "Common", "section": "Prep"},
   {"text": "Lamb Warm",        "station": "Common", "section": "Prep"},
