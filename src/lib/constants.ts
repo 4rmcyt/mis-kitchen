@@ -1,3 +1,4 @@
+// NOTE: tasks_station_valid CHECK constraint mirrors this list — update both together (migration 20260615181436).
 export const STATIONS = ["Common", "Garmo", "Rolls", "Pans", "Grill", "Tandoor"];
 
 // Single-tenant: CCC is in Calgary. Switch to per-restaurant column when multi-tenant ships (Roadmap #62).
@@ -14,6 +15,7 @@ export const STATION_COLORS: Record<string, string> = {
   Default: "#6B7280",
 };
 
+// NOTE: tasks_section_valid CHECK constraint mirrors this list — update both together (migration 20260615181436).
 export const SECTIONS = ['Prep', 'Opening', 'Closing', 'Other'];
 
 export const SECTION_COLORS: Record<string, string> = {

@@ -35,8 +35,8 @@ Daily prep tasks.
 | Column | Type | Notes |
 |---|---|---|
 | text | text | |
-| station | text | |
-| section | text | Opening / Closing / Other |
+| station | text | Common / Garmo / Rolls / Pans / Grill / Tandoor — enforced by `tasks_station_valid` CHECK |
+| section | text | Prep / Opening / Closing / Other — enforced by `tasks_section_valid` CHECK |
 | date | date | |
 | done | boolean | |
 | source | text | manual / template / e2e |
@@ -158,6 +158,17 @@ Defined in migration `20260526235301` with `SECURITY INVOKER`.
 | station | text | |
 | dow | int | 0 = Sunday … 6 = Saturday (PostgreSQL EXTRACT) |
 | completed_count | bigint | count of completed tasks |
+
+## Task Constraints
+
+### CHECK constraints (migration `20260615181436`)
+
+```sql
+tasks_station_valid: station IN ('Common','Garmo','Rolls','Pans','Grill','Tandoor')
+tasks_section_valid: section IN ('Prep','Opening','Closing','Other')
+```
+
+These mirror `STATIONS` and `SECTIONS` in `src/lib/constants.ts`. If either list changes, update the CHECK constraint in a new migration. `day_templates.entries` (JSONB) is intentionally not constrained — CHECK on JSONB is impractical.
 
 ## Task Integrity Rules
 
