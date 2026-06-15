@@ -1,14 +1,7 @@
-import * as Sentry from '@sentry/react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-
-Sentry.init({
-  dsn: import.meta.env.VITE_SENTRY_DSN,
-  environment: import.meta.env.MODE,
-  tracesSampleRate: 0.2,
-  replaysOnErrorSampleRate: 0,
-})
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, Component } from 'react'
+import type { ReactNode } from 'react'
 import { getSession } from './lib/supabase.js'
 import { useAuth } from './hooks/useAuth.js'
 import App from './App.js'
@@ -20,6 +13,30 @@ import JoinPage from './JoinPage.js'
 const Admin = lazy(() => import('./Admin.js'))
 import type { Session, User } from '@supabase/supabase-js'
 import type { Role, Station } from './lib/types.js'
+
+// Sentry is deferred — errors in the first moments before init are not captured (accepted tradeoff).
+// Static import would add ~86 kB / ~29 kB gzip to the critical path; dynamic import fires post-render.
+setTimeout(() => {
+  import('@sentry/react').then(Sentry => {
+    Sentry.init({
+      dsn: import.meta.env.VITE_SENTRY_DSN,
+      environment: import.meta.env.MODE,
+      tracesSampleRate: 0.2,
+      replaysOnErrorSampleRate: 0,
+    })
+  })
+}, 0)
+
+// Minimal error boundary that does not depend on Sentry being loaded.
+class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  state = { hasError: false }
+  static getDerivedStateFromError() { return { hasError: true } }
+  render() {
+    if (this.state.hasError)
+      return <div style={{ padding: 32, color: '#fff' }}>Something went wrong. Please refresh the page.</div>
+    return this.props.children
+  }
+}
 
 function Root() {
   const {
@@ -103,7 +120,7 @@ function RootRoutes({ session, userId, userRole, userStation, needsPasswordReset
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <Sentry.ErrorBoundary fallback={<div style={{ padding: 32, color: '#fff' }}>Something went wrong. Please refresh the page.</div>}>
+  <ErrorBoundary>
     <Root />
-  </Sentry.ErrorBoundary>
+  </ErrorBoundary>
 )
