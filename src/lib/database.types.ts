@@ -360,6 +360,44 @@ export type Database = {
           },
         ]
       }
+      prep_items: {
+        Row: {
+          active: boolean
+          created_at: string
+          default_quantity: number | null
+          id: string
+          name: string
+          restaurant_id: string
+          station: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          default_quantity?: number | null
+          id?: string
+          name: string
+          restaurant_id: string
+          station?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          default_quantity?: number | null
+          id?: string
+          name?: string
+          restaurant_id?: string
+          station?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prep_items_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           active: boolean | null
@@ -702,6 +740,8 @@ export type Database = {
           done_at: string | null
           done_by: string | null
           id: string
+          prep_item_id: string | null
+          quantity: number | null
           restaurant_id: string
           section: string
           source: string
@@ -720,6 +760,8 @@ export type Database = {
           done_at?: string | null
           done_by?: string | null
           id?: string
+          prep_item_id?: string | null
+          quantity?: number | null
           restaurant_id: string
           section?: string
           source?: string
@@ -738,6 +780,8 @@ export type Database = {
           done_at?: string | null
           done_by?: string | null
           id?: string
+          prep_item_id?: string | null
+          quantity?: number | null
           restaurant_id?: string
           section?: string
           source?: string
@@ -794,6 +838,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "todays_schedule"
             referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "tasks_prep_item_id_fkey"
+            columns: ["prep_item_id"]
+            isOneToOne: false
+            referencedRelation: "prep_items"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "tasks_restaurant_id_fkey"
@@ -985,13 +1036,13 @@ export type Tables<
     : never
   : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
         DefaultSchema["Views"])
-  ? (DefaultSchema["Tables"] &
-      DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-      Row: infer R
-    }
-    ? R
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
     : never
-  : never
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
@@ -1011,12 +1062,12 @@ export type TablesInsert<
     ? I
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-      Insert: infer I
-    }
-    ? I
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
     : never
-  : never
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
@@ -1036,12 +1087,12 @@ export type TablesUpdate<
     ? U
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-      Update: infer U
-    }
-    ? U
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
     : never
-  : never
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
@@ -1057,8 +1108,8 @@ export type Enums<
 }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-  ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-  : never
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
@@ -1074,8 +1125,8 @@ export type CompositeTypes<
 }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-  ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-  : never
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
 
 export const Constants = {
   public: {
