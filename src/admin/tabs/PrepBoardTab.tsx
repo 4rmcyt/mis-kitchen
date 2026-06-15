@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import { usePrepBoard } from '../../hooks/features/usePrepBoard.js';
 import { useToast } from '../components/Toast.js';
 import type { Task, Profile } from '../../lib/types.js';
@@ -22,7 +22,7 @@ export function PrepBoardTab() {
     }
   }
 
-  async function handleAdd(e: React.FormEvent) {
+  async function handleAdd(e: FormEvent) {
     e.preventDefault();
     const text = newText.trim();
     if (!text) return;
@@ -41,17 +41,14 @@ export function PrepBoardTab() {
   if (error)   return <div className="prep-board-error">{error}</div>;
 
   const unassigned = tasks.filter(t => !t.assigned_to);
-  const assigned   = tasks.filter(t =>  t.assigned_to);
 
-  const assigneePeople = people.filter(p => assigned.some(t => t.assigned_to === p.id));
-  const otherPeople    = people.filter(p => !assigneePeople.find(a => a.id === p.id));
 
   return (
     <div className="prep-board">
       {/* Instruction bar */}
       <div className="prep-board-hint">
         {selected
-          ? <><strong>"{selectedTask?.text}"</strong> — tap a person to assign, or tap <button className="prep-unassign-btn" onClick={() => setSelected(null)}>cancel</button></>
+          ? <><strong>&quot;{selectedTask?.text}&quot;</strong> — tap a person to assign, or tap <button className="prep-unassign-btn" onClick={() => setSelected(null)}>cancel</button></>
           : 'Tap a task to select it, then tap a person to assign.'}
       </div>
 
