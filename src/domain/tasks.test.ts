@@ -17,6 +17,8 @@ function makeTask(overrides: Partial<Task> = {}): Task {
     comment: null,
     source: 'manual',
     template_id: null,
+    day_template_id: null,
+    assigned_to: null,
     created_at: '2026-06-01T00:00:00Z',
     ...overrides,
   };

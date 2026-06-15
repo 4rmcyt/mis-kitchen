@@ -14,6 +14,7 @@ import { PushTab } from "./admin/tabs/PushTab.js";
 import { VelocityTab } from "./admin/tabs/VelocityTab.js";
 import { ImprovementsTab } from "./admin/tabs/ImprovementsTab.js";
 import { RotaTab } from "./admin/tabs/RotaTab.js";
+import { PrepBoardTab } from "./admin/tabs/PrepBoardTab.js";
 import type { Role } from "./lib/types.js";
 
 interface Me {
@@ -49,6 +50,7 @@ export default function Admin() {
 
   const TABS = [
     { id:'people',       label:'People',   icon:'👥' },
+    { id:'prep',         label:'Prep',     icon:'📋' },
     { id:'tasks',        label:'Tasks',    icon:'✓'  },
     { id:'recipes',      label:'Recipes',  icon:'⚗'  },
     { id:'reports',      label:'Reports',  icon:'📊' },
@@ -104,6 +106,7 @@ export default function Admin() {
         </div>
 
         {tab === 'people'       && <PeopleTab/>}
+        {tab === 'prep'         && <PrepBoardTab/>}
         {tab === 'tasks'        && <TasksTab/>}
         {tab === 'recipes'      && <RecipesTab/>}
         {tab === 'reports'      && <ReportsTab/>}

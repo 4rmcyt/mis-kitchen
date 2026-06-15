@@ -42,6 +42,24 @@ export async function updateTask(id: string, updates: Partial<Task>): Promise<Ta
   );
 }
 
+export async function assignTask(id: string, userId: string | null): Promise<Task> {
+  return q(() =>
+    supabase.from("tasks").update({ assigned_to: userId }).eq("id", id).select().single()
+  );
+}
+
+export async function getUnassignedCommonTasks(date: string): Promise<Task[]> {
+  return q(() =>
+    supabase.from("tasks")
+      .select("*")
+      .eq("date", date)
+      .eq("station", "Common")
+      .is("assigned_to", null)
+      .order("section")
+      .order("created_at")
+  );
+}
+
 export async function deleteTask(id: string): Promise<null> {
   return q(() => supabase.from("tasks").delete().eq("id", id));
 }
