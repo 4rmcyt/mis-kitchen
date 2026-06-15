@@ -41,7 +41,7 @@ export function TodayScreen({ userStation = 'Common', userRole, userId = null }:
 
   const ownedTasks = userId
     ? selectOwnedTasks(tasks, { id: userId, station: userStation as Station | null })
-    : tasks;
+    : [];
   const nextShiftTasks = ownedTasks.filter((t: Task) => !t.done).map((t: Task) => t.text);
 
   const handleSaveComment = async (taskId: string) => {
