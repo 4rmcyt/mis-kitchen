@@ -17,6 +17,7 @@ const VelocityTab     = lazy(() => import("./admin/tabs/VelocityTab.js").then(m 
 const ImprovementsTab = lazy(() => import("./admin/tabs/ImprovementsTab.js").then(m => ({ default: m.ImprovementsTab })))
 const RotaTab         = lazy(() => import("./admin/tabs/RotaTab.js").then(m => ({ default: m.RotaTab })))
 const PrepBoardTab    = lazy(() => import("./admin/tabs/PrepBoardTab.js").then(m => ({ default: m.PrepBoardTab })))
+const PrepItemsTab    = lazy(() => import("./admin/tabs/PrepItemsTab.js").then(m => ({ default: m.PrepItemsTab })))
 
 interface Me {
   name: string | null;
@@ -50,9 +51,10 @@ export default function Admin() {
   }, []);
 
   const TABS = [
-    { id:'people',       label:'People',   icon:'👥' },
-    { id:'prep',         label:'Prep',     icon:'📋' },
-    { id:'tasks',        label:'Tasks',    icon:'✓'  },
+    { id:'people',       label:'People',     icon:'👥' },
+    { id:'prep',         label:'Prep',       icon:'📋' },
+    { id:'prep-items',   label:'Prep Items', icon:'🗂'  },
+    { id:'tasks',        label:'Tasks',      icon:'✓'  },
     { id:'recipes',      label:'Recipes',  icon:'⚗'  },
     { id:'reports',      label:'Reports',  icon:'📊' },
     { id:'velocity',     label:'Velocity', icon:'📈' },
@@ -109,6 +111,7 @@ export default function Admin() {
         <Suspense fallback={<div className="loading-msg">Loading…</div>}>
           {tab === 'people'       && <PeopleTab/>}
           {tab === 'prep'         && <PrepBoardTab/>}
+          {tab === 'prep-items'   && <PrepItemsTab/>}
           {tab === 'tasks'        && <TasksTab/>}
           {tab === 'recipes'      && <RecipesTab/>}
           {tab === 'reports'      && <ReportsTab/>}
