@@ -9,7 +9,7 @@ import { TempScreen } from "./screens/TempScreen.js";
 import { TimerScreen } from "./screens/TimerScreen.js";
 import type { Role, Station } from "./lib/types.js";
 
-export default function App({ userRole, userStation = 'Common' }: { userRole: Role | null; userStation?: Station | string }) {
+export default function App({ userRole, userStation = 'Common', userId = null }: { userRole: Role | null; userStation?: Station | string; userId?: string | null }) {
   const [tab, setTab] = useState('today');
   const navigate = useNavigate();
 
@@ -34,7 +34,7 @@ export default function App({ userRole, userStation = 'Common' }: { userRole: Ro
           </div>
         </header>
         <main className="app-main">
-          {tab==='today' && <TodayScreen userStation={userStation} userRole={userRole}/>}
+          {tab==='today' && <TodayScreen userStation={userStation} userRole={userRole} userId={userId}/>}
           {tab==='lineup' && <LineupScreen/>}
           {tab==='recipes' && <RecipesScreen/>}
           {tab==='temp' && <TempScreen/>}

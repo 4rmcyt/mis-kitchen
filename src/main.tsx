@@ -22,6 +22,7 @@ import type { Role, Station } from './lib/types.js'
 function Root() {
   const {
     session,
+    userId,
     userRole,
     userStation,
     needsOnboarding,
@@ -38,6 +39,7 @@ function Root() {
     <BrowserRouter>
       <RootRoutes
         session={session}
+        userId={userId}
         userRole={userRole}
         userStation={userStation}
         needsPasswordReset={needsPasswordReset}
@@ -53,6 +55,7 @@ function Root() {
 
 interface RootRoutesProps {
   session: Session | null;
+  userId: string | null;
   userRole: Role | null;
   userStation: Station | string;
   needsPasswordReset: boolean;
@@ -63,7 +66,7 @@ interface RootRoutesProps {
   setSession: (s: Session | null) => void;
 }
 
-function RootRoutes({ session, userRole, userStation, needsPasswordReset, setNeedsPasswordReset, needsOnboarding, setNeedsOnboarding, checkOnboarding, setSession }: RootRoutesProps) {
+function RootRoutes({ session, userId, userRole, userStation, needsPasswordReset, setNeedsPasswordReset, needsOnboarding, setNeedsOnboarding, checkOnboarding, setSession }: RootRoutesProps) {
   return (
     <Routes>
       <Route path="/join/:token" element={<JoinPage />} />
@@ -87,9 +90,9 @@ function RootRoutes({ session, userRole, userStation, needsPasswordReset, setNee
             <Route path="/admin/*" element={
               (userRole === 'admin' || userRole === 'superadmin')
                 ? <Admin />
-                : <App userRole={userRole} userStation={userStation} />
+                : <App userRole={userRole} userStation={userStation} userId={userId} />
             } />
-            <Route path="/*" element={<App userRole={userRole} userStation={userStation} />} />
+            <Route path="/*" element={<App userRole={userRole} userStation={userStation} userId={userId} />} />
           </Routes>
         )
       } />

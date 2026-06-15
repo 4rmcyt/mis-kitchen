@@ -3,6 +3,7 @@ import { STATIONS, STATION_COLORS, SECTIONS, SECTION_COLORS } from "../lib/const
 import { AddTaskModal } from "../components/AddTaskModal.js";
 import { ReportModal } from "../components/ReportModal.js";
 import { useTodayTasks } from "../hooks/features/useTodayTasks.js";
+import { selectOwnedTasks } from "../domain/ownership.js";
 import type { Task, Role, Station } from "../lib/types.js";
 
 function CheckIcon() {
@@ -25,7 +26,7 @@ function formatDateLabel(isoDate: string) {
   return new Date(isoDate + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
-export function TodayScreen({ userStation = 'Common', userRole }: { userStation?: Station | string; userRole: Role | null }) {
+export function TodayScreen({ userStation = 'Common', userRole, userId = null }: { userStation?: Station | string; userRole: Role | null; userId?: string | null }) {
   const [dateOffset, setDateOffset] = useState(0);
   const [stationFilter, setStationFilter] = useState('All');
   const [showAddTask, setShowAddTask] = useState(false);
@@ -38,13 +39,10 @@ export function TodayScreen({ userStation = 'Common', userRole }: { userStation?
 
   const isAdmin = userRole === 'admin' || userRole === 'superadmin';
 
-  // Scope nextShift to the cook's own station from the full task list,
-  // independent of the current view filter.
-  // TODO: replace with ownership-based scoping once that ticket ships.
-  const ownStation = userStation === 'All' ? null : userStation;
-  const nextShiftTasks = tasks
-    .filter((t: Task) => !t.done && (ownStation ? t.station === ownStation : true))
-    .map((t: Task) => t.text);
+  const ownedTasks = userId
+    ? selectOwnedTasks(tasks, { id: userId, station: userStation as Station | null })
+    : tasks;
+  const nextShiftTasks = ownedTasks.filter((t: Task) => !t.done).map((t: Task) => t.text);
 
   const handleSaveComment = async (taskId: string) => {
     await saveComment(taskId, commentText);
@@ -173,23 +171,31 @@ export function TodayScreen({ userStation = 'Common', userRole }: { userStation?
       })}
 
       {showAddTask && <AddTaskModal userStation={stationFilter !== 'All' ? stationFilter : userStation} onSave={addTask} onClose={() => setShowAddTask(false)}/>}
-      {showReport && (
-        <ReportModal
-          sections={SECTIONS.map(sec => ({
-            name: sec,
-            items: bySection[sec].map((t: Task) => ({ text: t.text, done: t.done })),
-            done: bySection[sec].filter((t: Task) => t.done).length,
-            total: bySection[sec].length,
-          }))}
-          nextShift={nextShiftTasks}
-          pct={progress.pct}
-          done={progress.done}
-          total={progress.total}
-          date={dateStr(dateOffset)}
-          experiment={experiment}
-          onClose={() => setShowReport(false)}
-        />
-      )}
+      {showReport && (() => {
+        const reportDone  = ownedTasks.filter((t: Task) => t.done).length;
+        const reportTotal = ownedTasks.length;
+        const reportPct   = reportTotal > 0 ? Math.round((reportDone / reportTotal) * 100) : 0;
+        return (
+          <ReportModal
+            sections={SECTIONS.map(sec => {
+              const sec_tasks = ownedTasks.filter((t: Task) => t.section === sec);
+              return {
+                name: sec,
+                items: sec_tasks.map((t: Task) => ({ text: t.text, done: t.done })),
+                done: sec_tasks.filter((t: Task) => t.done).length,
+                total: sec_tasks.length,
+              };
+            })}
+            nextShift={nextShiftTasks}
+            pct={reportPct}
+            done={reportDone}
+            total={reportTotal}
+            date={dateStr(dateOffset)}
+            experiment={experiment}
+            onClose={() => setShowReport(false)}
+          />
+        );
+      })()}
     </div>
   );
 }

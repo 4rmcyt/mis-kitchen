@@ -15,6 +15,7 @@ export function useAuth() {
   const [session, setSession] = useState<Session | null | undefined>(undefined);
   const [userRole, setUserRole] = useState<Role | null>(null);
   const [userStation, setUserStation] = useState<Station | string>('Common');
+  const userId = session?.user?.id ?? null;
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [needsPasswordReset, setNeedsPasswordReset] = useState(false);
 
@@ -58,5 +59,5 @@ export function useAuth() {
     return () => subscription.unsubscribe();
   }, []);
 
-  return { session, userRole, userStation, needsOnboarding, needsPasswordReset, setNeedsOnboarding, setNeedsPasswordReset, checkOnboarding, setSession };
+  return { session, userId, userRole, userStation, needsOnboarding, needsPasswordReset, setNeedsOnboarding, setNeedsPasswordReset, checkOnboarding, setSession };
 }
