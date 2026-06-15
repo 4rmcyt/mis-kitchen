@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { signOut } from "./lib/supabase.js";
 import { getCurrentProfile } from "./lib/client.js";
@@ -6,16 +6,17 @@ import { ROLE_COLORS, ROLE_LABELS } from "./lib/constants.js";
 import "./Admin.css";
 import { ToastContext, ToastContainer } from "./admin/components/Toast.js";
 import { Avatar } from "./admin/components/Avatar.js";
-import { PeopleTab } from "./admin/tabs/PeopleTab.js";
-import { TasksTab } from "./admin/tabs/TasksTab.js";
-import { RecipesTab } from "./admin/tabs/RecipesTab.js";
-import { ReportsTab } from "./admin/tabs/ReportsTab.js";
-import { PushTab } from "./admin/tabs/PushTab.js";
-import { VelocityTab } from "./admin/tabs/VelocityTab.js";
-import { ImprovementsTab } from "./admin/tabs/ImprovementsTab.js";
-import { RotaTab } from "./admin/tabs/RotaTab.js";
-import { PrepBoardTab } from "./admin/tabs/PrepBoardTab.js";
 import type { Role } from "./lib/types.js";
+
+const PeopleTab       = lazy(() => import("./admin/tabs/PeopleTab.js").then(m => ({ default: m.PeopleTab })))
+const TasksTab        = lazy(() => import("./admin/tabs/TasksTab.js").then(m => ({ default: m.TasksTab })))
+const RecipesTab      = lazy(() => import("./admin/tabs/RecipesTab.js").then(m => ({ default: m.RecipesTab })))
+const ReportsTab      = lazy(() => import("./admin/tabs/ReportsTab.js").then(m => ({ default: m.ReportsTab })))
+const PushTab         = lazy(() => import("./admin/tabs/PushTab.js").then(m => ({ default: m.PushTab })))
+const VelocityTab     = lazy(() => import("./admin/tabs/VelocityTab.js").then(m => ({ default: m.VelocityTab })))
+const ImprovementsTab = lazy(() => import("./admin/tabs/ImprovementsTab.js").then(m => ({ default: m.ImprovementsTab })))
+const RotaTab         = lazy(() => import("./admin/tabs/RotaTab.js").then(m => ({ default: m.RotaTab })))
+const PrepBoardTab    = lazy(() => import("./admin/tabs/PrepBoardTab.js").then(m => ({ default: m.PrepBoardTab })))
 
 interface Me {
   name: string | null;
@@ -105,15 +106,17 @@ export default function Admin() {
           </div>
         </div>
 
-        {tab === 'people'       && <PeopleTab/>}
-        {tab === 'prep'         && <PrepBoardTab/>}
-        {tab === 'tasks'        && <TasksTab/>}
-        {tab === 'recipes'      && <RecipesTab/>}
-        {tab === 'reports'      && <ReportsTab/>}
-        {tab === 'velocity'     && <VelocityTab/>}
-        {tab === 'improvements' && <ImprovementsTab/>}
-        {tab === 'rota'         && <RotaTab/>}
-        {tab === 'push'         && <PushTab/>}
+        <Suspense fallback={<div className="loading-msg">Loading…</div>}>
+          {tab === 'people'       && <PeopleTab/>}
+          {tab === 'prep'         && <PrepBoardTab/>}
+          {tab === 'tasks'        && <TasksTab/>}
+          {tab === 'recipes'      && <RecipesTab/>}
+          {tab === 'reports'      && <ReportsTab/>}
+          {tab === 'velocity'     && <VelocityTab/>}
+          {tab === 'improvements' && <ImprovementsTab/>}
+          {tab === 'rota'         && <RotaTab/>}
+          {tab === 'push'         && <PushTab/>}
+        </Suspense>
       </main>
 
       <nav className="admin-bottom-nav">

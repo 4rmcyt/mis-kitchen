@@ -1,13 +1,14 @@
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { signOut } from "./lib/supabase.js";
 import "./App.css";
 import { TodayScreen } from "./screens/TodayScreen.js";
-import { RecipesScreen } from "./screens/RecipesScreen.js";
-import { LineupScreen } from "./screens/LineupScreen.js";
-import { TempScreen } from "./screens/TempScreen.js";
-import { TimerScreen } from "./screens/TimerScreen.js";
 import type { Role, Station } from "./lib/types.js";
+
+const RecipesScreen = lazy(() => import("./screens/RecipesScreen.js").then(m => ({ default: m.RecipesScreen })))
+const LineupScreen  = lazy(() => import("./screens/LineupScreen.js").then(m => ({ default: m.LineupScreen })))
+const TempScreen    = lazy(() => import("./screens/TempScreen.js").then(m => ({ default: m.TempScreen })))
+const TimerScreen   = lazy(() => import("./screens/TimerScreen.js").then(m => ({ default: m.TimerScreen })))
 
 export default function App({ userRole, userStation = 'Common', userId = null }: { userRole: Role | null; userStation?: Station | string; userId?: string | null }) {
   const [tab, setTab] = useState('today');
@@ -35,10 +36,12 @@ export default function App({ userRole, userStation = 'Common', userId = null }:
         </header>
         <main className="app-main">
           {tab==='today' && <TodayScreen userStation={userStation} userRole={userRole} userId={userId}/>}
-          {tab==='lineup' && <LineupScreen/>}
-          {tab==='recipes' && <RecipesScreen/>}
-          {tab==='temp' && <TempScreen/>}
-          {tab==='timers' && <TimerScreen/>}
+          <Suspense fallback={<div className="loading-msg">Loading…</div>}>
+            {tab==='lineup'  && <LineupScreen/>}
+            {tab==='recipes' && <RecipesScreen/>}
+            {tab==='temp'    && <TempScreen/>}
+            {tab==='timers'  && <TimerScreen/>}
+          </Suspense>
         </main>
         <nav className="bottom-nav">
           <button className={`nav-btn ${tab==='today'?'active':''}`} onClick={() => setTab('today')}>

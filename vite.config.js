@@ -10,10 +10,17 @@ export default defineConfig({
   plugins: [react()],
   build: {
     outDir: 'dist',
-    // Ensure SW and manifest are copied to dist
     rollupOptions: {
       input: {
         main: 'index.html',
+      },
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules/@sentry')) return 'vendor-sentry'
+          if (id.includes('node_modules/@supabase')) return 'vendor-supabase'
+          if (id.includes('node_modules/react-dom')) return 'vendor-react'
+          if (id.includes('node_modules/react-router')) return 'vendor-router'
+        },
       },
     },
   },

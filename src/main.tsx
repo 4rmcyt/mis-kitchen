@@ -8,14 +8,16 @@ Sentry.init({
   tracesSampleRate: 0.2,
   replaysOnErrorSampleRate: 0,
 })
+import { lazy, Suspense } from 'react'
 import { getSession } from './lib/supabase.js'
 import { useAuth } from './hooks/useAuth.js'
 import App from './App.js'
-import Admin from './Admin.js'
 import Login from './Login.js'
 import Onboarding from './Onboarding.js'
 import ResetPassword from './ResetPassword.js'
 import JoinPage from './JoinPage.js'
+
+const Admin = lazy(() => import('./Admin.js'))
 import type { Session, User } from '@supabase/supabase-js'
 import type { Role, Station } from './lib/types.js'
 
@@ -89,7 +91,7 @@ function RootRoutes({ session, userId, userRole, userStation, needsPasswordReset
           <Routes>
             <Route path="/admin/*" element={
               (userRole === 'admin' || userRole === 'superadmin')
-                ? <Admin />
+                ? <Suspense fallback={<div className="loading-msg">Loading…</div>}><Admin /></Suspense>
                 : <App userRole={userRole} userStation={userStation} userId={userId} />
             } />
             <Route path="/*" element={<App userRole={userRole} userStation={userStation} userId={userId} />} />
