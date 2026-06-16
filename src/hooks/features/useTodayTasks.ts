@@ -82,7 +82,9 @@ export function useTodayTasks(dateOffset: number, stationFilter: string) {
     } catch { /* noop — caller shows no feedback by design */ }
   };
 
-  const filtered = filterByStation(tasks, stationFilter);
+  // Prep section is shown on the dedicated PrepScreen, not Today
+  const todayTasks = tasks.filter(t => t.section !== 'Prep');
+  const filtered = filterByStation(todayTasks, stationFilter);
   const bySection = groupBySection(filtered, SECTIONS);
   const progress = calcProgress(filtered);
 

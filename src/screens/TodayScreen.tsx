@@ -118,7 +118,7 @@ export function TodayScreen({ userStation = 'Common', userRole, userId = null }:
         </div>
       )}
 
-      {!loading && SECTIONS.map(sec => {
+      {!loading && SECTIONS.filter(sec => sec !== 'Prep').map(sec => {
         const items = bySection[sec];
         if (!items.length) return null;
         const doneCnt = items.filter((t: Task) => t.done).length;
