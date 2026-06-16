@@ -34,6 +34,8 @@ export interface Task {
   template_id: string | null;
   day_template_id: string | null;
   assigned_to: string | null;
+  prep_item_id: string | null;
+  quantity: number | null;
   created_at: string;
   profiles?: { name: string } | null;
 }

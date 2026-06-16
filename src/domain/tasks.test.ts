@@ -19,6 +19,8 @@ function makeTask(overrides: Partial<Task> = {}): Task {
     template_id: null,
     day_template_id: null,
     assigned_to: null,
+    prep_item_id: null,
+    quantity: null,
     created_at: '2026-06-01T00:00:00Z',
     ...overrides,
   };
@@ -128,5 +130,28 @@ describe('buildTasksFromTemplate', () => {
     ];
     const result = buildTasksFromTemplate(entries, '2026-06-11', TPL_ID);
     expect(result.every(r => r.day_template_id === TPL_ID)).toBe(true);
+  });
+
+  it('carries prep_item_id and seeds quantity from default_quantity for Common/Prep entries', () => {
+    const PREP_ID = 'bbbbbbbb-0000-0000-0000-000000000002';
+    const entries = [
+      { text: 'Cut Potato', station: 'Common', section: 'Prep', prep_item_id: PREP_ID, default_quantity: 5 },
+      { text: 'Chicken Tandoori', station: 'Common', section: 'Prep', prep_item_id: PREP_ID, default_quantity: null },
+    ];
+    const result = buildTasksFromTemplate(entries, '2026-06-15', TPL_ID);
+    expect(result[0].prep_item_id).toBe(PREP_ID);
+    expect(result[0].quantity).toBe(5);
+    expect(result[1].prep_item_id).toBe(PREP_ID);
+    expect(result[1].quantity).toBeNull();
+  });
+
+  it('leaves prep_item_id and quantity null for station-checklist entries', () => {
+    const entries = [
+      { text: 'Clean grill', station: 'Grill', section: 'Opening' },
+      { text: 'Wrap sauces', station: 'Grill', section: 'Closing' },
+    ];
+    const result = buildTasksFromTemplate(entries, '2026-06-15', TPL_ID);
+    expect(result.every(r => r.prep_item_id === null)).toBe(true);
+    expect(result.every(r => r.quantity === null)).toBe(true);
   });
 });

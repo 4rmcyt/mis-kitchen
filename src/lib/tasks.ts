@@ -20,7 +20,7 @@ export async function createTask({ text, station, section, date, source = "manua
   );
 }
 
-export async function createTasksBatch(tasks: Array<{ text: string; station: Station; section: string; date: string; source?: string; template_id?: string | null }>): Promise<Task[]> {
+export async function createTasksBatch(tasks: Array<{ text: string; station: Station; section: string; date: string; source?: string; template_id?: string | null; day_template_id?: string | null; prep_item_id?: string | null; quantity?: number | null }>): Promise<Task[]> {
   const profile = await getCurrentProfile();
   const rows = tasks.map(t => ({
     ...t,

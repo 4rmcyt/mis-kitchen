@@ -14,6 +14,8 @@ export interface TaskCreateInput {
   source?: 'manual' | 'template';
   template_id?: string | null;
   day_template_id?: string | null;
+  prep_item_id?: string | null;
+  quantity?: number | null;
 }
 
 /** Filter tasks by station: 'All' returns everything; any other station returns that station + Common. */
@@ -37,9 +39,11 @@ export function calcProgress(tasks: Task[]): TaskProgress {
   return { done, total, pct: total ? Math.round((done / total) * 100) : 0 };
 }
 
-/** Build the batch input rows from a day_template's entries for a given date. */
+/** Build the batch input rows from a day_template's entries for a given date.
+ *  Common/Prep entries carry prep_item_id and quantity seeded from default_quantity.
+ *  Station-checklist entries (Opening/Closing) leave those fields null. */
 export function buildTasksFromTemplate(
-  entries: Array<{ text: string; station: string; section: string }>,
+  entries: Array<{ text: string; station: string; section: string; prep_item_id?: string | null; default_quantity?: number | null }>,
   date: string,
   dayTemplateId: string,
 ): TaskCreateInput[] {
@@ -50,5 +54,7 @@ export function buildTasksFromTemplate(
     date,
     source: 'template' as const,
     day_template_id: dayTemplateId,
+    prep_item_id: e.prep_item_id ?? null,
+    quantity: e.default_quantity ?? null,
   }));
 }
