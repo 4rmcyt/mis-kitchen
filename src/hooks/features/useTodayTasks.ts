@@ -32,12 +32,18 @@ export function useTodayTasks(dateOffset: number, stationFilter: string) {
     setLoading(true);
     getTasks(selectedDate).then(async (rows: Task[]) => {
       if (cancelled) return;
-      if (rows && rows.length > 0) {
+
+      // Only skip generation when today already has prep tasks (prep_item_id set).
+      // Non-prep tasks existing is not sufficient — prep generation must still run
+      // so prep tasks get prep_item_id seeded from the catalog.
+      const hasPrepTasks = rows.some(r => r.section === 'Prep');
+
+      if (hasPrepTasks) {
         setTasks(rows);
         return;
       }
       if (selectedDate !== dateStr(0)) {
-        setTasks([]);
+        setTasks(rows);
         return;
       }
       const [tpl, prepMap] = await Promise.all([
@@ -46,13 +52,12 @@ export function useTodayTasks(dateOffset: number, stationFilter: string) {
       ]);
       if (cancelled) return;
       if (!tpl || !tpl.entries?.length) {
-        setTasks([]);
+        setTasks(rows);
         return;
       }
       // Enrich entries that carry prep_item_id with current default_quantity from the
-      // catalog. The upsert is idempotent (ignoreDuplicates), so if a task already exists
-      // for the day, the quantity stays as-is — changing the catalog default does NOT
-      // retro-update today's already-generated tasks (only tomorrow's picks it up).
+      // catalog. The upsert is idempotent (ignoreDuplicates), so existing non-prep
+      // tasks are not duplicated and existing prep tasks keep their quantity as-is.
       const enrichedEntries = tpl.entries.map((e: { text: string; station: string; section: string; prep_item_id?: string | null }) => ({
         ...e,
         default_quantity: e.prep_item_id ? (prepMap.get(e.prep_item_id) ?? null) : null,
@@ -60,7 +65,7 @@ export function useTodayTasks(dateOffset: number, stationFilter: string) {
       const batch = buildTasksFromTemplate(enrichedEntries, selectedDate, tpl.id);
       const created = await createTasksBatch(batch).catch(() => null);
       if (cancelled) return;
-      setTasks(created || []);
+      setTasks(created || rows);
     }).catch(() => { if (!cancelled) setTasks([]); }).finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [selectedDate]);
