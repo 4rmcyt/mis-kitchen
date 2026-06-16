@@ -21,3 +21,4 @@ export { subscribePush, sendPushNotification, getPushSubscriptionCount } from '.
 export { getImprovementLogs, addImprovementLog, deleteImprovementLog } from './improvements.js';
 export { getShifts, createShift, deleteShift, getTodayShifts } from './shifts.js';
 export { getTempLogs, logTemperature } from './temp_logs.js';
+export { getPrepItems, getPrepItemsMap } from './prep_items.js';

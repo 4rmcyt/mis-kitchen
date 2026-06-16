@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   getTasks, createTask, createTasksBatch, completeTask,
   uncompleteTask, commentTask, deleteTask, getDefaultDayTemplate,
-  getShiftExperiment, getImprovementLogs,
+  getShiftExperiment, getImprovementLogs, getPrepItemsMap,
 } from '../../lib/supabase.js';
 import { SECTIONS } from '../../lib/constants.js';
 import { filterByStation, groupBySection, calcProgress, buildTasksFromTemplate } from '../../domain/tasks.js';
@@ -40,13 +40,24 @@ export function useTodayTasks(dateOffset: number, stationFilter: string) {
         setTasks([]);
         return;
       }
-      const tpl = await getDefaultDayTemplate().catch(() => null);
+      const [tpl, prepMap] = await Promise.all([
+        getDefaultDayTemplate().catch(() => null),
+        getPrepItemsMap().catch(() => new Map<string, number | null>()),
+      ]);
       if (cancelled) return;
       if (!tpl || !tpl.entries?.length) {
         setTasks([]);
         return;
       }
-      const batch = buildTasksFromTemplate(tpl.entries, selectedDate, tpl.id);
+      // Enrich entries that carry prep_item_id with current default_quantity from the
+      // catalog. The upsert is idempotent (ignoreDuplicates), so if a task already exists
+      // for the day, the quantity stays as-is — changing the catalog default does NOT
+      // retro-update today's already-generated tasks (only tomorrow's picks it up).
+      const enrichedEntries = tpl.entries.map((e: { text: string; station: string; section: string; prep_item_id?: string | null }) => ({
+        ...e,
+        default_quantity: e.prep_item_id ? (prepMap.get(e.prep_item_id) ?? null) : null,
+      }));
+      const batch = buildTasksFromTemplate(enrichedEntries, selectedDate, tpl.id);
       const created = await createTasksBatch(batch).catch(() => null);
       if (cancelled) return;
       setTasks(created || []);

@@ -19,6 +19,12 @@ export async function getPrepItems(): Promise<PrepItem[]> {
   return data as PrepItem[];
 }
 
+/** Returns a Map<id, default_quantity> for fast lookup during generation. */
+export async function getPrepItemsMap(): Promise<Map<string, number | null>> {
+  const items = await getPrepItems();
+  return new Map(items.map(i => [i.id, i.default_quantity]));
+}
+
 export async function createPrepItem(payload: {
   name: string;
   station: string;
