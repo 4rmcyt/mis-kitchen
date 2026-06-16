@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { usePrepTasks, type PrepTask } from "../hooks/features/usePrepTasks.js";
+import { usePrepStats, type Period } from "../hooks/features/usePrepStats.js";
+import type { ByPrepEntry } from "../domain/prep_stats.js";
 
 function CheckIcon() {
   return <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><polyline points="2,7 5.5,10.5 12,3" stroke="#F97316" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>;
@@ -55,21 +57,15 @@ function QtyInput({ task, onSave }: { task: PrepTask; onSave: (id: string, qty: 
   );
 }
 
-export function PrepScreen() {
+function PrepList() {
   const { tasks, loading, toggle, setQuantity } = usePrepTasks();
-
-  const done = tasks.filter(t => t.done).length;
+  const done  = tasks.filter(t => t.done).length;
   const total = tasks.length;
 
   return (
-    <div className="screen">
-      <div className="screen-header">
-        <div>
-          <div className="screen-title">Prep</div>
-          <div className="screen-sub">
-            {total > 0 ? `${done} / ${total} done` : 'No prep tasks today'}
-          </div>
-        </div>
+    <>
+      <div className="screen-sub">
+        {total > 0 ? `${done} / ${total} done` : 'No prep tasks today'}
       </div>
 
       {loading && <div className="loading-msg">Loading…</div>}
@@ -101,6 +97,67 @@ export function PrepScreen() {
           )}
         </div>
       )}
+    </>
+  );
+}
+
+function PrepItemStatRow({ entry }: { entry: ByPrepEntry }) {
+  return (
+    <div className="prep-stat-row">
+      <div className="prep-stat-name">{entry.prep_item_name}</div>
+      <div className="prep-stat-counts">
+        <span className="prep-stat-tasks">{entry.total_tasks}×</span>
+        {entry.total_units > 0 && <span className="prep-stat-units">{entry.total_units} u</span>}
+      </div>
+    </div>
+  );
+}
+
+function PrepStatsList() {
+  const [period, setPeriod] = useState<Period>('week');
+  const { data, loading, error } = usePrepStats(period);
+
+  return (
+    <>
+      <div className="prep-stats-toolbar">
+        <button className={`period-btn${period === 'week' ? ' active' : ''}`} onClick={() => setPeriod('week')}>Week</button>
+        <button className={`period-btn${period === 'month' ? ' active' : ''}`} onClick={() => setPeriod('month')}>Month</button>
+      </div>
+
+      {loading && <div className="loading-msg">Loading…</div>}
+      {error   && <div className="prep-empty-msg" style={{ color: '#EF4444' }}>{error}</div>}
+
+      {!loading && !error && data && data.byPrep.length === 0 && (
+        <div className="prep-empty-msg">No prep data yet.</div>
+      )}
+
+      {!loading && !error && data && data.byPrep.length > 0 && (
+        <div className="prep-stats-list">
+          {data.byPrep.map(e => <PrepItemStatRow key={e.prep_item_id} entry={e} />)}
+        </div>
+      )}
+    </>
+  );
+}
+
+type PrepTab = 'today' | 'stats';
+
+export function PrepScreen() {
+  const [activeTab, setActiveTab] = useState<PrepTab>('today');
+
+  return (
+    <div className="screen">
+      <div className="screen-header">
+        <div className="screen-title">Prep</div>
+      </div>
+
+      <div className="prep-screen-tabs">
+        <button className={`prep-screen-tab${activeTab === 'today' ? ' active' : ''}`} onClick={() => setActiveTab('today')}>Today</button>
+        <button className={`prep-screen-tab${activeTab === 'stats' ? ' active' : ''}`} onClick={() => setActiveTab('stats')}>My stats</button>
+      </div>
+
+      {activeTab === 'today' && <PrepList />}
+      {activeTab === 'stats' && <PrepStatsList />}
     </div>
   );
 }

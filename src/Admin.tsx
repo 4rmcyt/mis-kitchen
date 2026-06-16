@@ -18,6 +18,7 @@ const ImprovementsTab = lazy(() => import("./admin/tabs/ImprovementsTab.js").the
 const RotaTab         = lazy(() => import("./admin/tabs/RotaTab.js").then(m => ({ default: m.RotaTab })))
 const PrepBoardTab    = lazy(() => import("./admin/tabs/PrepBoardTab.js").then(m => ({ default: m.PrepBoardTab })))
 const PrepItemsTab    = lazy(() => import("./admin/tabs/PrepItemsTab.js").then(m => ({ default: m.PrepItemsTab })))
+const PrepStatsTab    = lazy(() => import("./admin/tabs/PrepStatsTab.js").then(m => ({ default: m.PrepStatsTab })))
 
 interface Me {
   name: string | null;
@@ -54,6 +55,7 @@ export default function Admin() {
     { id:'people',       label:'People',     icon:'👥' },
     { id:'prep',         label:'Prep',       icon:'📋' },
     { id:'prep-items',   label:'Prep Items', icon:'🗂'  },
+    { id:'prep-stats',   label:'Prep Stats', icon:'📊' },
     { id:'tasks',        label:'Tasks',      icon:'✓'  },
     { id:'recipes',      label:'Recipes',  icon:'⚗'  },
     { id:'reports',      label:'Reports',  icon:'📊' },
@@ -112,6 +114,7 @@ export default function Admin() {
           {tab === 'people'       && <PeopleTab/>}
           {tab === 'prep'         && <PrepBoardTab/>}
           {tab === 'prep-items'   && <PrepItemsTab/>}
+          {tab === 'prep-stats'   && <PrepStatsTab/>}
           {tab === 'tasks'        && <TasksTab/>}
           {tab === 'recipes'      && <RecipesTab/>}
           {tab === 'reports'      && <ReportsTab/>}

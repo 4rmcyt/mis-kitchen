@@ -1001,6 +1001,17 @@ export type Database = {
       get_user_restaurant: { Args: never; Returns: string }
       get_user_role: { Args: never; Returns: string }
       is_admin: { Args: never; Returns: boolean }
+      get_prep_stats: {
+        Args: { p_start: string; p_end: string }
+        Returns: Array<{
+          done_by_id: string
+          done_by_name: string | null
+          prep_item_id: string
+          prep_item_name: string
+          cnt: number
+          qty_sum: number
+        }>
+      }
     }
     Enums: {
       [_ in never]: never

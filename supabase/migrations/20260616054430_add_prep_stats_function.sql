@@ -1,0 +1,2 @@
+-- Superseded by 20260616054537_fix_prep_stats_function_date_args.sql
+-- (original used period text; replaced with explicit date range p_start/p_end)
