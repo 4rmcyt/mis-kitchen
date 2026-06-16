@@ -9,6 +9,7 @@ const RecipesScreen = lazy(() => import("./screens/RecipesScreen.js").then(m => 
 const LineupScreen  = lazy(() => import("./screens/LineupScreen.js").then(m => ({ default: m.LineupScreen })))
 const TempScreen    = lazy(() => import("./screens/TempScreen.js").then(m => ({ default: m.TempScreen })))
 const TimerScreen   = lazy(() => import("./screens/TimerScreen.js").then(m => ({ default: m.TimerScreen })))
+const PrepScreen    = lazy(() => import("./screens/PrepScreen.js").then(m => ({ default: m.PrepScreen })))
 
 export default function App({ userRole, userStation = 'Common', userId = null }: { userRole: Role | null; userStation?: Station | string; userId?: string | null }) {
   const [tab, setTab] = useState('today');
@@ -37,6 +38,7 @@ export default function App({ userRole, userStation = 'Common', userId = null }:
         <main className="app-main">
           {tab==='today' && <TodayScreen userStation={userStation} userRole={userRole} userId={userId}/>}
           <Suspense fallback={<div className="loading-msg">Loading…</div>}>
+            {tab==='prep'    && <PrepScreen/>}
             {tab==='lineup'  && <LineupScreen/>}
             {tab==='recipes' && <RecipesScreen/>}
             {tab==='temp'    && <TempScreen/>}
@@ -47,6 +49,10 @@ export default function App({ userRole, userStation = 'Common', userId = null }:
           <button className={`nav-btn ${tab==='today'?'active':''}`} onClick={() => setTab('today')}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
             <span className="nav-label">Today</span>
+          </button>
+          <button className={`nav-btn ${tab==='prep'?'active':''}`} onClick={() => setTab('prep')}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            <span className="nav-label">Prep</span>
           </button>
           <button className={`nav-btn ${tab==='lineup'?'active':''}`} onClick={() => setTab('lineup')}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0-3-3.85"/></svg>
