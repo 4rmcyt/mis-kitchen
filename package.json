@@ -19,11 +19,11 @@
     "test:invite:ui": "E2E_HEADLESS=false cucumber-js --profile invite"
   },
   "dependencies": {
-    "@sentry/react": "^10.56.0",
-    "@supabase/supabase-js": "^2.108.0",
+    "@sentry/react": "^10.59.0",
+    "@supabase/supabase-js": "^2.108.2",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "react-router-dom": "^7.17.0"
+    "react-router-dom": "^7.18.0"
   },
   "devDependencies": {
     "@cucumber/cucumber": "^13.0.0",
