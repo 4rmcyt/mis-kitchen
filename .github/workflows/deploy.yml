@@ -18,7 +18,7 @@ jobs:
     name: Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6.0.3
+      - uses: actions/checkout@v7.0.0
 
       - uses: pnpm/action-setup@v5
         with: { version: "${{ env.PNPM_VERSION }}" }
@@ -47,7 +47,7 @@ jobs:
         environment: ${{ github.ref == 'refs/heads/main' && fromJson('["prod"]') || fromJson('["staging"]') }}
 
     steps:
-      - uses: actions/checkout@v6.0.3
+      - uses: actions/checkout@v7.0.0
 
       - uses: pnpm/action-setup@v5
         with: { version: "${{ env.PNPM_VERSION }}" }
@@ -82,7 +82,7 @@ jobs:
     needs: build
 
     steps:
-      - uses: actions/checkout@v6.0.3
+      - uses: actions/checkout@v7.0.0
 
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v2.1.1
@@ -111,7 +111,7 @@ jobs:
     needs: migrate
 
     steps:
-      - uses: actions/checkout@v6.0.3
+      - uses: actions/checkout@v7.0.0
 
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v2.1.1
@@ -148,7 +148,7 @@ jobs:
     needs: [build, deploy-functions]
 
     steps:
-      - uses: actions/checkout@v6.0.3
+      - uses: actions/checkout@v7.0.0
 
       - uses: pnpm/action-setup@v5
         with: { version: "${{ env.PNPM_VERSION }}" }
