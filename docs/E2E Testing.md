@@ -35,6 +35,9 @@ pnpm test:invite:ui     # invite headed
 
 ## Features
 
+Feature paths per profile are pinned in `cucumber.json` (`default` lists them
+explicitly; `mobile` = `layout.feature`; `invite` = `invite_onboarding.feature`).
+
 | File | Scenarios | Profile |
 |---|---|---|
 | auth.feature | Admin login, Cook login, Invalid credentials | default |
@@ -42,21 +45,22 @@ pnpm test:invite:ui     # invite headed
 | add_task.feature | Open modal, add manual task, button visible | default |
 | recipes.feature | Load, search, open detail, multiplier | default |
 | lineup.feature | Grouped by station, station count | default |
+| admin.feature | Admin panel loads, tab navigation | default |
 | admin_templates.feature | Create, add entry, delete template | default |
 | admin_recipes.feature | Admin sees recipes | default |
 | velocity.feature | Velocity heatmap renders | default |
 | rota.feature | Rota grid renders | default |
 | improvements.feature | Improvement log | default |
 | skills.feature | T-shaped skills matrix | default |
+| report.feature | End-of-shift report flow | default |
 | push.feature | Push subscription (stale — audit pending #88) | default |
-| report_gate.feature | Progress ring, add task button (stale — audit pending #88) | default |
 | layout.feature | Bottom nav visible, station pills, header logout | mobile |
 | invite_onboarding.feature | Generate link, invite by email, onboarding | invite |
 
 ## CI
 
-- Lint runs as pre-push git hook locally
-- Full E2E runs in GitHub Actions after every deploy to staging
+- `scripts/bootstrap.sh` installs a `pre-commit` lint hook + a `commit-msg` conventional-commits check locally
+- Full E2E runs in GitHub Actions after every deploy to staging (`ci.yml`: deploy → e2e → e2e-invite)
 - Both desktop and mobile profiles run in `e2e.yml`
 - Invite profile runs in `e2e-invite.yml`
 - HTML report uploaded as artifact (14 day retention)

@@ -38,6 +38,7 @@ Set at: **GitHub → repo → Settings → Secrets and variables → Actions**
 | `CLOUDFLARE_ACCOUNT_ID` | CF account ID | dash.cloudflare.com → top right |
 | `VITE_SUPABASE_ANON_KEY` | Supabase anon key | Supabase dashboard → Project → API |
 | `VITE_VAPID_PUBLIC_KEY` | VAPID public key for Web Push | from `.env` / VAPID key pair |
+| `VITE_SENTRY_DSN` | Sentry DSN (build-time, optional) | sentry.io → project settings |
 | `SUPABASE_ACCESS_TOKEN` | Supabase CLI token | supabase.com → Account → Access Tokens |
 | `SUPABASE_PROJECT_REF_STG` | Staging project ref | Supabase dashboard → project settings |
 | `SUPABASE_PROJECT_REF_PROD` | Production project ref | Supabase dashboard → project settings |
@@ -51,10 +52,16 @@ Set at: **GitHub → repo → Settings → Secrets and variables → Actions**
 | `TEST_COOK_PASSWORD` | Cook test account password | created dynamically in E2E |
 | `MAILTRAP_API_TOKEN` | Mailtrap API token (invite E2E) | mailtrap.io → API |
 | `MAILTRAP_INBOX_ID` | Mailtrap inbox ID (invite E2E) | mailtrap.io → inbox settings |
-| `RESEND_API_KEY` | Resend API key (monitor alerts) | resend.com → API Keys |
-| `ALERT_EMAIL` | Email address for monitor alerts | any email |
-| `TELEGRAM_BOT_TOKEN` | Telegram bot token (monitor alerts) | @BotFather |
-| `TELEGRAM_CHAT_ID` | Telegram chat ID (monitor alerts) | @userinfobot |
+
+> The health-monitor workflow (Telegram / `ALERT_EMAIL` alerts) was removed — see
+> Roadmap #55. `RESEND_API_KEY` now lives only as a Supabase Edge Function secret
+> (below), not a GitHub secret.
+
+### Terraform secrets
+
+`terraform.yml` additionally needs `TF_VAR_cloudflare_api_token`,
+`TF_VAR_cloudflare_account_id`, `TF_VAR_cloudflare_zone_id`, and
+`R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` for the state backend.
 
 ### Variables (non-secret)
 

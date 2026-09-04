@@ -12,11 +12,12 @@ User accounts. Created by `handle_new_user()` trigger on auth.users insert.
 | name | text | |
 | email | text | |
 | role | text | cook / admin / superadmin |
-| station | text | Common / Garmo / Rolls / Pans / Grill / Tandoor |
-| secondary_station | text | nullable — T-shaped skill (secondary station) |
+| station | text | Common / Garmo / Rolls / Pans / Grill / Tandoor (default `'All'`) |
+| secondary_stations | text[] | `NOT NULL DEFAULT '{}'` — T-shaped skill coverage (migration `20260526230713`) |
 | active | boolean | default true |
-| last_seen | timestamptz | updated by trigger |
-| password_set | boolean | false until user sets password on onboarding |
+| last_seen | timestamptz | updated by `update_last_seen()` trigger |
+| joined_at | timestamptz | default now() |
+| password_set | boolean | `NOT NULL DEFAULT false` until user sets password on onboarding |
 
 ### invites
 | Column | Type | Notes |
@@ -149,6 +150,21 @@ Temperature log entries.
 | temperature | numeric | |
 | recorded_at | timestamptz | |
 
+### prep_items
+Prep item catalog (migration `20260615191412`). Cooks read; admins CRUD.
+
+| Column | Type | Notes |
+|---|---|---|
+| id | uuid | PK |
+| restaurant_id | uuid | FK → restaurants |
+| name | text | `UNIQUE (restaurant_id, name)` |
+| station | text | default `'Common'` |
+| default_quantity | int | nullable — seeded into `tasks.quantity` at generation time |
+| active | boolean | `NOT NULL DEFAULT true` |
+
+Same migration adds `tasks.prep_item_id` (FK → prep_items, `ON DELETE SET NULL`) and
+`tasks.quantity` (int, nullable).
+
 ### station_velocity (view)
 Aggregated task completion stats per station per day-of-week. Used by VelocityTab.
 Defined in migration `20260526235301` with `SECURITY INVOKER`.
@@ -180,29 +196,37 @@ The `tasks_insert` RLS policy only checks `restaurant_id`. The trigger adds:
 - **Cooks**: `done_by` must be `auth.uid()` or `NULL`. Inserting with a foreign `done_by` raises a permission error.
 - If `done = true` and `done_by IS NULL`, `done_by` is automatically set to `auth.uid()`.
 
-### UPDATE (`enforce_task_update_columns` trigger — migration `20260610180529`)
+### UPDATE (`enforce_task_update_columns` trigger — migration `20260610180529`, extended by `20260612191450` + `20260615191412`)
 
 The `tasks_update` RLS policy allows any authenticated user in the same restaurant to issue
 an UPDATE. Column-level enforcement:
 
 - **Admins / superadmins**: may update any column.
-- **Cooks**: may only change `done`, `done_at`, `done_by`, `comment`.
-  Attempting to change `text`, `station`, `section`, `date`, `source`, `template_id`,
-  `day_template_id`, `restaurant_id`, or `created_by` raises a permission error.
-- **done_by**: forced to `auth.uid()` or `NULL` for non-admins — prevents attributing
-  completions to other users (which would corrupt `station_velocity` stats).
+- **Service role** (`auth.uid() IS NULL`): allowed through, consistent with the INSERT trigger.
+- **Cooks**: may only change `done`, `done_at`, `done_by`, `comment`, and `quantity`.
+  Changing `text`, `station`, `section`, `date`, `source`, `template_id`, `restaurant_id`,
+  `created_by`, `assigned_to`, or `prep_item_id` raises a permission error.
+- **quantity**: editable by a cook only while `done = false`.
+- **done_by**: forced to `auth.uid()` for non-admins — prevents attributing completions to
+  other users (which would corrupt `station_velocity` stats).
 
 ## RLS Functions
 
 All functions: `SECURITY DEFINER`, `SET search_path = ''`, must use `public.` prefix internally.
 
 ```sql
-public.get_user_restaurant() → uuid
-public.get_user_role()       → text
-public.is_admin()            → boolean
-public.update_last_seen()    → trigger
-public.handle_new_user()     → trigger (requires valid invite row)
+public.get_user_restaurant()          → uuid
+public.get_user_role()                → text
+public.is_admin()                     → boolean
+public.update_last_seen()             → trigger
+public.handle_new_user()              → trigger (requires a valid, unused invite row)
+public.enforce_task_insert_done_by()  → trigger  (see Task Integrity Rules)
+public.enforce_task_update_columns()  → trigger  (see Task Integrity Rules)
+public.get_prep_stats(p_start date, p_end date) → table  (SECURITY DEFINER RPC, migration 20260616054537)
 ```
+
+`EXECUTE` on the trigger functions is revoked from `anon` / `authenticated`
+(migrations `20260627000000`, `5f0baf9`); they only run as triggers.
 
 ## Migrations
 

@@ -76,31 +76,38 @@ Imports flow **top → bottom only**. Lower layers must not import from upper la
 
 ```
 src/
-  main.jsx              — root: useAuth() + routing
-  App.jsx               — user app tab routing
-  Admin.jsx             — admin layout + tab routing
-  domain/               — pure business logic (no I/O)
+  main.tsx              — root: dependency-free ErrorBoundary + deferred Sentry.init + useAuth() gate + routing
+  App.tsx               — cook app, 6-tab bottom nav (Today / Prep / Lineup / Recipes / Temp / Timers)
+  Admin.tsx             — admin layout, 11 lazy-loaded tabs + responsive bottom nav
+  domain/               — pure business logic (no I/O), each exported fn has a *.test.ts
     tasks.ts            — filterByStation, groupBySection, calcProgress, buildTasksFromTemplate
     invites.ts          — inviteExpiresAt, buildLinkInvitePayload, buildEmailInvitePayload
+    recipes.ts          — scaleAmount   ·  ownership.ts — selectOwnedTasks
+    prep_stats.ts       — groupByPerson, groupByPrepItem   ·  allergens.ts — offTagsToSlugs
+    datetime.ts         — localDayUtcBounds   ·  sheets.ts — parseSheetCsv (Google Sheets import)
     *.test.ts           — vitest unit tests (pnpm test)
   hooks/
     useAuth.ts          — session, onboarding, password reset
     features/           — feature hooks (controllers)
       useTodayTasks.ts  — task loading, filtering, toggle/comment/delete
+      usePrepTasks.ts / usePrepBoard.ts / usePrepItemsTab.ts / usePrepStats.ts
       usePeopleTab.ts   — users, invite, role/station management
-  screens/              — TodayScreen, RecipesScreen, LineupScreen
+  screens/              — TodayScreen, PrepScreen, RecipesScreen, LineupScreen, TempScreen, TimerScreen
   components/           — AddTaskModal, ReportModal
-  admin/tabs/           — PeopleTab, TasksTab, RecipesTab, ReportsTab, PushTab
+  admin/tabs/           — PeopleTab, PrepBoardTab, PrepItemsTab, PrepStatsTab, TasksTab, RecipesTab,
+                          ReportsTab, VelocityTab, ImprovementsTab, RotaTab, PushTab
   admin/components/     — Toast, Confirm, Avatar, Badge, PctBar, Modal
   lib/
     supabase.ts         — re-export barrel
-    client.ts / auth.ts / tasks.ts / recipes.ts / templates.ts
-    reports.ts / push.ts / invites.ts / profiles.ts
+    client.ts / auth.ts / tasks.ts / recipes.ts / templates.ts / reports.ts
+    push.ts / invites.ts / profiles.ts / prep_items.ts / prep_stats.ts
+    shifts.ts / temp_logs.ts / allergens.ts / improvements.ts / sheets.ts
     constants.ts        — STATIONS, SECTIONS, colors, role labels
 
 supabase/
   migrations/           — SQL stubs (always committed after MCP apply)
-  functions/            — send-invite, accept-invite, send-report, send-push
+  functions/            — send-invite, accept-invite, send-report, send-push,
+                          push-sync + push-webhook (Push Operations HR/schedule integration)
 
 e2e/
   features/             — Cucumber .feature files
@@ -134,8 +141,9 @@ Both `test:e2e` and `test:mobile` run in CI (`e2e.yml`) after every deploy.
 
 ## Stack
 
-- React 18 + Vite → Cloudflare Pages
-- Supabase (PostgreSQL + PostgREST + GoTrue + Edge Functions)
+- React 19 + Vite 8 (TypeScript, SPA) → Cloudflare Pages
+- Supabase (PostgreSQL + PostgREST + GoTrue + Edge Functions / Deno)
+- Push: Web Push API + VAPID (`send-push`); Sentry for errors (lazy-loaded)
 - E2E: Cucumber.js + Playwright against staging
-- CI: GitHub Actions (`deploy.yml` → `e2e.yml`)
+- CI: GitHub Actions — `ci.yml` orchestrates `deploy.yml` → `e2e.yml` → `e2e-invite.yml`
 - Supabase project (staging): `nlvuqcvjlkgybvcpiqzn`
