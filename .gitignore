@@ -28,3 +28,6 @@ docs/.obsidian/
 .DS_Store
 Thumbs.db
 e2e/reports/
+
+# Local MCP config (symlink to personal config with tokens)
+.mcp.json
